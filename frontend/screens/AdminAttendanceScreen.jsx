@@ -1,0 +1,676 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  FlatList, ActivityIndicator, Alert, Platform, Modal, ScrollView,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AppLayout from '../components/AppLayout';
+import api from '../api/api';
+
+const REJECT_REASONS_ATTENDANCE = [
+  'Location not verified',
+  'Time discrepancy',
+  'Late comer',
+  'Not informed',
+  'Fraudulent check-in attempt',
+  'Other',
+];
+
+const REJECT_REASONS_LEAVE = [
+  'No leave available',
+  'Urgent project ongoing',
+  'Inadequate reason',
+  'Team short-staffed',
+  'Other',
+];
+
+const STATUS_CONFIG = {
+  'Pending Check-In':  { color: '#f59e0b', bg: '#fffbeb', label: 'Pending Check-In',  icon: 'time-outline' },
+  'Checked In':        { color: '#22c55e', bg: '#f0fdf4', label: 'Checked In (Active)', icon: 'checkmark-circle-outline' },
+  'Pending Check-Out': { color: '#3b82f6', bg: '#eff6ff', label: 'Pending Check-Out', icon: 'time-outline' },
+  'Checked Out':       { color: '#64748b', bg: '#f8fafc', label: 'Checked Out',        icon: 'log-out-outline' },
+  'Pending Leave':     { color: '#a855f7', bg: '#faf5ff', label: 'Leave Pending',      icon: 'time-outline' },
+  'On Leave':          { color: '#8b5cf6', bg: '#f5f3ff', label: 'On Leave',           icon: 'umbrella-outline' },
+  'Rejected Check-In': { color: '#ef4444', bg: '#fef2f2', label: 'Check-In Rejected',  icon: 'close-circle-outline' },
+  'Rejected Check-Out':{ color: '#ef4444', bg: '#fef2f2', label: 'Check-Out Rejected', icon: 'close-circle-outline' },
+  'Rejected Leave':    { color: '#ef4444', bg: '#fef2f2', label: 'Leave Rejected',     icon: 'close-circle-outline' },
+  'Held in Queue':     { color: '#eab308', bg: '#fefce8', label: 'In Queue',           icon: 'pause-circle-outline' },
+  'Leave Held in Queue':{color: '#eab308', bg: '#fefce8', label: 'Leave In Queue',     icon: 'pause-circle-outline' },
+  Absent:              { color: '#ef4444', bg: '#fef2f2', label: 'Absent',             icon: 'close-circle-outline' },
+};
+
+const isPendingStatus = (s) => s === 'Pending Check-In' || s === 'Pending Check-Out' || s === 'Pending Leave';
+const isHeld = (r) => r.checkInStatus === 'Held' || r.checkOutStatus === 'Held' || r.leaveStatus === 'Held';
+const isPending = (r) => isPendingStatus(r.status) && !isHeld(r);
+
+export default function AdminAttendanceScreen() {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchDate, setSearchDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [mainTab, setMainTab] = useState('Queue');   // 'Queue' | 'History' | 'Location'
+
+  // Reject modal state
+  const [rejectModal, setRejectModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedReason, setSelectedReason] = useState('');
+  const [customReason, setCustomReason] = useState('');
+  const [actionLoading, setActionLoading] = useState(null); // record id
+
+  // Live locations
+  const [locations, setLocations] = useState([]);
+  const [loadingLocs, setLoadingLocs] = useState(false);
+
+  const fetchAttendance = useCallback(async (showRefresh = false) => {
+    try {
+      if (showRefresh) setRefreshing(true);
+      else setLoading(true);
+      const params = {};
+      if (searchDate) params.date = searchDate;
+      const res = await api.get('/attendance', { params });
+      setRecords(res.data.data || []);
+    } catch {
+      Alert.alert('Error', 'Could not load attendance records.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [searchDate]);
+
+  useEffect(() => { fetchAttendance(); }, []);
+  useEffect(() => {
+    if (searchDate.length === 10 || searchDate.length === 0) fetchAttendance();
+  }, [searchDate]);
+  useEffect(() => {
+    if (mainTab === 'Location') fetchLiveLocations();
+  }, [mainTab]);
+
+  const fetchLiveLocations = async () => {
+    try {
+      setLoadingLocs(true);
+      const res = await api.get('/locations/latest');
+      setLocations(res.data.data || []);
+    } catch { Alert.alert('Error', 'Unable to load live locations.'); }
+    finally { setLoadingLocs(false); }
+  };
+
+  const openInMap = (lat, lng) => {
+    if (!lat || !lng) { Alert.alert('No coordinates available'); return; }
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    if (Platform.OS === 'web') window.open(url, '_blank');
+    else require('react-native').Linking.openURL(url).catch(() => {});
+  };
+
+  // --- Approve ---
+  const handleApprove = async (record) => {
+    setActionLoading(record._id);
+    try {
+      await api.put(`/attendance/${record._id}/approve`);
+      Alert.alert('✅ Approved', `Attendance for ${record.executive?.name} approved successfully.`);
+      fetchAttendance();
+    } catch (e) {
+      Alert.alert('Error', e?.response?.data?.message || 'Could not approve.');
+    } finally { setActionLoading(null); }
+  };
+
+  // --- Hold ---
+  const handleHold = async (record) => {
+    setActionLoading(record._id);
+    try {
+      await api.put(`/attendance/${record._id}/hold`);
+      Alert.alert('⏸️ Held in Queue', `Request for ${record.executive?.name} moved to queue.`);
+      fetchAttendance();
+    } catch (e) {
+      Alert.alert('Error', e?.response?.data?.message || 'Could not put on hold.');
+    } finally { setActionLoading(null); }
+  };
+
+  // --- Reject ---
+  const openRejectModal = (record) => {
+    setSelectedRecord(record);
+    setSelectedReason('');
+    setCustomReason('');
+    setRejectModal(true);
+  };
+
+  const handleReject = async () => {
+    const reason = selectedReason === 'Other' ? customReason : selectedReason;
+    if (!reason) { Alert.alert('Please select a reason.'); return; }
+    setActionLoading(selectedRecord._id);
+    setRejectModal(false);
+    try {
+      await api.put(`/attendance/${selectedRecord._id}/reject`, { feedback: reason });
+      Alert.alert('❌ Rejected', `Attendance for ${selectedRecord.executive?.name} rejected.`);
+      fetchAttendance();
+    } catch (e) {
+      Alert.alert('Error', e?.response?.data?.message || 'Could not reject.');
+    } finally { setActionLoading(null); }
+  };
+
+  const formatTime = (d) => d ? new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
+  
+  const formatDateWithDay = (dateStr) => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Derived lists
+  const safeRecords = Array.isArray(records) ? records : [];
+  const queue   = safeRecords.filter((r) => isPending(r));
+  const held    = safeRecords.filter((r) => isHeld(r));
+  const history = safeRecords.filter((r) => !isPending(r) && !isHeld(r));
+
+  const isLeaveRecord = (item) => item.status === 'Pending Leave' || item.status === 'On Leave' || item.status === 'Rejected Leave' || !!item.leaveType;
+
+  const renderCard = ({ item }) => {
+    let cfg = STATUS_CONFIG[item.status] || { color: '#94a3b8', bg: '#f8fafc', label: item.status, icon: 'help-circle-outline' };
+    if (isHeld(item)) {
+      cfg = STATUS_CONFIG[isLeaveRecord(item) ? 'Leave Held in Queue' : 'Held in Queue'];
+    }
+    const isLoading = actionLoading === item._id;
+    const isActionable = isPending(item) || isHeld(item);
+    const isLeave = isLeaveRecord(item);
+
+    // Employee name fallback chain
+    const empName = item.executive?.name || item.executiveName || 'Employee';
+    const empId = item.executive?.employeeId || item.executive?.employeeID || '';
+    const empDesig = item.executive?.designation || '';
+    const empEmail = item.executive?.email || '';
+
+    return (
+      <View style={[styles.card, { borderLeftColor: cfg.color, borderLeftWidth: 4 }]}>
+
+        {/* ── Employee Header ── */}
+        <View style={styles.cardTop}>
+          <View style={[styles.avatar, { backgroundColor: cfg.color + '22' }]}>
+            <Text style={[styles.avatarText, { color: cfg.color }]}>
+              {empName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardName}>{empName}</Text>
+            <Text style={styles.cardSub}>
+              {empId ? `ID: ${empId}  ·  ` : ''}{empDesig || empEmail || 'Field Executive'}
+            </Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: cfg.bg, borderColor: cfg.color + '50' }]}>
+            <Ionicons name={cfg.icon} size={11} color={cfg.color} />
+            <Text style={[styles.badgeText, { color: cfg.color }]}>{cfg.label}</Text>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* ── Leave Card Content ── */}
+        {isLeave ? (
+          <View>
+            <View style={[styles.infoBox, { backgroundColor: '#faf5ff', borderColor: '#d8b4fe' }]}>
+              <Text style={[styles.infoLabel, { color: '#7c3aed' }]}>🌿 Leave Request</Text>
+              <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.timeLabel}>TYPE</Text>
+                  <Text style={[styles.timeVal, { color: '#7c3aed' }]}>{item.leaveType || '—'}</Text>
+                </View>
+                <View style={{ flex: 1.5 }}>
+                  <Text style={styles.timeLabel}>DATE</Text>
+                  <Text style={[styles.timeVal, { color: '#7c3aed' }]}>{formatDateWithDay(item.date)}</Text>
+                </View>
+              </View>
+              {item.leaveReason ? (
+                <View style={{ marginTop: 10 }}>
+                  <Text style={styles.timeLabel}>REASON</Text>
+                  <Text style={[styles.infoText, { marginTop: 4 }]}>{item.leaveReason}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            {item.adminFeedback ? (
+              <View style={[styles.infoBox, { backgroundColor: '#fef2f2', borderColor: '#fecaca' }]}>
+                <Text style={styles.infoLabel}>❌ Rejection Reason</Text>
+                <Text style={styles.infoText}>{item.adminFeedback}</Text>
+              </View>
+            ) : null}
+
+            {/* Leave buttons: Approve + Reject only */}
+            {isActionable ? (
+              <View style={[styles.actionRow, { marginTop: 12 }]}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.approveBtn]}
+                  onPress={() => handleApprove(item)}
+                  disabled={isLoading}
+                  activeOpacity={0.8}
+                >
+                  {isLoading ? <ActivityIndicator size="small" color="#fff" /> : (
+                    <>
+                      <Ionicons name="checkmark-circle-outline" size={16} color="#fff" />
+                      <Text style={styles.actionBtnText}>Approve</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.rejectBtn]}
+                  onPress={() => openRejectModal(item)}
+                  disabled={isLoading}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="close-circle-outline" size={16} color="#fff" />
+                  <Text style={styles.actionBtnText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+        ) : (
+          /* ── Attendance Card Content ── */
+          <View>
+            {/* Time row */}
+            <View style={styles.timeRow}>
+              {[
+                { label: 'CHECK-IN',  icon: 'log-in-outline',  color: '#0284c7', val: formatTime(item.checkInTime) },
+                { label: 'CHECK-OUT', icon: 'log-out-outline', color: '#ef4444', val: formatTime(item.checkOutTime) },
+                { label: 'DATE',      icon: 'calendar-outline',color: '#7c3aed', val: formatDateWithDay(item.date) },
+              ].map((t) => (
+                <View key={t.label} style={styles.timeBlock}>
+                  <Ionicons name={t.icon} size={13} color={t.color} />
+                  <Text style={styles.timeLabel}>{t.label}</Text>
+                  <Text style={styles.timeVal}>{t.val}</Text>
+                </View>
+              ))}
+            </View>
+
+            {item.workPlan ? (
+              <View style={[styles.infoBox, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd' }]}>
+                <Text style={styles.infoLabel}>📋 Work Plan</Text>
+                <Text style={styles.infoText} numberOfLines={2}>{item.workPlan}</Text>
+              </View>
+            ) : null}
+
+            {item.workSummary ? (
+              <View style={[styles.infoBox, { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}>
+                <Text style={styles.infoLabel}>📝 Work Summary</Text>
+                <Text style={styles.infoText} numberOfLines={2}>{item.workSummary}</Text>
+              </View>
+            ) : null}
+
+            {item.adminFeedback ? (
+              <View style={[styles.infoBox, { backgroundColor: '#fef2f2', borderColor: '#fecaca' }]}>
+                <Text style={styles.infoLabel}>❌ Rejection Reason</Text>
+                <Text style={styles.infoText}>{item.adminFeedback}</Text>
+              </View>
+            ) : null}
+
+            {item.checkInLocation?.latitude ? (
+              <TouchableOpacity
+                style={styles.mapRow}
+                onPress={() => openInMap(item.checkInLocation.latitude, item.checkInLocation.longitude)}
+              >
+                <Ionicons name="location-outline" size={13} color="#0284c7" />
+                <Text style={styles.mapText}>
+                  {Number(item.checkInLocation.latitude).toFixed(4)}, {Number(item.checkInLocation.longitude).toFixed(4)} · View Map →
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+
+            {/* Attendance buttons: Approve + Keep in Queue + Reject */}
+            {isActionable ? (
+              <View style={[styles.actionRow, { marginTop: 12 }]}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.approveBtn]}
+                  onPress={() => handleApprove(item)}
+                  disabled={isLoading}
+                  activeOpacity={0.8}
+                >
+                  {isLoading ? <ActivityIndicator size="small" color="#fff" /> : (
+                    <>
+                      <Ionicons name="checkmark-circle-outline" size={15} color="#fff" />
+                      <Text style={styles.actionBtnText}>Approve</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {isPending(item) ? (
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { backgroundColor: '#eab308' }]}
+                    onPress={() => handleHold(item)}
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="pause-circle-outline" size={15} color="#fff" />
+                    <Text style={styles.actionBtnText}>Queue</Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                <TouchableOpacity
+                  style={[styles.actionBtn, styles.rejectBtn]}
+                  onPress={() => openRejectModal(item)}
+                  disabled={isLoading}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="close-circle-outline" size={15} color="#fff" />
+                  <Text style={styles.actionBtnText}>Reject</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+
+  return (
+    <AppLayout currentScreen="AdminAttendance" role="Admin" scrollable={false}>
+      <View style={styles.container}>
+
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Team Attendance</Text>
+            <Text style={styles.subtitle}>{queue.length} pending approval{queue.length !== 1 ? 's' : ''}</Text>
+          </View>
+          <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchAttendance(true)}>
+            <Ionicons name="refresh" size={18} color="#0284c7" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Main Tabs */}
+        <View style={styles.tabs}>
+          {[
+            { key: 'Queue',    label: `Pending (${queue.length})`, icon: 'time-outline' },
+            { key: 'Held',     label: `Held (${held.length})`,     icon: 'pause-circle-outline' },
+            { key: 'History',  label: 'History',                   icon: 'list-outline' },
+            { key: 'Location', label: 'Live GPS',                  icon: 'location-outline' },
+          ].map((t) => (
+            <TouchableOpacity
+              key={t.key}
+              style={[styles.tab, mainTab === t.key && styles.tabActive]}
+              onPress={() => setMainTab(t.key)}
+            >
+              <Ionicons name={t.icon} size={13} color={mainTab === t.key ? '#0284c7' : '#64748b'} />
+              <Text style={[styles.tabText, mainTab === t.key && styles.tabTextActive]}>{t.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Date Filter (for Queue & History) */}
+        {mainTab !== 'Location' && (
+          <View style={styles.filterRow}>
+            {Platform.OS === 'web' ? (
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="calendar-outline" size={15} color="#64748b" style={{ marginRight: 8 }} />
+                <TextInput
+                  style={[styles.filterInput, { outlineStyle: 'none', flex: 1 }]}
+                  value={searchDate}
+                  onChangeText={setSearchDate}
+                  placeholder="Filter by date (YYYY-MM-DD)"
+                  placeholderTextColor="#94a3b8"
+                  maxLength={10}
+                  keyboardType="numeric"
+                />
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons name="calendar-outline" size={15} color="#64748b" />
+                <Text style={{ color: searchDate ? '#0f172a' : '#94a3b8', fontSize: 14, marginLeft: 8 }}>
+                  {searchDate || 'Filter by date'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {searchDate ? (
+              <TouchableOpacity onPress={() => setSearchDate('')} style={{ paddingLeft: 8 }}>
+                <Ionicons name="close-circle" size={18} color="#94a3b8" />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        )}
+
+        {showDatePicker && Platform.OS !== 'web' && (() => {
+          const DateTimePicker = require('@react-native-community/datetimepicker').default;
+          return (
+            <DateTimePicker
+              value={searchDate ? new Date(searchDate + 'T00:00:00') : new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) setSearchDate(selectedDate.toISOString().split('T')[0]);
+              }}
+            />
+          );
+        })()}
+
+        {/* Content */}
+        {loading ? (
+          <ActivityIndicator color="#0284c7" size="large" style={{ marginTop: 60 }} />
+        ) : mainTab === 'Queue' ? (
+          queue.length === 0 ? (
+            <View style={styles.empty}>
+              <Ionicons name="checkmark-done-circle-outline" size={56} color="#a7f3d0" />
+              <Text style={styles.emptyTitle}>All Clear!</Text>
+              <Text style={styles.emptyText}>No pending attendance requests.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={queue}
+              keyExtractor={(i) => i._id}
+              renderItem={renderCard}
+              refreshing={refreshing}
+              onRefresh={() => fetchAttendance(true)}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+            />
+          )
+        ) : mainTab === 'Held' ? (
+          held.length === 0 ? (
+            <View style={styles.empty}>
+              <Ionicons name="pause-circle-outline" size={56} color="#fde047" />
+              <Text style={styles.emptyTitle}>No Held Requests</Text>
+              <Text style={styles.emptyText}>There are no attendance requests in the queue.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={held}
+              keyExtractor={(i) => i._id}
+              renderItem={renderCard}
+              refreshing={refreshing}
+              onRefresh={() => fetchAttendance(true)}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+            />
+          )
+        ) : mainTab === 'History' ? (
+          history.length === 0 ? (
+            <View style={styles.empty}>
+              <Ionicons name="calendar-outline" size={56} color="#cbd5e1" />
+              <Text style={styles.emptyTitle}>No Records</Text>
+              <Text style={styles.emptyText}>No approved/rejected records yet.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={history}
+              keyExtractor={(i) => i._id}
+              renderItem={renderCard}
+              refreshing={refreshing}
+              onRefresh={() => fetchAttendance(true)}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+            />
+          )
+        ) : (
+          // Live Location tab
+          loadingLocs ? (
+            <ActivityIndicator color="#0284c7" size="large" style={{ marginTop: 60 }} />
+          ) : (
+            <FlatList
+              data={locations}
+              keyExtractor={(i, idx) => i.executive?.toString() || idx.toString()}
+              refreshing={loadingLocs}
+              onRefresh={fetchLiveLocations}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={() => (
+                <View style={styles.empty}>
+                  <Text style={styles.emptyText}>No live locations found.</Text>
+                </View>
+              )}
+              renderItem={({ item }) => (
+                <View style={[styles.card, { borderLeftColor: '#0284c7', borderLeftWidth: 4 }]}>
+                  <View style={styles.cardTop}>
+                    <View style={[styles.avatar, { backgroundColor: '#e0f2fe' }]}>
+                      <Text style={[styles.avatarText, { color: '#0284c7' }]}>
+                        {(item.executiveName || 'U').charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardName}>{item.executiveName || 'Unknown'}</Text>
+                      <Text style={styles.cardSub}>{item.employeeId ? `#${item.employeeId}  ·  ` : ''}{item.designation || ''}</Text>
+                    </View>
+                    <View style={[styles.badge, { backgroundColor: '#e0f2fe', borderColor: '#bae6fd' }]}>
+                      <Text style={[styles.badgeText, { color: '#0284c7' }]}>
+                        {item.latitude ? 'Online' : 'No Signal'}
+                      </Text>
+                    </View>
+                  </View>
+                  {item.latitude && (
+                    <TouchableOpacity style={styles.mapRow} onPress={() => openInMap(item.latitude, item.longitude)}>
+                      <Ionicons name="location-outline" size={13} color="#0284c7" />
+                      <Text style={styles.mapText}>
+                        {item.latitude.toFixed(5)}, {item.longitude.toFixed(5)} · Open in Maps →
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  {item.timestamp && (
+                    <Text style={styles.cardSub}>Updated: {new Date(item.timestamp).toLocaleString()}</Text>
+                  )}
+                </View>
+              )}
+            />
+          )
+        )}
+      </View>
+
+      {/* ── Reject Reason Modal ── */}
+      <Modal visible={rejectModal} transparent animationType="slide" onRequestClose={() => setRejectModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Reject Attendance</Text>
+            <Text style={styles.modalSubtitle}>
+              {selectedRecord?.executive?.name} — {selectedRecord?.status}
+            </Text>
+            <Text style={styles.modalLabel}>Select a reason:</Text>
+            {((selectedRecord?.status || '').includes('Leave') ? REJECT_REASONS_LEAVE : REJECT_REASONS_ATTENDANCE).map((r) => (
+              <TouchableOpacity
+                key={r}
+                style={[styles.reasonBtn, selectedReason === r && styles.reasonBtnActive]}
+                onPress={() => setSelectedReason(r)}
+              >
+                <Ionicons
+                  name={selectedReason === r ? 'radio-button-on' : 'radio-button-off'}
+                  size={16}
+                  color={selectedReason === r ? '#ef4444' : '#94a3b8'}
+                />
+                <Text style={[styles.reasonText, selectedReason === r && { color: '#ef4444', fontWeight: '700' }]}>
+                  {r}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            {selectedReason === 'Other' && (
+              <TextInput
+                style={[styles.customReasonInput, { outlineStyle: 'none' }]}
+                placeholder="Specify reason..."
+                placeholderTextColor="#94a3b8"
+                value={customReason}
+                onChangeText={setCustomReason}
+                multiline
+              />
+            )}
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setRejectModal(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmRejectBtn} onPress={handleReject}>
+                <Ionicons name="close-circle-outline" size={16} color="#fff" />
+                <Text style={styles.confirmRejectText}>Confirm Reject</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </AppLayout>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  title: { fontSize: 22, fontWeight: '800', color: '#0f172a' },
+  subtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  refreshBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#e0f2fe', alignItems: 'center', justifyContent: 'center' },
+
+  tabs: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 14, padding: 4, marginBottom: 14, gap: 4 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 10, gap: 5 },
+  tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 },
+  tabText: { fontSize: 11, fontWeight: '600', color: '#64748b' },
+  tabTextActive: { color: '#0284c7', fontWeight: '700' },
+
+  filterRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 12, height: 44, marginBottom: 14, gap: 8 },
+  filterInput: { flex: 1, color: '#0f172a', fontSize: 14 },
+
+  list: { paddingBottom: 32 },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 80 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#334155', marginTop: 14 },
+  emptyText: { fontSize: 13, color: '#94a3b8', marginTop: 4, textAlign: 'center' },
+
+  card: {
+    backgroundColor: '#fff', borderRadius: 18, padding: 16, marginBottom: 14,
+    borderWidth: 1, borderColor: '#f1f5f9', elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6,
+  },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  avatar: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontWeight: '800', fontSize: 18 },
+  cardName: { fontSize: 15, fontWeight: '700', color: '#0f172a' },
+  cardSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, borderWidth: 1 },
+  badgeText: { fontSize: 10, fontWeight: '700' },
+
+  divider: { height: 1, backgroundColor: '#f1f5f9', marginVertical: 12 },
+
+  timeRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 12 },
+  timeBlock: { alignItems: 'center', gap: 3 },
+  timeLabel: { fontSize: 9, color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  timeVal: { fontSize: 13, fontWeight: '700', color: '#0f172a' },
+
+  infoBox: { borderRadius: 10, padding: 10, borderWidth: 1, marginBottom: 8 },
+  infoLabel: { fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 4 },
+  infoText: { fontSize: 12, color: '#334155', lineHeight: 18 },
+
+  mapRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
+  mapText: { fontSize: 11, color: '#0284c7', fontWeight: '600' },
+
+  actionRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12 },
+  approveBtn: { backgroundColor: '#16a34a' },
+  rejectBtn: { backgroundColor: '#ef4444' },
+  actionBtnText: { color: '#fff', fontWeight: '800', fontSize: 13 },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalBox: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a', marginBottom: 4 },
+  modalSubtitle: { fontSize: 13, color: '#64748b', marginBottom: 16 },
+  modalLabel: { fontSize: 11, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  reasonBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 8 },
+  reasonBtnActive: { borderColor: '#fca5a5', backgroundColor: '#fef2f2' },
+  reasonText: { fontSize: 13, color: '#334155' },
+  customReasonInput: { borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 12, padding: 12, marginTop: 8, fontSize: 14, color: '#0f172a', minHeight: 80, textAlignVertical: 'top' },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
+  cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', alignItems: 'center' },
+  cancelBtnText: { fontWeight: '700', color: '#334155', fontSize: 14 },
+  confirmRejectBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14, borderRadius: 14, backgroundColor: '#ef4444' },
+  confirmRejectText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+});

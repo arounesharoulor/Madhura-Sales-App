@@ -1,0 +1,361 @@
+const Attendance = require('../models/Attendance');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
+
+// Helper: notify all admins
+const notifyAdmins = async (io, senderId, title, message, type = 'Alert') => {
+  try {
+    const admins = await User.find({ role: 'Admin', isActive: true }).select('_id');
+    await Promise.all(
+      admins.map(async (admin) => {
+        const notif = await Notification.create({
+          recipient: admin._id,
+          sender: senderId,
+          title,
+          message,
+          type,
+        });
+        if (io) io.to(admin._id.toString()).emit('notification', notif);
+      })
+    );
+  } catch (err) {
+    console.error('Failed to notify admins:', err.message);
+  }
+};
+
+// @desc    Check in for today
+// @route   POST /api/attendance/checkin
+// @access  Private/FieldExecutive
+exports.checkIn = async (req, res, next) => {
+  try {
+    const { workPlan, latitude, longitude } = req.body;
+
+    if (!workPlan || !workPlan.trim()) {
+      res.status(400);
+      throw new Error('Work plan description is required for check-in');
+    }
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // Prevent duplicate check-in
+    const existing = await Attendance.findOne({ executive: req.user.id, date: today });
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already submitted attendance/leave request for today.',
+        data: existing,
+      });
+    }
+
+    const attendance = await Attendance.create({
+      executive: req.user.id,
+      date: today,
+      checkInTime: new Date(),
+      workPlan: workPlan.trim(),
+      checkInLocation: {
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
+      },
+      status: 'Pending Check-In',
+      checkInStatus: 'Pending',
+    });
+
+    const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    await notifyAdmins(
+      req.io,
+      req.user.id,
+      'Check-in Request',
+      `${req.user.name} requested Check-in at ${timeStr}. Plan: ${workPlan.substring(0, 80)}`,
+      'Alert'
+    );
+
+    res.status(201).json({ success: true, data: attendance });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Check out for today
+// @route   PUT /api/attendance/checkout
+// @access  Private/FieldExecutive
+exports.checkOut = async (req, res, next) => {
+  try {
+    const { workSummary, latitude, longitude } = req.body;
+
+    if (!workSummary || !workSummary.trim()) {
+      res.status(400);
+      throw new Error('Work summary is required for check-out');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const attendance = await Attendance.findOne({ executive: req.user.id, date: today });
+
+    if (!attendance) {
+      res.status(404);
+      throw new Error('No check-in record found for today. Please check in first.');
+    }
+
+    if (attendance.checkInStatus !== 'Approved') {
+      res.status(400);
+      throw new Error('Your check-in has not been approved by the Admin yet.');
+    }
+
+    if (attendance.status === 'Checked Out' || attendance.status === 'Pending Check-Out') {
+      return res.status(400).json({ success: false, message: 'Check-out already pending or completed.' });
+    }
+
+    attendance.checkOutTime = new Date();
+    attendance.workSummary = workSummary.trim();
+    attendance.checkOutLocation = {
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
+    };
+    attendance.status = 'Pending Check-Out';
+    attendance.checkOutStatus = 'Pending';
+    await attendance.save();
+
+    const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const locStr =
+      latitude && longitude ? `Lat: ${Number(latitude).toFixed(4)}, Lng: ${Number(longitude).toFixed(4)}` : 'Location unavailable';
+
+    await notifyAdmins(
+      req.io,
+      req.user.id,
+      'Check-out Request',
+      `${req.user.name} requested Check-out at ${timeStr}. Location: ${locStr}. Summary: ${workSummary.substring(0, 80)}`,
+      'Warning'
+    );
+
+    res.status(200).json({ success: true, data: attendance });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get today's attendance for logged-in executive
+// @route   GET /api/attendance/today
+// @access  Private/FieldExecutive
+exports.getTodayAttendance = async (req, res, next) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const attendance = await Attendance.findOne({ executive: req.user.id, date: today });
+    res.status(200).json({ success: true, data: attendance || null });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get attendance history for logged-in executive
+// @route   GET /api/attendance/my
+// @access  Private/FieldExecutive
+exports.getMyAttendance = async (req, res, next) => {
+  try {
+    const attendance = await Attendance.find({ executive: req.user.id }).sort({ date: -1 });
+    res.status(200).json({ success: true, data: attendance || [] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get all attendance records (admin view)
+// @route   GET /api/attendance
+// @access  Private/Admin
+exports.getAllAttendance = async (req, res, next) => {
+  try {
+    const { date, executiveId } = req.query;
+    let query = {};
+    if (date) query.date = date;
+    if (executiveId) query.executive = executiveId;
+
+    const records = await Attendance.find(query)
+      .populate('executive', 'name email phone employeeId designation')
+      .sort({ date: -1, checkInTime: -1 });
+
+    res.status(200).json({ success: true, count: records.length, data: records });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Request leave for today
+// @route   POST /api/attendance/leave
+// @access  Private/FieldExecutive
+exports.requestLeave = async (req, res, next) => {
+  try {
+    const { leaveType, leaveReason } = req.body;
+
+    if (!leaveType || !leaveReason) {
+      res.status(400);
+      throw new Error('Leave type and reason are required');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const existing = await Attendance.findOne({ executive: req.user.id, date: today });
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already submitted attendance/leave request for today.',
+        data: existing,
+      });
+    }
+
+    const attendance = await Attendance.create({
+      executive: req.user.id,
+      date: today,
+      status: 'Pending Leave',
+      leaveStatus: 'Pending',
+      leaveType,
+      leaveReason,
+    });
+
+    await notifyAdmins(
+      req.io,
+      req.user.id,
+      'Leave Request Submitted',
+      `${req.user.name} requested leave: "${leaveType}". Reason: "${leaveReason}"`,
+      'Warning'
+    );
+
+    res.status(201).json({ success: true, data: attendance });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Approve attendance/leave action
+// @route   PUT /api/attendance/:id/approve
+// @access  Private/Admin
+exports.approveAttendance = async (req, res, next) => {
+  try {
+    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name');
+    if (!attendance) {
+      res.status(404);
+      throw new Error('Attendance record not found');
+    }
+
+    let action = '';
+    if (attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Held') {
+      attendance.status = 'Checked In';
+      attendance.checkInStatus = 'Approved';
+      action = 'Check-In Approved';
+    } else if (attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Held') {
+      attendance.status = 'Checked Out';
+      attendance.checkOutStatus = 'Approved';
+      action = 'Check-Out Approved';
+    } else if (attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Held') {
+      attendance.status = 'On Leave';
+      attendance.leaveStatus = 'Approved';
+      action = 'Leave Approved';
+    } else {
+      res.status(400);
+      throw new Error('No pending action to approve');
+    }
+
+    await attendance.save();
+
+    // Notify employee
+    const notif = await Notification.create({
+      recipient: attendance.executive._id,
+      sender: req.user.id,
+      title: action,
+      message: `Your ${action.toLowerCase()} for ${attendance.date} has been approved by the Admin.`,
+      type: 'Success',
+    });
+    if (req.io) req.io.to(attendance.executive._id.toString()).emit('notification', notif);
+
+    res.status(200).json({ success: true, data: attendance });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reject attendance/leave action
+// @route   PUT /api/attendance/:id/reject
+// @access  Private/Admin
+exports.rejectAttendance = async (req, res, next) => {
+  try {
+    const { feedback } = req.body;
+    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name');
+    if (!attendance) {
+      res.status(404);
+      throw new Error('Attendance record not found');
+    }
+
+    let action = '';
+    if (attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Held') {
+      attendance.status = 'Rejected Check-In';
+      attendance.checkInStatus = 'Rejected';
+      action = 'Check-In Rejected';
+    } else if (attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Held') {
+      // Revert back to checked in since checkout was rejected
+      attendance.status = 'Checked In';
+      attendance.checkOutStatus = 'Rejected';
+      action = 'Check-Out Rejected';
+    } else if (attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Held') {
+      attendance.status = 'Rejected Leave';
+      attendance.leaveStatus = 'Rejected';
+      action = 'Leave Rejected';
+    } else {
+      res.status(400);
+      throw new Error('No pending action to reject');
+    }
+
+    await attendance.save();
+
+    // Notify employee
+    const notif = await Notification.create({
+      recipient: attendance.executive._id,
+      sender: req.user.id,
+      title: action,
+      message: `Your ${action.toLowerCase()} request for ${attendance.date} has been rejected.${
+        feedback ? ` Reason: ${feedback}` : ''
+      }`,
+      type: 'Warning',
+    });
+    if (req.io) req.io.to(attendance.executive._id.toString()).emit('notification', notif);
+
+    res.status(200).json({ success: true, data: attendance });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Hold attendance/leave action (keep in queue)
+// @route   PUT /api/attendance/:id/hold
+// @access  Private/Admin
+exports.holdAttendance = async (req, res, next) => {
+  try {
+    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name');
+    if (!attendance) {
+      res.status(404);
+      throw new Error('Attendance record not found');
+    }
+
+    let action = '';
+    if (attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Rejected') {
+      // Keep status as 'Pending Check-In' or revert to it
+      attendance.status = 'Pending Check-In';
+      attendance.checkInStatus = 'Held';
+      action = 'Check-In Held in Queue';
+    } else if (attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Rejected') {
+      attendance.status = 'Pending Check-Out';
+      attendance.checkOutStatus = 'Held';
+      action = 'Check-Out Held in Queue';
+    } else if (attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Rejected') {
+      attendance.status = 'Pending Leave';
+      attendance.leaveStatus = 'Held';
+      action = 'Leave Held in Queue';
+    } else {
+      res.status(400);
+      throw new Error('No pending action to hold');
+    }
+
+    await attendance.save();
+
+    res.status(200).json({ success: true, data: attendance });
+  } catch (error) {
+    next(error);
+  }
+};
+

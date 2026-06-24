@@ -1,0 +1,168 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+const express = require('express');
+const http = require('http');
+const socketio = require('socket.io');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+
+const connectDB = require('./db');
+const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const User = require('./models/User');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketio(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  },
+});
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Socket.io injection middleware (so controllers can access io)
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Import routes
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const meetingRoutes = require('./routes/meetingRoutes');
+const workUpdateRoutes = require('./routes/workUpdateRoutes');
+const locationRoutes = require('./routes/locationRoutes');
+const followUpRoutes = require('./routes/followUpRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const taskReportRoutes = require('./routes/taskReportRoutes');
+const onboardingRoutes = require('./routes/onboardingRoutes');
+
+// Mount routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/meetings', meetingRoutes);
+app.use('/api/workupdates', workUpdateRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/followups', followUpRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/task-reports', taskReportRoutes);
+app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/attendance', attendanceRoutes);
+
+app.get('/', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected';
+  res.json({
+    message: 'Welcome to Madhura Sales API',
+    database: dbStatus,
+    version: '1.0.0',
+  });
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    uptime: Math.floor(process.uptime()) + 's',
+  });
+});
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
+
+// Socket.io Connection Logic
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token || socket.handshake.query.token;
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here', (err, decoded) => {
+      if (err) return next(new Error('Authentication error'));
+      socket.userId = decoded.id;
+      next();
+    });
+  } else {
+    next(new Error('Authentication error - token not provided'));
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log(`User connected to socket: ${socket.userId}`);
+  socket.join(socket.userId.toString());
+
+  socket.on('join_chat', (roomId) => {
+    socket.join(roomId);
+    console.log(`User joined room: ${roomId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`User disconnected from socket: ${socket.userId}`);
+  });
+});
+
+// ─── Start Server First, Then Connect DB & Seed ──────────────────────────────
+const PORT = process.env.PORT || 5005;
+server.listen(PORT, '0.0.0.0', async () => {
+  console.log(`🚀 Server running on port ${PORT} (0.0.0.0)`);
+
+  // Connect to DB (with retry) — only seed after successful connection
+  await connectDB();
+
+  if (mongoose.connection.readyState === 1) {
+    // Optionally delete the default seeded admin if requested via env
+    if (process.env.DELETE_DEFAULT_ADMIN === 'true') {
+      try {
+        const deleted = await User.findOneAndDelete({ email: 'admin@fieldstaff.com' });
+        if (deleted) console.log('🗑️  Default Admin deleted:', deleted.email);
+        else console.log('ℹ️  No default Admin found to delete.');
+      } catch (delErr) {
+        console.error('❌ Failed to delete default Admin:', delErr.message);
+      }
+    }
+
+    await seedAdminUser();
+
+    // Start overdue task & attendance checking interval (runs every 15 seconds)
+    const { checkOverdueTasks } = require('./utils/taskChecker');
+    const { checkPendingAttendances } = require('./utils/attendanceChecker');
+    setInterval(() => {
+      checkOverdueTasks(io);
+      checkPendingAttendances(io);
+    }, 15000);
+  } else {
+    console.log('⚠️  Server is running but DB is not connected. Seeding skipped.');
+    console.log('   👉 Please whitelist your IP at: https://cloud.mongodb.com → Security → Network Access');
+  }
+});
+
+// ─── Seed default Admin ───────────────────────────────────────────────────────
+async function seedAdminUser() {
+  try {
+    const adminCount = await User.countDocuments({ role: 'Admin' });
+    if (adminCount === 0) {
+      await User.create({
+        name: 'Admin',
+        email: 'admin@fieldstaff.com',
+        password: 'adminpassword123',
+        role: 'Admin',
+        phone: '1234567890',
+        isActive: true,
+      });
+      console.log('✅ Default Admin seeded: admin@fieldstaff.com / adminpassword123');
+    } else {
+      console.log(`✅ Admin user already exists (${adminCount} admin found). Skipping seed.`);
+    }
+  } catch (error) {
+    console.error(`❌ Admin user seeding failed: ${error.message}`);
+  }
+}

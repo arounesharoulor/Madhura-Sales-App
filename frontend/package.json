@@ -1,0 +1,45 @@
+{
+  "name": "field-staff-mobile",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "^56.0.15",
+    "@expo/vector-icons": "^15.1.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "9.1.0",
+    "@react-navigation/native": "^7.3.3",
+    "axios": "^1.6.8",
+    "expo": "~56.0.12",
+    "expo-constants": "~56.0.18",
+    "expo-image-picker": "~56.0.18",
+    "expo-linking": "~56.0.14",
+    "expo-location": "~56.0.18",
+    "expo-notifications": "~56.0.18",
+    "expo-router": "~56.2.11",
+    "expo-status-bar": "~56.0.4",
+    "nativewind": "^4.2.5",
+    "postcss": "^8.4.31",
+    "react": "19.2.3",
+    "react-dom": "^19.2.3",
+    "react-hook-form": "^7.51.3",
+    "react-native": "0.85.3",
+    "react-native-reanimated": "4.3.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.25.2",
+    "react-native-toast-message": "^2.3.3",
+    "react-native-web": "^0.21.2",
+    "react-native-worklets": "0.8.3",
+    "socket.io-client": "^4.7.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "tailwindcss": "^3.3.2"
+  },
+  "private": true
+}
