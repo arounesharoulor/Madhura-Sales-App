@@ -4,7 +4,7 @@ import { API_URL, API_FALLBACK_URL } from '../utils/constants';
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 30000,
+  timeout: 60000, // Increased to 60s to allow Render free tier to wake up
 });
 console.log('API_URL:', API_URL, 'API_FALLBACK_URL:', API_FALLBACK_URL);
 

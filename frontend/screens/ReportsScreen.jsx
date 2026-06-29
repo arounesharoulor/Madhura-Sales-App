@@ -228,7 +228,21 @@ export default function ReportsScreen({ navigation }) {
                         <Text className="text-[9px] text-slate-400">
                           By: {item.generatedBy?.name || 'Admin'}
                         </Text>
-                        <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={16} color="#94a3b8" />
+                        <View className="flex-row items-center space-x-3">
+                          {role === 'Admin' && item.generatedBy?._id && (
+                            <TouchableOpacity
+                              onPress={() => navigation.navigate('Chat', {
+                                partnerId: item.generatedBy._id,
+                                partnerName: item.generatedBy.name
+                              })}
+                              className="bg-red-50 px-2 py-1 rounded-md flex-row items-center border border-red-100 mr-3"
+                            >
+                              <Ionicons name="chatbubble-ellipses-outline" size={10} color="#ef4444" style={{ marginRight: 4 }} />
+                              <Text className="text-[9px] text-red-600 font-bold">Report Issue</Text>
+                            </TouchableOpacity>
+                          )}
+                          <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={16} color="#94a3b8" />
+                        </View>
                       </View>
                     </View>
 

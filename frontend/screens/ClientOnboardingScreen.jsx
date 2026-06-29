@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, Alert, Platform, TextInput, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
@@ -11,7 +12,17 @@ import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 
 const BUSINESS_TYPES = ['Retailer', 'Distributor', 'Wholesaler', 'Dealer', 'Corporate', 'Other'];
-const PRIORITY_LEVELS = ['High', 'Medium', 'Low'];
+
+const LOCATION_DATA = {
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane"],
+  "Karnataka": ["Bangalore", "Mysore", "Hubli", "Mangalore"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Trichy"],
+  "Delhi": ["New Delhi", "North Delhi", "South Delhi"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
+  "Telangana": ["Hyderabad", "Warangal", "Nizamabad"],
+  "Kerala": ["Kochi", "Thiruvananthapuram", "Kozhikode"],
+};
+const STATES = Object.keys(LOCATION_DATA);
 
 // Reusable field label
 function FieldLabel({ text, required }) {
@@ -88,8 +99,50 @@ function PillSelector({ options, value, onSelect }) {
   );
 }
 
+// Select field for cross platform dropdowns
+function SelectField({ label, required, value, onChange, options }) {
+  if (Platform.OS === 'web') {
+    return (
+      <View>
+        <FieldLabel text={label} required={required} />
+        <View style={{
+          backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
+          borderRadius: 14, paddingHorizontal: 14, height: 50, justifyContent: 'center'
+        }}>
+          <select
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', fontSize: 14, color: value ? '#0f172a' : '#94a3b8', fontFamily: 'inherit' }}
+          >
+            <option value="" disabled>Select {label}</option>
+            {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+        </View>
+      </View>
+    );
+  }
+  return (
+    <View>
+      <FieldLabel text={label} required={required} />
+      <View style={{
+        backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
+        borderRadius: 14, height: 50, justifyContent: 'center', overflow: 'hidden'
+      }}>
+        <Picker
+          selectedValue={value}
+          onValueChange={(val) => onChange(val)}
+          style={{ height: 50, width: '100%', color: value ? '#0f172a' : '#94a3b8' }}
+        >
+          <Picker.Item label={`Select ${label}`} value="" color="#94a3b8" />
+          {options.map(opt => <Picker.Item key={opt} label={opt} value={opt} />)}
+        </Picker>
+      </View>
+    </View>
+  );
+}
+
 // Date picker for web/native
-function DateField({ label, required, value, onChange }) {
+function DateField({ label, required, value, onChange, mode = 'date' }) {
   const [show, setShow] = useState(false);
   if (Platform.OS === 'web') {
     return (
@@ -100,9 +153,9 @@ function DateField({ label, required, value, onChange }) {
           backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
           borderRadius: 14, paddingHorizontal: 14, minHeight: 50,
         }}>
-          <Ionicons name="calendar-outline" size={18} color="#0284c7" style={{ marginRight: 8 }} />
+          <Ionicons name={mode === 'time' ? 'time-outline' : 'calendar-outline'} size={18} color="#0284c7" style={{ marginRight: 8 }} />
           <input
-            type="date"
+            type={mode === 'datetime' ? 'datetime-local' : mode === 'time' ? 'time' : 'date'}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 14, color: value ? '#0f172a' : '#94a3b8', fontFamily: 'inherit' }}
@@ -123,18 +176,18 @@ function DateField({ label, required, value, onChange }) {
           borderRadius: 14, paddingHorizontal: 14, minHeight: 50, gap: 10,
         }}
       >
-        <Ionicons name="calendar-outline" size={18} color="#0284c7" />
+        <Ionicons name={mode === 'time' ? 'time-outline' : 'calendar-outline'} size={18} color="#0284c7" />
         <Text style={{ fontSize: 14, color: value ? '#0f172a' : '#94a3b8', flex: 1 }}>
-          {value ? new Date(value + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+          {value ? (mode === 'time' ? value : new Date(value).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: mode === 'datetime' ? '2-digit' : undefined, minute: mode === 'datetime' ? '2-digit' : undefined })) : `Select ${mode}`}
         </Text>
         <Ionicons name="chevron-down" size={14} color="#94a3b8" />
       </TouchableOpacity>
       {show && (
         <DateTimePicker
-          value={value ? new Date(value + 'T00:00:00') : new Date()}
-          mode="date"
+          value={value ? new Date(value) : new Date()}
+          mode={mode === 'datetime' ? 'datetime' : mode}
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(_, d) => { setShow(false); if (d) onChange(d.toISOString().split('T')[0]); }}
+          onChange={(_, d) => { setShow(false); if (d) onChange(mode === 'datetime' ? d.toISOString().slice(0, 16) : d.toISOString().split('T')[0]); }}
         />
       )}
     </View>
@@ -149,6 +202,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   // Location state
   const [coords, setCoords] = useState(null);
@@ -173,7 +227,6 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [leadSource, setLeadSource] = useState('');
   const [expectedVolume, setExpectedVolume] = useState('');
   const [interestedProducts, setInterestedProducts] = useState('');
-  const [priority, setPriority] = useState('Medium');
   const [notes, setNotes] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
   const [nextMeetingDate, setNextMeetingDate] = useState('');
@@ -226,18 +279,19 @@ export default function ClientOnboardingScreen({ navigation }) {
     setOwnerName(''); setContactPerson(''); setPhone(''); setAltPhone(''); setEmail('');
     setAddress(''); setCity(''); setState(''); setPincode(''); setLandmark('');
     setPanNumber(''); setYearsInBusiness(''); setLeadSource(''); setExpectedVolume('');
-    setInterestedProducts(''); setPriority('Medium'); setNotes('');
+    setInterestedProducts(''); setNotes('');
     setFollowUpDate(''); setNextMeetingDate(''); setCoords(null);
+    setEditId(null);
   };
 
   const handleSubmit = async () => {
-    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !pincode) {
+    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !state || !pincode) {
       Alert.alert('Missing Fields', 'Please fill all required fields marked with *');
       return;
     }
     setSubmitting(true);
     try {
-      await api.post('/onboarding', {
+      const payload = {
         businessName, businessType, gstNumber,
         ownerName, phone, email,
         address, city, state, pincode,
@@ -245,19 +299,72 @@ export default function ClientOnboardingScreen({ navigation }) {
         longitude: coords?.longitude,
         notes,
         followUpDate,
-      });
-      Toast.show({ type: 'success', text1: 'Client Onboarded!', text2: `${businessName} added successfully.` });
+      };
+
+      if (editId) {
+        await api.put(`/onboarding/${editId}`, payload);
+        Toast.show({ type: 'success', text1: 'Client Updated!', text2: `${businessName} updated successfully.` });
+      } else {
+        await api.post('/onboarding', payload);
+        Toast.show({ type: 'success', text1: 'Client Onboarded!', text2: `${businessName} added successfully.` });
+      }
+      
       resetForm();
       setShowForm(false);
       fetchClients();
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.message || 'Failed to onboard client.');
+      Alert.alert('Error', e.response?.data?.message || `Failed to ${editId ? 'update' : 'onboard'} client.`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const priorityColors = { High: { bg: '#fef2f2', text: '#e11d48', border: '#fecdd3' }, Medium: { bg: '#fffbeb', text: '#d97706', border: '#fde68a' }, Low: { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' } };
+  const handleEdit = (client) => {
+    setEditId(client._id);
+    setBusinessName(client.businessName || '');
+    setBusinessType(client.businessType || '');
+    setGstNumber(client.gstNumber || '');
+    setOwnerName(client.ownerName || '');
+    setContactPerson(client.contactPerson || '');
+    setPhone(client.phone || '');
+    setAltPhone(client.altPhone || '');
+    setEmail(client.email || '');
+    setAddress(client.location?.address || '');
+    setCity(client.location?.city || '');
+    setState(client.location?.state || '');
+    setPincode(client.location?.pincode || '');
+    setLandmark(client.landmark || '');
+    setPanNumber(client.panNumber || '');
+    setYearsInBusiness(client.yearsInBusiness?.toString() || '');
+    setLeadSource(client.leadSource || '');
+    setExpectedVolume(client.expectedVolume || '');
+    setInterestedProducts(client.interestedProducts || '');
+    setNotes(client.notes || '');
+    setFollowUpDate(client.followUpDate ? new Date(client.followUpDate).toISOString().slice(0, 16) : '');
+    
+    if (client.location?.latitude && client.location?.longitude) {
+      setCoords({ latitude: client.location.latitude, longitude: client.location.longitude });
+    } else {
+      setCoords(null);
+    }
+    setShowForm(true);
+  };
+
+  const handleDelete = (id) => {
+    Alert.alert('Delete Client', 'Are you sure you want to delete this client?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+          try {
+            await api.delete(`/onboarding/${id}`);
+            Toast.show({ type: 'success', text1: 'Deleted', text2: 'Client removed successfully' });
+            fetchClients();
+          } catch (e) {
+            Alert.alert('Error', 'Failed to delete client');
+          }
+        } 
+      }
+    ]);
+  };
 
   return (
     <AppLayout currentScreen="ClientOnboarding" role={role} scrollable={false}>
@@ -271,15 +378,13 @@ export default function ClientOnboardingScreen({ navigation }) {
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {clients.length} Client{clients.length !== 1 ? 's' : ''} Onboarded
               </Text>
-              {role === 'Field Executive' && (
-                <TouchableOpacity
-                  onPress={() => { setShowForm(true); acquireGPS(); }}
-                  style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                >
-                  <Ionicons name="add" size={16} color="#fff" />
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>New Client</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                onPress={() => { setShowForm(true); acquireGPS(); }}
+                style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Ionicons name="add" size={16} color="#fff" />
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>New Client</Text>
+              </TouchableOpacity>
             </View>
 
             {refreshing && clients.length === 0 ? (
@@ -299,7 +404,6 @@ export default function ClientOnboardingScreen({ navigation }) {
             ) : (
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
                 {clients.map((item) => {
-                  const p = priorityColors[item.priority] || priorityColors.Medium;
                   return (
                     <View key={item._id} style={{
                       backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0',
@@ -334,7 +438,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                           <Ionicons name="location-outline" size={13} color="#94a3b8" />
                           <Text style={{ fontSize: 12, color: '#475569' }} numberOfLines={1}>
-                            {item.location?.city}, {item.location?.pincode}
+                            {item.location?.city || item.city}, {item.location?.state || item.state}, {item.location?.pincode || item.pincode}
                           </Text>
                         </View>
                         {item.gstNumber ? (
@@ -358,11 +462,23 @@ export default function ClientOnboardingScreen({ navigation }) {
                         <Text style={{ fontSize: 10, color: '#94a3b8' }}>
                           {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </Text>
-                        {role === 'Admin' && item.executive && (
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7', backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                            By: {item.executive.name}
-                          </Text>
-                        )}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                          {(role === 'Admin' || userData.id === item.executive?._id || userData.employeeId === item.executive?.employeeId) && (
+                            <>
+                              <TouchableOpacity onPress={() => handleEdit(item)} style={{ padding: 4 }}>
+                                <Ionicons name="pencil" size={16} color="#0284c7" />
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ padding: 4 }}>
+                                <Ionicons name="trash" size={16} color="#e11d48" />
+                              </TouchableOpacity>
+                            </>
+                          )}
+                          {role === 'Admin' && item.executive && (
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7', backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                              By: {item.executive.name}
+                            </Text>
+                          )}
+                        </View>
                       </View>
                     </View>
                   );
@@ -396,8 +512,8 @@ export default function ClientOnboardingScreen({ navigation }) {
             {/* SECTION 3: Address */}
             <SectionCard title="Address Information" icon="location-outline">
               <Field label="Full Address" required value={address} onChangeText={setAddress} placeholder="Street, Building, Area" multiline />
-              <Field label="City" required value={city} onChangeText={setCity} placeholder="E.g. Mumbai" />
-              <Field label="State" value={state} onChangeText={setState} placeholder="E.g. Maharashtra" />
+              <SelectField label="State" required value={state} onChange={(v) => { setState(v); setCity(''); }} options={STATES} />
+              <SelectField label="City" required value={city} onChange={setCity} options={state ? LOCATION_DATA[state] || [] : []} />
               <Field label="Pincode" required value={pincode} onChangeText={setPincode} keyboardType="numeric" placeholder="E.g. 400001" />
               <Field label="Landmark" value={landmark} onChangeText={setLandmark} placeholder="E.g. Near Railway Station" />
             </SectionCard>
@@ -437,14 +553,12 @@ export default function ClientOnboardingScreen({ navigation }) {
               <Field label="Lead Source" value={leadSource} onChangeText={setLeadSource} placeholder="E.g. Cold Call, Reference" />
               <Field label="Expected Business Volume" value={expectedVolume} onChangeText={setExpectedVolume} placeholder="E.g. ₹50,000/month" />
               <Field label="Interested Products / Services" value={interestedProducts} onChangeText={setInterestedProducts} placeholder="E.g. Fertilizers, Seeds" multiline />
-              <FieldLabel text="Priority Level" />
-              <PillSelector options={PRIORITY_LEVELS} value={priority} onSelect={setPriority} />
             </SectionCard>
 
             {/* SECTION 6: Remarks & Follow-up */}
             <SectionCard title="Remarks & Follow-up" icon="document-text-outline">
               <Field label="Notes / Remarks" value={notes} onChangeText={setNotes} placeholder="Initial discussion summary, requirements..." multiline />
-              <DateField label="Follow-up Date" value={followUpDate} onChange={setFollowUpDate} />
+              <DateField label="Follow-up Date & Time" value={followUpDate} onChange={setFollowUpDate} mode="datetime" />
               <DateField label="Next Meeting Date" value={nextMeetingDate} onChange={setNextMeetingDate} />
             </SectionCard>
 
@@ -488,7 +602,7 @@ export default function ClientOnboardingScreen({ navigation }) {
             >
               {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />}
               <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>
-                {submitting ? 'Submitting...' : 'Complete Onboarding'}
+                {submitting ? (editId ? 'Updating...' : 'Submitting...') : (editId ? 'Update Client' : 'Complete Onboarding')}
               </Text>
             </TouchableOpacity>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet, Platform, Vibration } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,14 +15,41 @@ const NAVY_2 = '#243454';   // slightly lighter navy for hover
 const GOLD_BG= '#FFF8EC';   // gold tint background
 // ──────────────────────────────────────────────────────────────────
 
+// ── Cross-platform notification sound ─────────────────────────────
+const playNotificationSound = () => {
+  try {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.45);
+    } else {
+      // Mobile: short double-vibrate as audio cue
+      Vibration.vibrate([0, 80, 60, 80]);
+    }
+  } catch (_) {}
+};
+// ──────────────────────────────────────────────────────────────────
+
 const adminNavSections = [
   {
     title: 'Operations',
     items: [
-      { title: 'Dashboard',       screen: 'AdminDashboard', icon: 'grid-outline',      iconActive: 'grid' },
-      { title: 'Field Staff Mgmt',screen: 'UserManagement', icon: 'people-outline',    iconActive: 'people' },
-      { title: 'Task Assignments', screen: 'TaskAssignment', icon: 'clipboard-outline', iconActive: 'clipboard' },
-      { title: 'Client Onboarding',screen: 'ClientOnboarding',icon: 'briefcase-outline',iconActive: 'briefcase' },
+      { title: 'Dashboard',         screen: 'AdminDashboard',           icon: 'grid-outline',      iconActive: 'grid' },
+      { title: 'Field Staff Mgmt',  screen: 'UserManagement',           icon: 'people-outline',    iconActive: 'people' },
+      { title: 'Task Assignments',  screen: 'TaskAssignment',           icon: 'clipboard-outline', iconActive: 'clipboard' },
+      { title: 'Client Onboarding', screen: 'ClientOnboarding',         icon: 'briefcase-outline', iconActive: 'briefcase' },
+      { title: 'Follow-up Mgmt',   screen: 'AdminFollowupManagement',  icon: 'alarm-outline',     iconActive: 'alarm' },
     ],
   },
   {
@@ -69,6 +96,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
   const [userRole, setUserRole] = useState(role);
   const [userDesignation, setUserDesignation] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(width > 768);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -91,12 +119,22 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
       activeSocket = await connectSocket();
       if (activeSocket) {
         activeSocket.on('notification', (notif) => {
+          // Play sound
+          playNotificationSound();
+          // Show toast
           Toast.show({
-            type: notif.type === 'Warning' ? 'error' : notif.type === 'Info' ? 'success' : 'info',
+            type: notif.type === 'Warning' ? 'error' : notif.type === 'Success' ? 'success' : 'info',
             text1: notif.title,
             text2: notif.message,
             visibilityTime: 6000,
+            onPress: () => {
+              Toast.hide();
+              setUnreadCount(0);
+              navigation.navigate('Notification');
+            }
           });
+          // Bump unread badge
+          setUnreadCount(prev => prev + 1);
         });
       }
     };
@@ -149,9 +187,20 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                 <Text style={styles.mobileSub}>Sales Portal</Text>
               </View>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Notification')} style={styles.bellBtn}>
+            <TouchableOpacity
+              onPress={() => {
+                setUnreadCount(0);
+                navigation.navigate('Notification');
+              }}
+              style={styles.bellBtn}
+            >
               <Ionicons name="notifications-outline" size={22} color={GOLD} />
-              <View style={styles.bellDot} />
+              {unreadCount > 0 && (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+              {unreadCount === 0 && <View style={styles.bellDot} />}
             </TouchableOpacity>
           </View>
         )}
@@ -302,6 +351,12 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 8, right: 9, width: 7, height: 7,
     borderRadius: 4, backgroundColor: '#ef4444', borderWidth: 1, borderColor: NAVY,
   },
+  bellBadge: {
+    position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16,
+    borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: NAVY, paddingHorizontal: 2,
+  },
+  bellBadgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
 
   // ── Overlay ──
   overlay: {

@@ -35,6 +35,37 @@ const followUpSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    // Admin assignment fields
+    priority: {
+      type: String,
+      enum: ['High', 'Medium', 'Low'],
+      default: 'Medium',
+    },
+    attachment: {
+      data: Buffer,
+      contentType: String,
+      filename: String,
+    },
+    visitLocation: {
+      latitude: Number,
+      longitude: Number,
+      address: String,
+      capturedAt: Date,
+    },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    assignedByAdmin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    assignedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
