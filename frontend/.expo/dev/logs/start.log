@@ -28102,3 +28102,7 @@
 {"_e":"metro:client_log","_t":1782803325298,"level":"log","data":["API_URL:","http://localhost:5005/api","API_FALLBACK_URL:","http://localhost:5005/api"]}
 {"_e":"metro:client_log","_t":1782803326191,"level":"warn","data":["props.pointerEvents is deprecated. Use style.pointerEvents"]}
 {"_e":"metro:client_log","_t":1782803327160,"level":"log","data":["Mobile connected to Socket.io"]}
+{"_e":"metro:client_log","_t":1782803347678,"level":"log","data":["API_URL:","http://192.168.1.10:5005/api","API_FALLBACK_URL:","http://localhost:5005/api"]}
+{"_e":"metro:client_log","_t":1782803351175,"level":"log","data":["Mobile connected to Socket.io"]}
+{"_e":"metro:client_log","_t":1782803351277,"level":"log","data":["Mobile connected to Socket.io"]}
+{"_e":"metro:client_log","_t":1782803412813,"level":"log","data":["Mobile connected to Socket.io"]}
