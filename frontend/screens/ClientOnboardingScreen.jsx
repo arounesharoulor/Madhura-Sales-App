@@ -219,7 +219,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
-  const [state, setState] = useState('');
+  const [selectedState, setSelectedState] = useState('');
   const [pincode, setPincode] = useState('');
   const [landmark, setLandmark] = useState('');
   const [panNumber, setPanNumber] = useState('');
@@ -277,7 +277,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const resetForm = () => {
     setBusinessName(''); setBusinessType(''); setGstNumber('');
     setOwnerName(''); setContactPerson(''); setPhone(''); setAltPhone(''); setEmail('');
-    setAddress(''); setCity(''); setState(''); setPincode(''); setLandmark('');
+    setAddress(''); setCity(''); setSelectedState(''); setPincode(''); setLandmark('');
     setPanNumber(''); setYearsInBusiness(''); setLeadSource(''); setExpectedVolume('');
     setInterestedProducts(''); setNotes('');
     setFollowUpDate(''); setNextMeetingDate(''); setCoords(null);
@@ -285,7 +285,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   };
 
   const handleSubmit = async () => {
-    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !state || !pincode) {
+    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !selectedState || !pincode) {
       Alert.alert('Missing Fields', 'Please fill all required fields marked with *');
       return;
     }
@@ -294,7 +294,7 @@ export default function ClientOnboardingScreen({ navigation }) {
       const payload = {
         businessName, businessType, gstNumber,
         ownerName, phone, email,
-        address, city, state, pincode,
+        address, city, state: selectedState, pincode,
         latitude: coords?.latitude,
         longitude: coords?.longitude,
         notes,
@@ -331,7 +331,7 @@ export default function ClientOnboardingScreen({ navigation }) {
     setEmail(client.email || '');
     setAddress(client.location?.address || '');
     setCity(client.location?.city || '');
-    setState(client.location?.state || '');
+    setSelectedState(client.location?.state || '');
     setPincode(client.location?.pincode || '');
     setLandmark(client.landmark || '');
     setPanNumber(client.panNumber || '');
@@ -512,8 +512,8 @@ export default function ClientOnboardingScreen({ navigation }) {
             {/* SECTION 3: Address */}
             <SectionCard title="Address Information" icon="location-outline">
               <Field label="Full Address" required value={address} onChangeText={setAddress} placeholder="Street, Building, Area" multiline />
-              <SelectField label="State" required value={state} onChange={(v) => { setState(v); setCity(''); }} options={STATES} />
-              <SelectField label="City" required value={city} onChange={setCity} options={state ? LOCATION_DATA[state] || [] : []} />
+              <SelectField label="State" required value={selectedState} onChange={(v) => { setSelectedState(v); setCity(''); }} options={STATES} />
+              <SelectField label="City" required value={city} onChange={setCity} options={selectedState ? LOCATION_DATA[selectedState] || [] : []} />
               <Field label="Pincode" required value={pincode} onChangeText={setPincode} keyboardType="numeric" placeholder="E.g. 400001" />
               <Field label="Landmark" value={landmark} onChangeText={setLandmark} placeholder="E.g. Near Railway Station" />
             </SectionCard>
