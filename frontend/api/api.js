@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { API_URL, API_FALLBACK_URL } from '../utils/constants';
 
 const api = axios.create({
@@ -25,12 +26,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const config = error.config || {};
-    const fallbackUrls = [API_FALLBACK_URL];
+    const fallbackUrls = [
+      Platform.OS === 'android' ? 'http://10.0.2.2:5005/api' : null,
+      API_FALLBACK_URL
+    ].filter(Boolean);
 
     if (!error.response) {
       config._retryCount = (config._retryCount || 0) + 1;
-      const nextFallback = fallbackUrls.find((url) => url !== config.baseURL && url !== API_URL);
-      if (config._retryCount === 1 && nextFallback) {
+      const nextFallback = fallbackUrls[config._retryCount - 1];
+      
+      if (nextFallback && nextFallback !== config.baseURL) {
         config.baseURL = nextFallback;
         console.warn('Primary API host failed, retrying with fallback host:', nextFallback);
         return api(config);

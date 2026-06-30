@@ -295,12 +295,28 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
         {/* ── Main Content ── */}
         <View style={styles.main}>
+          {currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' && (
+            <TouchableOpacity 
+              onPress={() => navigation.navigate(role === 'Admin' ? 'AdminDashboard' : 'Dashboard')}
+              style={[
+                styles.globalBackBtn,
+                { paddingHorizontal: isDesktop ? 32 : 16, paddingTop: isDesktop ? 32 : 16, paddingBottom: isDesktop ? 0 : 8 }
+              ]}
+              activeOpacity={0.7}
+            >
+              <View style={{ backgroundColor: '#f1f5f9', padding: 6, borderRadius: 10 }}>
+                <Ionicons name="arrow-back" size={18} color="#475569" />
+              </View>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Back to Dashboard</Text>
+            </TouchableOpacity>
+          )}
+          
           {scrollable ? (
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
                 styles.mainContent,
-                { padding: isDesktop ? 32 : 16 },
+                { padding: isDesktop ? 32 : 16, paddingTop: currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? 16 : (isDesktop ? 32 : 16) },
               ]}
             >
               {children}
@@ -308,7 +324,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
           ) : (
             <View style={[
               styles.mainFlex,
-              { padding: isDesktop ? 32 : 16 },
+              { padding: isDesktop ? 32 : 16, paddingTop: currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? 16 : (isDesktop ? 32 : 16) },
             ]}>
               {children}
             </View>
@@ -442,4 +458,5 @@ const styles = StyleSheet.create({
   main: { flex: 1, backgroundColor: '#F5F7FA' },
   mainContent: { flexGrow: 1, paddingBottom: 60 },
   mainFlex: { flex: 1, paddingBottom: 60 },
+  globalBackBtn: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
