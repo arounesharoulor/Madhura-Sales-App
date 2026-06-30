@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, Alert, Platform, TextInput, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
-import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
@@ -359,7 +358,8 @@ export default function ClientOnboardingScreen({ navigation }) {
             Toast.show({ type: 'success', text1: 'Deleted', text2: 'Client removed successfully' });
             fetchClients();
           } catch (e) {
-            Alert.alert('Error', 'Failed to delete client');
+            console.error('Delete error:', e.response?.data || e.message);
+            Alert.alert('Error', e.response?.data?.message || 'Failed to delete client');
           }
         } 
       }

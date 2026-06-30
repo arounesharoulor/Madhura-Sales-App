@@ -139,6 +139,19 @@ server.listen(PORT, '0.0.0.0', async () => {
       checkOverdueTasks(io);
       checkPendingAttendances(io);
     }, 15000);
+
+    // Weekly Friday reminder at 9:00 AM
+    try {
+      const cron = require('node-cron');
+      const { sendWeeklyFridayReminder } = require('./controllers/reportController');
+      cron.schedule('0 9 * * 5', () => {
+        console.log('📅 Running Friday weekly report reminder...');
+        sendWeeklyFridayReminder();
+      }, { timezone: 'Asia/Kolkata' });
+      console.log('✅ Friday weekly reminder cron scheduled (every Friday 9:00 AM IST)');
+    } catch (cronErr) {
+      console.warn('⚠️ Could not schedule cron:', cronErr.message);
+    }
   } else {
     console.log('⚠️  Server is running but DB is not connected. Seeding skipped.');
     console.log('   👉 Please whitelist your IP at: https://cloud.mongodb.com → Security → Network Access');
