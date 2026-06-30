@@ -106,7 +106,7 @@ exports.updateClient = async (req, res, next) => {
       throw new Error('Client not found');
     }
 
-    if (req.user.role !== 'Admin' && onboarding.executive.toString() !== req.user.id) {
+    if (req.user.role !== 'Admin' && onboarding.executive?.toString() !== req.user.id) {
       res.status(403);
       throw new Error('Not authorized to update this client');
     }

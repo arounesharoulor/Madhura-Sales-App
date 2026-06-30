@@ -349,134 +349,144 @@ export default function ClientOnboardingScreen({ navigation }) {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    Alert.alert('Delete Client', 'Are you sure you want to delete this client?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-          try {
-            await api.delete(`/onboarding/${id}`);
-            Toast.show({ type: 'success', text1: 'Deleted', text2: 'Client removed successfully' });
-            fetchClients();
-          } catch (e) {
-            console.error('Delete error:', e.response?.data || e.message);
-            Alert.alert('Error', e.response?.data?.message || 'Failed to delete client');
-          }
-        } 
+  const handleDelete = async (id) => {
+    const performDelete = async () => {
+      try {
+        await api.delete(`/onboarding/${id}`);
+        Toast.show({ type: 'success', text1: 'Deleted', text2: 'Client removed successfully' });
+        fetchClients();
+      } catch (e) {
+        console.error('Delete error:', e.response?.data || e.message);
+        Alert.alert('Error', e.response?.data?.message || 'Failed to delete client');
       }
-    ]);
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to delete this client?')) {
+        performDelete();
+      }
+    } else {
+      Alert.alert('Delete Client', 'Are you sure you want to delete this client?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: performDelete }
+      ]);
+    }
   };
 
   return (
     <AppLayout currentScreen="ClientOnboarding" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 22, fontWeight: '900', color: '#0f172a', marginBottom: 16 }}>Client Onboarding</Text>
+        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0f172a', marginBottom: 16, letterSpacing: -0.5 }}>Client Onboarding</Text>
 
         {!showForm ? (
           // ── LIST VIEW ──
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>
                 {clients.length} Client{clients.length !== 1 ? 's' : ''} Onboarded
               </Text>
               <TouchableOpacity
                 onPress={() => { setShowForm(true); acquireGPS(); }}
-                style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                style={{ backgroundColor: '#0f172a', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 30, flexDirection: 'row', alignItems: 'center', gap: 6, shadowColor: '#0f172a', shadowOpacity: 0.3, shadowOffset: { width: 0, height: 4 }, shadowRadius: 8, elevation: 5 }}
               >
                 <Ionicons name="add" size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>New Client</Text>
+                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>New Client</Text>
               </TouchableOpacity>
             </View>
 
             {refreshing && clients.length === 0 ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" color="#0284c7" />
+                <ActivityIndicator size="large" color="#0f172a" />
               </View>
             ) : clients.length === 0 ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                <View style={{ backgroundColor: '#eff6ff', borderRadius: 20, padding: 20 }}>
-                  <Ionicons name="briefcase-outline" size={40} color="#0284c7" />
+                <View style={{ backgroundColor: '#f1f5f9', borderRadius: 30, padding: 24 }}>
+                  <Ionicons name="briefcase-outline" size={48} color="#94a3b8" />
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#64748b' }}>No clients onboarded yet</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#475569' }}>No clients onboarded yet</Text>
                 {role === 'Field Executive' && (
-                  <Text style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>Tap "New Client" to add your first client</Text>
+                  <Text style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center' }}>Tap "New Client" to add your first client</Text>
                 )}
               </View>
             ) : (
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
                 {clients.map((item) => {
                   return (
                     <View key={item._id} style={{
-                      backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0',
-                      padding: 16, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.04,
-                      shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2,
+                      backgroundColor: '#ffffff', borderRadius: 24, borderWidth: 1, borderColor: '#f1f5f9',
+                      padding: 20, marginBottom: 16, shadowColor: '#94a3b8', shadowOpacity: 0.1,
+                      shadowOffset: { width: 0, height: 8 }, shadowRadius: 16, elevation: 3,
                     }}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                        <View style={{ flex: 1, marginRight: 8 }}>
-                          <Text style={{ fontSize: 15, fontWeight: '800', color: '#0f172a' }}>{item.businessName}</Text>
-                          <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.businessType}</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                          <Text style={{ fontSize: 18, fontWeight: '900', color: '#0f172a', marginBottom: 2 }}>{item.businessName}</Text>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: '#64748b' }}>{item.businessType}</Text>
                         </View>
-                        <View style={{ backgroundColor: '#eff6ff', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7', textTransform: 'uppercase' }}>Active</Text>
+                        <View style={{ backgroundColor: '#f0fdf4', borderRadius: 30, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#bbf7d0' }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', letterSpacing: 0.5 }}>Active</Text>
                         </View>
                       </View>
 
-                      <View style={{ gap: 4 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="person-outline" size={13} color="#94a3b8" />
-                          <Text style={{ fontSize: 12, color: '#475569' }}>{item.ownerName}</Text>
+                      <View style={{ gap: 8, backgroundColor: '#f8fafc', padding: 12, borderRadius: 16, marginBottom: 12 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="person" size={12} color="#0284c7" /></View>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>{item.ownerName}</Text>
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="call-outline" size={13} color="#94a3b8" />
-                          <Text style={{ fontSize: 12, color: '#475569' }}>{item.phone}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="call" size={12} color="#16a34a" /></View>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>{item.phone}</Text>
                         </View>
                         {item.email ? (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Ionicons name="mail-outline" size={13} color="#94a3b8" />
-                            <Text style={{ fontSize: 12, color: '#475569' }}>{item.email}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="mail" size={12} color="#e11d48" /></View>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>{item.email}</Text>
                           </View>
                         ) : null}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="location-outline" size={13} color="#94a3b8" />
-                          <Text style={{ fontSize: 12, color: '#475569' }} numberOfLines={1}>
-                            {item.location?.city || item.city}, {item.location?.state || item.state}, {item.location?.pincode || item.pincode}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="location" size={12} color="#d97706" /></View>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155', flex: 1 }} numberOfLines={1}>
+                            {item.location?.city || item.city}, {item.location?.state || item.state}
                           </Text>
                         </View>
                         {item.gstNumber ? (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Ionicons name="document-text-outline" size={13} color="#94a3b8" />
-                            <Text style={{ fontSize: 12, color: '#475569' }}>GST: {item.gstNumber}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="document-text" size={12} color="#7c3aed" /></View>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>GST: {item.gstNumber}</Text>
                           </View>
                         ) : null}
                       </View>
 
                       {item.followUpDate && (
-                        <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="calendar-outline" size={13} color="#0284c7" />
-                          <Text style={{ fontSize: 11, color: '#0284c7', fontWeight: '600' }}>
-                            Follow-up: {new Date(item.followUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eff6ff', padding: 12, borderRadius: 16 }}>
+                          <Ionicons name="calendar" size={16} color="#0284c7" />
+                          <Text style={{ fontSize: 12, color: '#0284c7', fontWeight: '700' }}>
+                            Next Follow-up: {new Date(item.followUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </Text>
                         </View>
                       )}
 
-                      <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text style={{ fontSize: 10, color: '#94a3b8' }}>
-                          {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <View style={{ paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#94a3b8' }}>
+                          Onboarded {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                           {(role === 'Admin' || userData.id === item.executive?._id || userData.employeeId === item.executive?.employeeId) && (
-                            <>
-                              <TouchableOpacity onPress={() => handleEdit(item)} style={{ padding: 4 }}>
-                                <Ionicons name="pencil" size={16} color="#0284c7" />
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <TouchableOpacity onPress={() => handleEdit(item)} style={{ backgroundColor: '#f1f5f9', padding: 8, borderRadius: 12 }}>
+                                <Ionicons name="pencil" size={16} color="#475569" />
                               </TouchableOpacity>
-                              <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ padding: 4 }}>
-                                <Ionicons name="trash" size={16} color="#e11d48" />
+                              <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ backgroundColor: '#fef2f2', padding: 8, borderRadius: 12 }}>
+                                <Ionicons name="trash" size={16} color="#ef4444" />
                               </TouchableOpacity>
-                            </>
+                            </View>
                           )}
                           {role === 'Admin' && item.executive && (
-                            <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7', backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                              By: {item.executive.name}
-                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f8fafc', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                              <Ionicons name="person-circle" size={14} color="#64748b" />
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
+                                {item.executive.name.split(' ')[0]}
+                              </Text>
+                            </View>
                           )}
                         </View>
                       </View>
