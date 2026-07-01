@@ -180,7 +180,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
               </TouchableOpacity>
               {/* Logo mark */}
               <View style={styles.mobileLogo}>
-                <Image source={require('../assets/logo.png')} style={{width: 34, height: 34, borderRadius: 10}} resizeMode="contain" />
+                <Image source={require('../assets/logo.png')} style={{width: 44, height: 44, borderRadius: 12}} resizeMode="contain" />
               </View>
               <View>
                 <Text style={styles.mobileBrand}>MADHURA</Text>
@@ -224,7 +224,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
               {/* Logo row */}
               <View style={styles.logoRow}>
                 <View style={styles.logoMark}>
-                  <Image source={require('../assets/logo.png')} style={{width: 40, height: 40, borderRadius: 12}} resizeMode="contain" />
+                  <Image source={require('../assets/logo.png')} style={{width: 52, height: 52, borderRadius: 14}} resizeMode="contain" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.logoTitle}>MADHURA</Text>
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   mobileTopLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   mobileLogo: {
-    width: 34, height: 34, borderRadius: 10,
+    width: 48, height: 48, borderRadius: 14,
     backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center',
   },
   mobileLogoText: { color: NAVY, fontWeight: '900', fontSize: 18 },
@@ -393,9 +393,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingTop: 20, paddingBottom: 14,
     borderBottomWidth: 1, borderBottomColor: '#243454',
   },
-  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 },
   logoMark: {
-    width: 40, height: 40, borderRadius: 12,
+    width: 58, height: 58, borderRadius: 16,
     backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   logoMarkText: { color: NAVY, fontWeight: '900', fontSize: 22 },

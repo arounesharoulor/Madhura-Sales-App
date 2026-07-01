@@ -96,7 +96,7 @@ export default function AdminLayout({ children, currentScreen, scrollable = true
           <View style={styles.mobileTopBar}>
             <View style={styles.mobileTopLeft}>
               <View style={styles.mobileLogo}>
-                <Image source={require('../assets/logo.png')} style={{width: 32, height: 32, borderRadius: 10}} resizeMode="contain" />
+                <Image source={require('../assets/logo.png')} style={{width: 44, height: 44, borderRadius: 12}} resizeMode="contain" />
               </View>
               <Text style={styles.mobileBrand}>Madhura</Text>
             </View>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   },
   mobileTopLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   mobileLogo: {
-    width: 32, height: 32, borderRadius: 10,
+    width: 48, height: 48, borderRadius: 14,
     backgroundColor: '#0284c7', alignItems: 'center', justifyContent: 'center',
   },
   mobileLogoText: { color: '#fff', fontWeight: '900', fontSize: 16 },

@@ -300,7 +300,7 @@ export default function LoginScreen() {
 
             <View style={styles.webLeftContent}>
               <View style={styles.webIconWrap}>
-                <Image source={require('../assets/logo.png')} style={{width: 60, height: 60}} resizeMode="contain" />
+                <Image source={require('../assets/logo.png')} style={{width: 140, height: 140}} resizeMode="contain" />
               </View>
               <Text style={styles.webLeftTitle}>MADHURA</Text>
               <Text style={styles.webLeftBrand}>Sales Portal</Text>
@@ -378,11 +378,11 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   webIconWrap: {
-    width: 80,
-    height: 80,
+    width: 150,
+    height: 150,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
   },
   webLeftTitle: {
     fontSize: 42,
@@ -448,10 +448,10 @@ const styles = StyleSheet.create({
     marginBottom: 36,
   },
   logoImage: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     marginBottom: 16,
-    borderRadius: 22,
+    borderRadius: 28,
   },
   logoCircle: {
     width: 72,
