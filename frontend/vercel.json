@@ -1,0 +1,9 @@
+{
+  "installCommand": "npm install && chmod +x ./node_modules/.bin/expo",
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}
