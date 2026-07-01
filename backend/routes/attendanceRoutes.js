@@ -10,6 +10,7 @@ const {
   approveAttendance,
   rejectAttendance,
   holdAttendance,
+  toggleEarlyCheckoutLock,
 } = require('../controllers/attendanceController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -24,5 +25,7 @@ router.get('/', authorize('Admin', 'Manager'), getAllAttendance);
 router.put('/:id/approve', authorize('Admin'), approveAttendance);
 router.put('/:id/reject', authorize('Admin'), rejectAttendance);
 router.put('/:id/hold', authorize('Admin'), holdAttendance);
+router.put('/user/:userId/lock-early-checkout', authorize('Admin'), toggleEarlyCheckoutLock);
 
 module.exports = router;
+

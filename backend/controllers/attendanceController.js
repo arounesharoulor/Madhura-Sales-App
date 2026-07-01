@@ -80,7 +80,7 @@ exports.checkIn = async (req, res, next) => {
 // @access  Private/FieldExecutive
 exports.checkOut = async (req, res, next) => {
   try {
-    const { workSummary, latitude, longitude } = req.body;
+    const { workSummary, latitude, longitude, earlyCheckoutReason } = req.body;
 
     if (!workSummary || !workSummary.trim()) {
       res.status(400);
@@ -104,6 +104,39 @@ exports.checkOut = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Check-out already pending or completed.' });
     }
 
+    // ── Early Checkout Detection ─────────────────────────
+    // Office ends at 18:00 (6:00 PM) IST
+    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const officeEndHour = 18; // 6 PM
+    const isEarly = nowIST.getHours() < officeEndHour;
+
+    if (isEarly) {
+      // Check if admin has locked this employee's early checkout
+      const employee = await User.findById(req.user.id).select('earlyCheckoutLocked name');
+      if (employee?.earlyCheckoutLocked) {
+        return res.status(403).json({
+          success: false,
+          message: 'Early check-out is locked for your account by the Admin. Please contact your administrator.',
+        });
+      }
+
+      // Require a reason for early checkout
+      if (!earlyCheckoutReason || !earlyCheckoutReason.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'You are checking out before 6:00 PM. A reason is required for early checkout.',
+          isEarly: true,
+        });
+      }
+
+      // Increment earlyCheckoutCount on the User
+      await User.findByIdAndUpdate(req.user.id, { $inc: { earlyCheckoutCount: 1 } });
+
+      attendance.earlyCheckout = true;
+      attendance.earlyCheckoutReason = earlyCheckoutReason.trim();
+    }
+    // ─────────────────────────────────────────────────────
+
     attendance.checkOutTime = new Date();
     attendance.workSummary = workSummary.trim();
     attendance.checkOutLocation = {
@@ -118,12 +151,14 @@ exports.checkOut = async (req, res, next) => {
     const locStr =
       latitude && longitude ? `Lat: ${Number(latitude).toFixed(4)}, Lng: ${Number(longitude).toFixed(4)}` : 'Location unavailable';
 
+    const earlyNote = isEarly ? ` ⚠️ EARLY CHECKOUT — Reason: ${earlyCheckoutReason?.substring(0, 60) || 'N/A'}` : '';
+
     await notifyAdmins(
       req.io,
       req.user.id,
-      'Check-out Request',
-      `${req.user.name} requested Check-out at ${timeStr}. Location: ${locStr}. Summary: ${workSummary.substring(0, 80)}`,
-      'Warning'
+      isEarly ? '⚠️ Early Check-out Request' : 'Check-out Request',
+      `${req.user.name} requested Check-out at ${timeStr}. Location: ${locStr}. Summary: ${workSummary.substring(0, 80)}${earlyNote}`,
+      isEarly ? 'Warning' : 'Info'
     );
 
     res.status(200).json({ success: true, data: attendance });
@@ -131,6 +166,7 @@ exports.checkOut = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // @desc    Get today's attendance for logged-in executive
 // @route   GET /api/attendance/today
@@ -376,6 +412,37 @@ exports.holdAttendance = async (req, res, next) => {
     await attendance.save();
 
     res.status(200).json({ success: true, data: attendance });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Toggle early checkout lock for an employee (Admin only)
+// @route   PUT /api/attendance/user/:userId/lock-early-checkout
+// @access  Private/Admin
+exports.toggleEarlyCheckoutLock = async (req, res, next) => {
+  try {
+    const { locked } = req.body; // true = lock, false = unlock
+    const employee = await User.findById(req.params.userId).select('name earlyCheckoutLocked earlyCheckoutCount');
+    if (!employee) {
+      res.status(404);
+      throw new Error('Employee not found');
+    }
+
+    const newLockState = locked !== undefined ? locked : !employee.earlyCheckoutLocked;
+    employee.earlyCheckoutLocked = newLockState;
+    await employee.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Early checkout has been ${newLockState ? 'LOCKED 🔒' : 'UNLOCKED 🔓'} for ${employee.name}`,
+      data: {
+        userId: employee._id,
+        name: employee.name,
+        earlyCheckoutLocked: employee.earlyCheckoutLocked,
+        earlyCheckoutCount: employee.earlyCheckoutCount,
+      },
+    });
   } catch (error) {
     next(error);
   }

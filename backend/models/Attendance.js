@@ -63,6 +63,14 @@ const attendanceSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    earlyCheckout: {
+      type: Boolean,
+      default: false,
+    },
+    earlyCheckoutReason: {
+      type: String,
+      default: '',
+    },
     pendingNotified: {
       type: Boolean,
       default: false,

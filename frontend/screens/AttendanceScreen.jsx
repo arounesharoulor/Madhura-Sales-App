@@ -9,6 +9,8 @@ import {
   StyleSheet,
   Alert,
   StatusBar,
+  Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,6 +54,8 @@ export default function AttendanceScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [workPlan, setWorkPlan] = useState('');
   const [workSummary, setWorkSummary] = useState('');
+  const [earlyCheckoutReason, setEarlyCheckoutReason] = useState('');
+  const [showEarlyModal, setShowEarlyModal] = useState(false);
 
   const fetchToday = useCallback(async () => {
     try {
@@ -109,46 +113,68 @@ export default function AttendanceScreen() {
     }
   };
 
-  const handleCheckOut = async () => {
+  const handleCheckOut = async (earlyReason = null) => {
     if (!workSummary.trim()) {
       Alert.alert('Required', "Please summarize today's work before checking out.");
       return;
     }
-    Alert.alert(
-      'Confirm Check-Out',
-      'Are you sure you want to check out? Your location and summary will be sent to the admin.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Check Out',
-          style: 'destructive',
-          onPress: async () => {
-            setSubmitting(true);
-            try {
-              const { latitude, longitude } = await getCurrentLocation();
-              await api.put('/attendance/checkout', {
-                workSummary: workSummary.trim(),
-                latitude,
-                longitude,
-              });
-              Toast.show({
-                type: 'info',
-                text1: '👋 Checked Out',
-                text2: 'Your checkout has been notified to the admin.',
-                visibilityTime: 4000,
-              });
-              setWorkSummary('');
-              fetchToday();
-            } catch (err) {
-              const msg = err.response?.data?.message || 'Check-out failed. Please try again.';
-              Alert.alert('Check-Out Failed', msg);
-            } finally {
-              setSubmitting(false);
-            }
-          },
-        },
-      ]
-    );
+
+    // Detect early checkout (before 6 PM IST)
+    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    const isEarly = nowIST.getHours() < 18;
+
+    // If early and no reason given yet — show the reason modal
+    if (isEarly && !earlyReason) {
+      setShowEarlyModal(true);
+      return;
+    }
+
+    const doCheckout = async () => {
+      setSubmitting(true);
+      try {
+        const { latitude, longitude } = await getCurrentLocation();
+        await api.put('/attendance/checkout', {
+          workSummary: workSummary.trim(),
+          latitude,
+          longitude,
+          ...(earlyReason && { earlyCheckoutReason: earlyReason }),
+        });
+        Toast.show({
+          type: isEarly ? 'error' : 'info',
+          text1: isEarly ? '⚠️ Early Check-Out Submitted' : '👋 Checked Out',
+          text2: isEarly
+            ? 'Your early checkout has been flagged and notified to admin.'
+            : 'Your checkout has been notified to the admin.',
+          visibilityTime: 4000,
+        });
+        setWorkSummary('');
+        setEarlyCheckoutReason('');
+        setShowEarlyModal(false);
+        fetchToday();
+      } catch (err) {
+        const errData = err.response?.data;
+        if (errData?.isEarly) {
+          setShowEarlyModal(true);
+        } else {
+          Alert.alert('Check-Out Failed', errData?.message || 'Check-out failed. Please try again.');
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    if (!isEarly) {
+      Alert.alert(
+        'Confirm Check-Out',
+        'Are you sure you want to check out? Your location and summary will be sent to the admin.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Check Out', style: 'destructive', onPress: doCheckout },
+        ]
+      );
+    } else {
+      doCheckout();
+    }
   };
 
   const [urgentReason, setUrgentReason] = useState('');
@@ -200,6 +226,62 @@ export default function AttendanceScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+
+      {/* ── Early Checkout Reason Modal ── */}
+      <Modal visible={showEarlyModal} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 400 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <View style={{ backgroundColor: '#fef3c7', borderRadius: 12, padding: 10 }}>
+                <Ionicons name="warning" size={24} color="#f59e0b" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a' }}>Early Check-Out</Text>
+                <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Office hours: 9:30 AM – 6:00 PM</Text>
+              </View>
+            </View>
+            <Text style={{ fontSize: 13, color: '#64748b', marginBottom: 16, lineHeight: 20 }}>
+              You are checking out before 6:00 PM. Please provide a valid reason for your early departure. This will be flagged and reviewed by the Admin.
+            </Text>
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Reason *</Text>
+            <TextInput
+              value={earlyCheckoutReason}
+              onChangeText={setEarlyCheckoutReason}
+              placeholder="E.g. Doctor's appointment, Family emergency..."
+              placeholderTextColor="#94a3b8"
+              multiline
+              style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0f172a', minHeight: 80, textAlignVertical: 'top', marginBottom: 20 }}
+            />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                onPress={() => { setShowEarlyModal(false); setEarlyCheckoutReason(''); }}
+                style={{ flex: 1, backgroundColor: '#f1f5f9', borderRadius: 14, paddingVertical: 14, alignItems: 'center' }}
+              >
+                <Text style={{ color: '#64748b', fontWeight: '700' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!earlyCheckoutReason.trim()) {
+                    Alert.alert('Required', 'Please enter a reason for early checkout.');
+                    return;
+                  }
+                  setShowEarlyModal(false);
+                  handleCheckOut(earlyCheckoutReason.trim());
+                }}
+                disabled={submitting}
+                style={{ flex: 1, backgroundColor: '#f59e0b', borderRadius: 14, paddingVertical: 14, alignItems: 'center' }}
+              >
+                {submitting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={{ color: '#fff', fontWeight: '800' }}>Submit & Check Out</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}

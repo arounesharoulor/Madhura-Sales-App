@@ -49,6 +49,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    earlyCheckoutLocked: {
+      type: Boolean,
+      default: false,
+    },
+    earlyCheckoutCount: {
+      type: Number,
+      default: 0,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },

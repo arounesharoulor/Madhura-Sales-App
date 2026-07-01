@@ -148,6 +148,16 @@ export default function AdminAttendanceScreen() {
     } finally { setActionLoading(null); }
   };
 
+  const handleToggleLock = async (executiveId, currentLockState) => {
+    try {
+      const res = await api.put(`/attendance/user/${executiveId}/lock-early-checkout`, { locked: !currentLockState });
+      Alert.alert(res.data.message || 'Done');
+      fetchAttendance();
+    } catch (e) {
+      Alert.alert('Error', e?.response?.data?.message || 'Could not update lock status.');
+    }
+  };
+
   const formatTime = (d) => d ? new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
   
   const formatDateWithDay = (dateStr) => {
@@ -292,6 +302,32 @@ export default function AdminAttendanceScreen() {
                 <Text style={styles.infoText} numberOfLines={2}>{item.workSummary}</Text>
               </View>
             ) : null}
+
+            {/* Early Checkout Badge */}
+            {item.earlyCheckout && (
+              <View style={[styles.infoBox, { backgroundColor: '#fffbeb', borderColor: '#fbbf24' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <Ionicons name="warning" size={13} color="#f59e0b" />
+                  <Text style={[styles.infoLabel, { color: '#d97706' }]}>⚠️ EARLY CHECKOUT</Text>
+                </View>
+                <Text style={[styles.infoText, { color: '#92400e' }]}>
+                  Reason: {item.earlyCheckoutReason || '—'}
+                </Text>
+              </View>
+            )}
+
+            {/* Lock/Unlock Early Checkout Button */}
+            {item.executive?._id && (
+              <TouchableOpacity
+                onPress={() => handleToggleLock(item.executive._id, item.executive?.earlyCheckoutLocked)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, backgroundColor: item.executive?.earlyCheckoutLocked ? '#fef2f2' : '#f8fafc', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: item.executive?.earlyCheckoutLocked ? '#fecaca' : '#e2e8f0' }}
+              >
+                <Ionicons name={item.executive?.earlyCheckoutLocked ? 'lock-closed' : 'lock-open'} size={14} color={item.executive?.earlyCheckoutLocked ? '#ef4444' : '#64748b'} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: item.executive?.earlyCheckoutLocked ? '#ef4444' : '#64748b' }}>
+                  {item.executive?.earlyCheckoutLocked ? '🔒 Early Checkout Locked' : '🔓 Lock Early Checkout'}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {item.adminFeedback ? (
               <View style={[styles.infoBox, { backgroundColor: '#fef2f2', borderColor: '#fecaca' }]}>
