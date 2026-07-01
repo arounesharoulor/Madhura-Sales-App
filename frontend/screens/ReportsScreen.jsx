@@ -258,33 +258,57 @@ export default function ReportsScreen({ navigation }) {
 
         {showAddForm ? (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-            <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 20 }}>
+            <View style={{ backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: '#e2e8f0', padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}>
+              
+              <View style={{ backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: '#0284c7' }}>
+                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>Automated Report Generation</Text>
+                <Text style={{ fontSize: 12, color: '#64748b', lineHeight: 18 }}>
+                  This tool instantly compiles all executive activities, client meetings, follow-ups, and task completions within the selected date range.
+                </Text>
+              </View>
+
               <CustomInput label="Report Title *" value={title} onChangeText={setTitle} placeholder="E.g. Q2 Sales Executive Activity Summary" />
 
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 12 }}>Report Frequency *</Text>
-              <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 16, padding: 4, marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 16, padding: 4, marginBottom: 20 }}>
                 {['Weekly', 'Monthly', 'Closure'].map((t) => (
                   <TouchableOpacity
                     key={t}
                     onPress={() => setType(t)}
-                    style={{ flex: 1, paddingVertical: 10, borderRadius: 12, backgroundColor: type === t ? '#0284c7' : 'transparent', alignItems: 'center' }}
+                    style={{ flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: type === t ? '#0284c7' : 'transparent', alignItems: 'center' }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: type === t ? '#fff' : '#64748b' }}>{t}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: type === t ? '#fff' : '#64748b' }}>{t}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Start Date *</Text>
-              <CrossPlatformDatePicker value={startDate} onChange={setStartDate} />
+              <View style={{ flexDirection: 'row', gap: 16, marginBottom: 20 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Start Date *</Text>
+                  <CrossPlatformDatePicker value={startDate} onChange={setStartDate} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>End Date *</Text>
+                  <CrossPlatformDatePicker value={endDate} onChange={setEndDate} />
+                </View>
+              </View>
 
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>End Date *</Text>
-              <CrossPlatformDatePicker value={endDate} onChange={setEndDate} />
+              <View style={{ backgroundColor: '#f0fdf4', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#bbf7d0' }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#16a34a', marginBottom: 8 }}>Included Data Points:</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {['Client Meetings', 'Follow-ups', 'Task Progress', 'Executive Stats'].map(item => (
+                    <View key={item} style={{ backgroundColor: '#dcfce7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#15803d' }}>✓ {item}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
 
               <View style={{ marginTop: 8 }}>
                 <CustomButton title="Generate Summary Report" loading={loading} onPress={handleGenerateReport} />
               </View>
               <TouchableOpacity onPress={() => setShowAddForm(false)} style={{ marginTop: 12, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', alignItems: 'center' }}>
-                <Text style={{ color: '#64748b', fontWeight: '700', fontSize: 13 }}>Cancel</Text>
+                <Text style={{ color: '#64748b', fontWeight: '800', fontSize: 13 }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

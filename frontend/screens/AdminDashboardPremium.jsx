@@ -26,7 +26,7 @@ export default function AdminDashboardPremium({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState({
     totalEmployees: 0, checkedIn: 0, checkedOut: 0,
-    clientVisitsToday: 0, newClientsToday: 0,
+    clientVisitsToday: 0, newClientsToday: 0, totalClients: 0,
     pendingFollowUps: 0, openTasks: 0,
     attendancePct: 0, pendingList: []
   });
@@ -66,7 +66,7 @@ export default function AdminDashboardPremium({ navigation }) {
 
       setMetrics({
         totalEmployees, checkedIn, checkedOut,
-        clientVisitsToday: visitsToday, newClientsToday,
+        clientVisitsToday: visitsToday, newClientsToday, totalClients: onboardings.length,
         pendingFollowUps, openTasks, attendancePct,
         pendingList
       });
@@ -118,6 +118,17 @@ export default function AdminDashboardPremium({ navigation }) {
             </TouchableOpacity>
           </View>
 
+          {/* New Professional Clients Banner */}
+          <View style={{ backgroundColor: '#0f172a', borderRadius: 24, padding: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, shadowColor: '#000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.15, shadowRadius: 12, elevation: 5 }}>
+            <View>
+              <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2 }}>Total Clients Onboarded</Text>
+              <Text style={{ color: '#fff', fontSize: 36, fontWeight: '900', marginTop: 4 }}>{metrics.totalClients}</Text>
+            </View>
+            <View style={{ backgroundColor: '#1e293b', borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#334155' }}>
+              <Ionicons name="briefcase" size={28} color="#38bdf8" />
+            </View>
+          </View>
+
           <Text style={{ fontSize: 12, fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Employee Tracking (Today)</Text>
           <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'space-between' }}>
             <StatCard label="Total Field Staff" value={metrics.totalEmployees} icon="people" color="#6366f1" bg="#eef2ff" />
@@ -129,7 +140,6 @@ export default function AdminDashboardPremium({ navigation }) {
           <Text style={{ fontSize: 12, fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 10, marginBottom: 10 }}>Sales & Operations (Today)</Text>
           <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'space-between' }}>
             <StatCard label="Client Visits" value={metrics.clientVisitsToday} icon="location" color="#0ea5e9" bg="#e0f2fe" />
-            <StatCard label="New Clients Added" value={metrics.newClientsToday} icon="briefcase" color="#d946ef" bg="#fae8ff" />
             <StatCard label="Pending Tasks" value={metrics.openTasks} icon="clipboard" color="#f43f5e" bg="#ffe4e6" />
             {/* Follow-ups card is tappable → goes to admin follow-up management */}
             <TouchableOpacity

@@ -164,6 +164,17 @@ export default function AdminDashboardScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* New Professional Clients Banner */}
+        <View className="bg-slate-900 rounded-3xl p-6 flex-row items-center justify-between mb-6 shadow-md">
+          <View>
+            <Text className="text-slate-400 text-[10px] font-extrabold uppercase tracking-widest">Total Clients Onboarded</Text>
+            <Text className="text-white text-4xl font-black mt-1">{stats.clients}</Text>
+          </View>
+          <View className="bg-slate-800 rounded-2xl p-4 border border-slate-700">
+            <Ionicons name="briefcase" size={32} color="#38bdf8" />
+          </View>
+        </View>
+
         {/* Stats Grid */}
         <View className="flex-row flex-wrap justify-between mb-6">
           <View className="w-[48%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm">
@@ -181,15 +192,6 @@ export default function AdminDashboardScreen({ navigation }) {
           <View className="w-[48%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm">
             <Text className="text-2xl font-extrabold text-indigo-600">{stats.meetings}</Text>
             <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Logged Meetings</Text>
-          </View>
-          <View className="w-[100%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm flex-row justify-between items-center">
-            <View>
-              <Text className="text-2xl font-extrabold text-purple-600">{stats.clients}</Text>
-              <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Clients Onboarded</Text>
-            </View>
-            <View className="bg-purple-100 p-3 rounded-2xl">
-              <Ionicons name="briefcase" size={24} color="#9333ea" />
-            </View>
           </View>
         </View>
 

@@ -168,6 +168,17 @@ export default function DashboardScreen({ navigation }) {
             </Text>
           </View>
 
+          {/* New Professional Clients Banner */}
+          <View style={{ backgroundColor: '#0f172a', borderRadius: 24, padding: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, shadowColor: '#000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.15, shadowRadius: 12, elevation: 5 }}>
+            <View>
+              <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2 }}>Total Clients Onboarded</Text>
+              <Text style={{ color: '#fff', fontSize: 36, fontWeight: '900', marginTop: 4 }}>{metrics.totalClients}</Text>
+            </View>
+            <View style={{ backgroundColor: '#1e293b', borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#334155' }}>
+              <Ionicons name="briefcase" size={28} color="#38bdf8" />
+            </View>
+          </View>
+
           {/* Attendance & Location Status */}
           <View style={{ backgroundColor: checkedIn ? '#f0fdf4' : '#fff7ed', borderRadius: 18, borderWidth: 1, borderColor: checkedIn ? '#bbf7d0' : '#fed7aa', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 }}>
             <View style={{ backgroundColor: checkedIn ? '#dcfce7' : '#ffedd5', borderRadius: 12, padding: 10 }}>
@@ -226,8 +237,8 @@ export default function DashboardScreen({ navigation }) {
             </View>
           )}
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
-            <StatCard icon="briefcase" label="Clients Added" value={metrics.totalClients} color="#7c3aed" bg="#faf5ff" />
             <StatCard icon="stats-chart" label="Attendance %" value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" />
+            <View style={{ flex: 1 }} />
           </View>
 
 
