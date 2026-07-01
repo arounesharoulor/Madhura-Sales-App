@@ -380,12 +380,9 @@ const styles = StyleSheet.create({
   webIconWrap: {
     width: 80,
     height: 80,
-    backgroundColor: '#F5A623',
-    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    boxShadow: '0px 10px 30px rgba(245, 166, 35, 0.3)',
   },
   webLeftTitle: {
     fontSize: 42,
