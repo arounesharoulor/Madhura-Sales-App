@@ -6,10 +6,11 @@ import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import api from '../api/api';
 import { disconnectSocket } from '../utils/socket';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AdminDashboardScreen({ navigation }) {
   const [adminName, setAdminName] = useState('');
-  const [stats, setStats] = useState({ users: 0, pendingTasks: 0, completedTasks: 0, meetings: 0 });
+  const [stats, setStats] = useState({ users: 0, pendingTasks: 0, completedTasks: 0, meetings: 0, clients: 0 });
   const [loading, setLoading] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showNotifyForm, setShowNotifyForm] = useState(false);
@@ -32,6 +33,7 @@ export default function AdminDashboardScreen({ navigation }) {
       const userRes = await api.get('/users');
       const taskRes = await api.get('/tasks');
       const meetingRes = await api.get('/meetings');
+      const clientRes = await api.get('/onboarding').catch(() => ({ data: { data: [] } }));
       
       const tasks = taskRes.data.data;
       const pending = tasks.filter(t => t.status === 'Pending' || t.status === 'In Progress').length;
@@ -42,6 +44,7 @@ export default function AdminDashboardScreen({ navigation }) {
         pendingTasks: pending,
         completedTasks: completed,
         meetings: meetingRes.data.data.length,
+        clients: clientRes.data.data ? clientRes.data.data.length : 0,
       });
     } catch (e) {
       console.error(e);
@@ -178,6 +181,15 @@ export default function AdminDashboardScreen({ navigation }) {
           <View className="w-[48%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm">
             <Text className="text-2xl font-extrabold text-indigo-600">{stats.meetings}</Text>
             <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Logged Meetings</Text>
+          </View>
+          <View className="w-[100%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm flex-row justify-between items-center">
+            <View>
+              <Text className="text-2xl font-extrabold text-purple-600">{stats.clients}</Text>
+              <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Clients Onboarded</Text>
+            </View>
+            <View className="bg-purple-100 p-3 rounded-2xl">
+              <Ionicons name="briefcase" size={24} color="#9333ea" />
+            </View>
           </View>
         </View>
 
