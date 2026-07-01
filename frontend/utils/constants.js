@@ -19,6 +19,15 @@ const WEB_HOST = typeof window !== 'undefined' ? window.location.hostname : null
 const HOST_FROM_DEBUGGER = resolveExpoHost();
 const LOCAL_HOST = WEB_HOST || HOST_FROM_DEBUGGER || DEFAULT_LOCAL_HOST;
 
+// True when running as a deployed web app (not on localhost/emulator)
+const isWebProduction = Platform.OS === 'web' &&
+  typeof window !== 'undefined' &&
+  WEB_HOST !== 'localhost' &&
+  WEB_HOST !== '127.0.0.1';
+
+const PRODUCTION_API_URL = 'https://madhura-sales-app.onrender.com/api';
+const PRODUCTION_SOCKET_URL = 'https://madhura-sales-app.onrender.com';
+
 const API_HOST = Platform.OS === 'web'
   ? LOCAL_HOST
   : Platform.OS === 'android'
@@ -38,9 +47,9 @@ const STATIC_SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL ||
 
 const FALLBACK_HOST = 'localhost';
 
-export const API_URL = STATIC_API_URL || `http://${API_HOST}:5005/api`;
-export const API_FALLBACK_URL = `http://${FALLBACK_HOST}:5005/api`;
-export const SOCKET_URL = STATIC_SOCKET_URL || `http://${API_HOST}:5005`;
+export const API_URL = STATIC_API_URL || (isWebProduction ? PRODUCTION_API_URL : `http://${API_HOST}:5005/api`);
+export const API_FALLBACK_URL = isWebProduction ? PRODUCTION_API_URL : `http://${FALLBACK_HOST}:5005/api`;
+export const SOCKET_URL = STATIC_SOCKET_URL || (isWebProduction ? PRODUCTION_SOCKET_URL : `http://${API_HOST}:5005`);
 export const THEME = {
   primary: '#0284c7', // sky-600
   backgroundDark: '#0f172a', // slate-900
