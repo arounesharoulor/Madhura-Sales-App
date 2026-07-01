@@ -160,6 +160,14 @@ export default function ReportsScreen({ navigation }) {
   const [type, setType] = useState('Weekly');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  
+  const [reportMode, setReportMode] = useState('Automated');
+  const [manualClient, setManualClient] = useState('');
+  const [manualProject, setManualProject] = useState('');
+  const [manualSummary, setManualSummary] = useState('');
+  const [manualNextSteps, setManualNextSteps] = useState('');
+  const [manualQuotes, setManualQuotes] = useState('');
+  
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -251,6 +259,85 @@ export default function ReportsScreen({ navigation }) {
     }
   };
 
+  const handleGenerateManualReport = async () => {
+    if (!manualClient || !manualProject) {
+      Alert.alert('Required', 'Client Name and Project/Subject are required.');
+      return;
+    }
+    setLoading(true);
+    try {
+      if (Platform.OS === 'web') {
+        const baseUrl = api.defaults?.baseURL || '';
+        const token = await AsyncStorage.getItem('token');
+        const url = `${baseUrl}/reports/custom-download`;
+        const resp = await fetch(url, { 
+          method: 'POST',
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({
+            clientName: manualClient,
+            projectName: manualProject,
+            summary: manualSummary,
+            nextSteps: manualNextSteps,
+            quotes: manualQuotes
+          })
+        });
+        const blob = await resp.blob();
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+        a.setAttribute('download', `custom_report_${manualClient}.xlsx`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        const token = await AsyncStorage.getItem('token');
+        const baseUrl = api.defaults?.baseURL || '';
+        const url = `${baseUrl}/reports/custom-download`;
+        const filename = `custom_report_${manualClient.replace(/\s+/g, '_')}.xlsx`;
+        const localUri = FileSystem.cacheDirectory + filename;
+
+        const dl = await FileSystem.downloadAsync(url, localUri, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          httpMethod: 'POST',
+          body: JSON.stringify({
+            clientName: manualClient,
+            projectName: manualProject,
+            summary: manualSummary,
+            nextSteps: manualNextSteps,
+            quotes: manualQuotes
+          })
+        });
+
+        if (dl.status === 200) {
+          const canShare = await Sharing.isAvailableAsync();
+          if (canShare) {
+            await Sharing.shareAsync(dl.uri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          } else {
+            Alert.alert('Downloaded', `Saved to: ${dl.uri}`);
+          }
+        } else {
+          Alert.alert('Error', 'Download failed');
+        }
+      }
+      
+      Alert.alert('Success', 'Custom report generated and downloaded!');
+      setShowAddForm(false);
+      setManualClient(''); setManualProject(''); setManualSummary(''); setManualNextSteps(''); setManualQuotes('');
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'Failed to generate manual report.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AppLayout currentScreen="Reports" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
@@ -260,53 +347,123 @@ export default function ReportsScreen({ navigation }) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             <View style={{ backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: '#e2e8f0', padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}>
               
-              <View style={{ backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: '#0284c7' }}>
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>Automated Report Generation</Text>
-                <Text style={{ fontSize: 12, color: '#64748b', lineHeight: 18 }}>
-                  This tool instantly compiles all executive activities, client meetings, follow-ups, and task completions within the selected date range.
-                </Text>
-              </View>
-
-              <CustomInput label="Report Title *" value={title} onChangeText={setTitle} placeholder="E.g. Q2 Sales Executive Activity Summary" />
-
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 12 }}>Report Frequency *</Text>
-              <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 16, padding: 4, marginBottom: 20 }}>
-                {['Weekly', 'Monthly', 'Closure'].map((t) => (
+              <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 16, padding: 4, marginBottom: 24 }}>
+                {['Automated', 'Manual Custom'].map((m) => (
                   <TouchableOpacity
-                    key={t}
-                    onPress={() => setType(t)}
-                    style={{ flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: type === t ? '#0284c7' : 'transparent', alignItems: 'center' }}
+                    key={m}
+                    onPress={() => setReportMode(m)}
+                    style={{ flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: reportMode === m ? '#0f172a' : 'transparent', alignItems: 'center' }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: type === t ? '#fff' : '#64748b' }}>{t}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: reportMode === m ? '#fff' : '#64748b' }}>{m}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <View style={{ flexDirection: 'row', gap: 16, marginBottom: 20 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Start Date *</Text>
-                  <CrossPlatformDatePicker value={startDate} onChange={setStartDate} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>End Date *</Text>
-                  <CrossPlatformDatePicker value={endDate} onChange={setEndDate} />
-                </View>
-              </View>
+              {reportMode === 'Automated' ? (
+                <>
+                  <View style={{ backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: '#0284c7' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>Automated Report Generation</Text>
+                    <Text style={{ fontSize: 12, color: '#64748b', lineHeight: 18 }}>
+                      This tool instantly compiles all executive activities, client meetings, follow-ups, and task completions within the selected date range.
+                    </Text>
+                  </View>
 
-              <View style={{ backgroundColor: '#f0fdf4', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#bbf7d0' }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#16a34a', marginBottom: 8 }}>Included Data Points:</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {['Client Meetings', 'Follow-ups', 'Task Progress', 'Executive Stats'].map(item => (
-                    <View key={item} style={{ backgroundColor: '#dcfce7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#15803d' }}>✓ {item}</Text>
+                  <CustomInput label="Report Title *" value={title} onChangeText={setTitle} placeholder="E.g. Q2 Sales Executive Activity Summary" />
+
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 12 }}>Report Frequency *</Text>
+                  <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 16, padding: 4, marginBottom: 20 }}>
+                    {['Weekly', 'Monthly', 'Closure'].map((t) => (
+                      <TouchableOpacity
+                        key={t}
+                        onPress={() => setType(t)}
+                        style={{ flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: type === t ? '#0284c7' : 'transparent', alignItems: 'center' }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '800', color: type === t ? '#fff' : '#64748b' }}>{t}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <View style={{ flexDirection: 'row', gap: 16, marginBottom: 20 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Start Date *</Text>
+                      <CrossPlatformDatePicker value={startDate} onChange={setStartDate} />
                     </View>
-                  ))}
-                </View>
-              </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>End Date *</Text>
+                      <CrossPlatformDatePicker value={endDate} onChange={setEndDate} />
+                    </View>
+                  </View>
 
-              <View style={{ marginTop: 8 }}>
-                <CustomButton title="Generate Summary Report" loading={loading} onPress={handleGenerateReport} />
-              </View>
+                  <View style={{ backgroundColor: '#f0fdf4', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#bbf7d0' }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#16a34a', marginBottom: 8 }}>Included Data Points:</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                      {['Client Meetings', 'Follow-ups', 'Task Progress', 'Executive Stats'].map(item => (
+                        <View key={item} style={{ backgroundColor: '#dcfce7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#15803d' }}>✓ {item}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+
+                  <View style={{ marginTop: 8 }}>
+                    <CustomButton title="Generate Summary Report" loading={loading} onPress={handleGenerateReport} />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={{ backgroundColor: '#fdf4ff', borderRadius: 16, padding: 16, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: '#d946ef' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>Manual Custom Report</Text>
+                    <Text style={{ fontSize: 12, color: '#64748b', lineHeight: 18 }}>
+                      Enter manual details for a specific client to generate an instant Excel report intended to be sent directly to them.
+                    </Text>
+                  </View>
+
+                  <CustomInput label="Client / Company Name *" value={manualClient} onChangeText={setManualClient} placeholder="E.g. Acme Corp" />
+                  <CustomInput label="Project / Subject *" value={manualProject} onChangeText={setManualProject} placeholder="E.g. Q3 Service Proposal" />
+                  
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6, marginTop: 12 }}>Executive Summary</Text>
+                  <TextInput
+                    value={manualSummary}
+                    onChangeText={setManualSummary}
+                    placeholder="Brief description of the report..."
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0f172a', minHeight: 80, textAlignVertical: 'top', marginBottom: 16 }}
+                  />
+
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Next Steps / Actions</Text>
+                  <TextInput
+                    value={manualNextSteps}
+                    onChangeText={setManualNextSteps}
+                    placeholder="Actionable items for the client..."
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0f172a', minHeight: 80, textAlignVertical: 'top', marginBottom: 16 }}
+                  />
+
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Quotations / Pricing (Optional)</Text>
+                  <TextInput
+                    value={manualQuotes}
+                    onChangeText={setManualQuotes}
+                    placeholder="Pricing or quotes..."
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0f172a', minHeight: 60, textAlignVertical: 'top', marginBottom: 24 }}
+                  />
+
+                  <View style={{ marginTop: 8 }}>
+                    <TouchableOpacity
+                      onPress={handleGenerateManualReport}
+                      disabled={loading}
+                      style={{ backgroundColor: loading ? '#f9a8d4' : '#d946ef', borderRadius: 14, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    >
+                      {loading ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="download" size={18} color="#fff" />}
+                      <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{loading ? 'Generating...' : 'Download Custom Excel'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+
               <TouchableOpacity onPress={() => setShowAddForm(false)} style={{ marginTop: 12, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', alignItems: 'center' }}>
                 <Text style={{ color: '#64748b', fontWeight: '800', fontSize: 13 }}>Cancel</Text>
               </TouchableOpacity>
