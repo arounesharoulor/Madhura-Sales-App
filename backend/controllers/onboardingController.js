@@ -9,13 +9,13 @@ exports.onboardClient = async (req, res, next) => {
     const {
       businessName, businessType, gstNumber,
       ownerName, phone, email,
-      address, city, pincode, latitude, longitude,
+      address, city, state, pincode, latitude, longitude,
       notes, followUpDate,
     } = req.body;
 
-    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !pincode) {
+    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !state || !pincode) {
       res.status(400);
-      throw new Error('Please provide all required fields: Business Name, Business Type, Owner Name, Phone, Address, City, Pincode.');
+      throw new Error('Please provide all required fields: Business Name, Business Type, Owner Name, Phone, Address, State, City, Pincode.');
     }
 
     const onboarding = await ClientOnboarding.create({
@@ -29,6 +29,7 @@ exports.onboardClient = async (req, res, next) => {
       location: {
         address,
         city,
+        state,
         pincode,
         latitude: latitude ? Number(latitude) : null,
         longitude: longitude ? Number(longitude) : null,
@@ -36,6 +37,22 @@ exports.onboardClient = async (req, res, next) => {
       notes: notes || '',
       followUpDate: followUpDate ? new Date(followUpDate) : null,
     });
+
+    if (followUpDate) {
+      try {
+        await require('../models/FollowUp').create({
+          executive: req.user.id,
+          clientName: ownerName,
+          companyName: businessName,
+          notes: notes || `Follow-up for newly onboarded client: ${businessName}`,
+          followUpDate: new Date(followUpDate),
+          status: 'Pending',
+          priority: 'Medium'
+        });
+      } catch (err) {
+        console.error('Failed to create followup:', err);
+      }
+    }
 
     // Notify all admins in real-time
     const admins = await require('../models/User').find({ role: 'Admin', isActive: true }).select('_id');
@@ -73,6 +90,80 @@ exports.getOnboardedClients = async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, count: onboardings.length, data: onboardings });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update onboarded client
+// @route   PUT /api/onboarding/:id
+// @access  Private
+exports.updateClient = async (req, res, next) => {
+  try {
+    let onboarding = await ClientOnboarding.findById(req.params.id);
+    if (!onboarding) {
+      res.status(404);
+      throw new Error('Client not found');
+    }
+
+    if (req.user.role !== 'Admin' && onboarding.executive?.toString() !== req.user.id) {
+      res.status(403);
+      throw new Error('Not authorized to update this client');
+    }
+
+    const {
+      businessName, businessType, gstNumber,
+      ownerName, phone, email,
+      address, city, state, pincode, latitude, longitude,
+      notes, followUpDate,
+    } = req.body;
+
+    onboarding.businessName = businessName || onboarding.businessName;
+    onboarding.businessType = businessType || onboarding.businessType;
+    onboarding.gstNumber = gstNumber !== undefined ? gstNumber : onboarding.gstNumber;
+    onboarding.ownerName = ownerName || onboarding.ownerName;
+    onboarding.phone = phone || onboarding.phone;
+    onboarding.email = email !== undefined ? email : onboarding.email;
+    onboarding.notes = notes !== undefined ? notes : onboarding.notes;
+    if (followUpDate) onboarding.followUpDate = new Date(followUpDate);
+
+    if (address || city || state || pincode || latitude || longitude) {
+      onboarding.location = {
+        address: address || onboarding.location.address,
+        city: city || onboarding.location.city,
+        state: state || onboarding.location.state,
+        pincode: pincode || onboarding.location.pincode,
+        latitude: latitude ? Number(latitude) : onboarding.location.latitude,
+        longitude: longitude ? Number(longitude) : onboarding.location.longitude,
+      };
+    }
+
+    await onboarding.save();
+
+    res.status(200).json({ success: true, data: onboarding });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete onboarded client
+// @route   DELETE /api/onboarding/:id
+// @access  Private
+exports.deleteClient = async (req, res, next) => {
+  try {
+    const onboarding = await ClientOnboarding.findById(req.params.id);
+    if (!onboarding) {
+      res.status(404);
+      throw new Error('Client not found');
+    }
+
+    if (req.user.role !== 'Admin' && onboarding.executive?.toString() !== req.user.id) {
+      res.status(403);
+      throw new Error('Not authorized to delete this client');
+    }
+
+    await onboarding.deleteOne();
+    res.status(200).json({ success: true, data: {} });
   } catch (error) {
     next(error);
   }

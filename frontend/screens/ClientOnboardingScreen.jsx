@@ -1,17 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, Alert, Platform, TextInput, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
-import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 
 const BUSINESS_TYPES = ['Retailer', 'Distributor', 'Wholesaler', 'Dealer', 'Corporate', 'Other'];
-const PRIORITY_LEVELS = ['High', 'Medium', 'Low'];
+
+const LOCATION_DATA = {
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane"],
+  "Karnataka": ["Bangalore", "Mysore", "Hubli", "Mangalore"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Trichy"],
+  "Delhi": ["New Delhi", "North Delhi", "South Delhi"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
+  "Telangana": ["Hyderabad", "Warangal", "Nizamabad"],
+  "Kerala": ["Kochi", "Thiruvananthapuram", "Kozhikode"],
+};
+const STATES = Object.keys(LOCATION_DATA);
 
 // Reusable field label
 function FieldLabel({ text, required }) {
@@ -88,8 +98,50 @@ function PillSelector({ options, value, onSelect }) {
   );
 }
 
+// Select field for cross platform dropdowns
+function SelectField({ label, required, value, onChange, options }) {
+  if (Platform.OS === 'web') {
+    return (
+      <View>
+        <FieldLabel text={label} required={required} />
+        <View style={{
+          backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
+          borderRadius: 14, paddingHorizontal: 14, height: 50, justifyContent: 'center'
+        }}>
+          <select
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', fontSize: 14, color: value ? '#0f172a' : '#94a3b8', fontFamily: 'inherit' }}
+          >
+            <option value="" disabled>Select {label}</option>
+            {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+        </View>
+      </View>
+    );
+  }
+  return (
+    <View>
+      <FieldLabel text={label} required={required} />
+      <View style={{
+        backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
+        borderRadius: 14, height: 50, justifyContent: 'center', overflow: 'hidden'
+      }}>
+        <Picker
+          selectedValue={value}
+          onValueChange={(val) => onChange(val)}
+          style={{ height: 50, width: '100%', color: value ? '#0f172a' : '#94a3b8' }}
+        >
+          <Picker.Item label={`Select ${label}`} value="" color="#94a3b8" />
+          {options.map(opt => <Picker.Item key={opt} label={opt} value={opt} />)}
+        </Picker>
+      </View>
+    </View>
+  );
+}
+
 // Date picker for web/native
-function DateField({ label, required, value, onChange }) {
+function DateField({ label, required, value, onChange, mode = 'date' }) {
   const [show, setShow] = useState(false);
   if (Platform.OS === 'web') {
     return (
@@ -100,9 +152,9 @@ function DateField({ label, required, value, onChange }) {
           backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
           borderRadius: 14, paddingHorizontal: 14, minHeight: 50,
         }}>
-          <Ionicons name="calendar-outline" size={18} color="#0284c7" style={{ marginRight: 8 }} />
+          <Ionicons name={mode === 'time' ? 'time-outline' : 'calendar-outline'} size={18} color="#0284c7" style={{ marginRight: 8 }} />
           <input
-            type="date"
+            type={mode === 'datetime' ? 'datetime-local' : mode === 'time' ? 'time' : 'date'}
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 14, color: value ? '#0f172a' : '#94a3b8', fontFamily: 'inherit' }}
@@ -123,18 +175,18 @@ function DateField({ label, required, value, onChange }) {
           borderRadius: 14, paddingHorizontal: 14, minHeight: 50, gap: 10,
         }}
       >
-        <Ionicons name="calendar-outline" size={18} color="#0284c7" />
+        <Ionicons name={mode === 'time' ? 'time-outline' : 'calendar-outline'} size={18} color="#0284c7" />
         <Text style={{ fontSize: 14, color: value ? '#0f172a' : '#94a3b8', flex: 1 }}>
-          {value ? new Date(value + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+          {value ? (mode === 'time' ? value : new Date(value).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: mode === 'datetime' ? '2-digit' : undefined, minute: mode === 'datetime' ? '2-digit' : undefined })) : `Select ${mode}`}
         </Text>
         <Ionicons name="chevron-down" size={14} color="#94a3b8" />
       </TouchableOpacity>
       {show && (
         <DateTimePicker
-          value={value ? new Date(value + 'T00:00:00') : new Date()}
-          mode="date"
+          value={value ? new Date(value) : new Date()}
+          mode={mode === 'datetime' ? 'datetime' : mode}
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(_, d) => { setShow(false); if (d) onChange(d.toISOString().split('T')[0]); }}
+          onChange={(_, d) => { setShow(false); if (d) onChange(mode === 'datetime' ? d.toISOString().slice(0, 16) : d.toISOString().split('T')[0]); }}
         />
       )}
     </View>
@@ -149,6 +201,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   // Location state
   const [coords, setCoords] = useState(null);
@@ -165,7 +218,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
-  const [state, setState] = useState('');
+  const [selectedState, setSelectedState] = useState('');
   const [pincode, setPincode] = useState('');
   const [landmark, setLandmark] = useState('');
   const [panNumber, setPanNumber] = useState('');
@@ -173,7 +226,6 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [leadSource, setLeadSource] = useState('');
   const [expectedVolume, setExpectedVolume] = useState('');
   const [interestedProducts, setInterestedProducts] = useState('');
-  const [priority, setPriority] = useState('Medium');
   const [notes, setNotes] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
   const [nextMeetingDate, setNextMeetingDate] = useState('');
@@ -224,145 +276,219 @@ export default function ClientOnboardingScreen({ navigation }) {
   const resetForm = () => {
     setBusinessName(''); setBusinessType(''); setGstNumber('');
     setOwnerName(''); setContactPerson(''); setPhone(''); setAltPhone(''); setEmail('');
-    setAddress(''); setCity(''); setState(''); setPincode(''); setLandmark('');
+    setAddress(''); setCity(''); setSelectedState(''); setPincode(''); setLandmark('');
     setPanNumber(''); setYearsInBusiness(''); setLeadSource(''); setExpectedVolume('');
-    setInterestedProducts(''); setPriority('Medium'); setNotes('');
+    setInterestedProducts(''); setNotes('');
     setFollowUpDate(''); setNextMeetingDate(''); setCoords(null);
+    setEditId(null);
   };
 
   const handleSubmit = async () => {
-    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !pincode) {
+    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !selectedState || !pincode) {
       Alert.alert('Missing Fields', 'Please fill all required fields marked with *');
       return;
     }
     setSubmitting(true);
     try {
-      await api.post('/onboarding', {
+      const payload = {
         businessName, businessType, gstNumber,
         ownerName, phone, email,
-        address, city, state, pincode,
+        address, city, state: selectedState, pincode,
         latitude: coords?.latitude,
         longitude: coords?.longitude,
         notes,
         followUpDate,
-      });
-      Toast.show({ type: 'success', text1: 'Client Onboarded!', text2: `${businessName} added successfully.` });
+      };
+
+      if (editId) {
+        await api.put(`/onboarding/${editId}`, payload);
+        Toast.show({ type: 'success', text1: 'Client Updated!', text2: `${businessName} updated successfully.` });
+      } else {
+        await api.post('/onboarding', payload);
+        Toast.show({ type: 'success', text1: 'Client Onboarded!', text2: `${businessName} added successfully.` });
+      }
+      
       resetForm();
       setShowForm(false);
       fetchClients();
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.message || 'Failed to onboard client.');
+      Alert.alert('Error', e.response?.data?.message || `Failed to ${editId ? 'update' : 'onboard'} client.`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const priorityColors = { High: { bg: '#fef2f2', text: '#e11d48', border: '#fecdd3' }, Medium: { bg: '#fffbeb', text: '#d97706', border: '#fde68a' }, Low: { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' } };
+  const handleEdit = (client) => {
+    setEditId(client._id);
+    setBusinessName(client.businessName || '');
+    setBusinessType(client.businessType || '');
+    setGstNumber(client.gstNumber || '');
+    setOwnerName(client.ownerName || '');
+    setContactPerson(client.contactPerson || '');
+    setPhone(client.phone || '');
+    setAltPhone(client.altPhone || '');
+    setEmail(client.email || '');
+    setAddress(client.location?.address || '');
+    setCity(client.location?.city || '');
+    setSelectedState(client.location?.state || '');
+    setPincode(client.location?.pincode || '');
+    setLandmark(client.landmark || '');
+    setPanNumber(client.panNumber || '');
+    setYearsInBusiness(client.yearsInBusiness?.toString() || '');
+    setLeadSource(client.leadSource || '');
+    setExpectedVolume(client.expectedVolume || '');
+    setInterestedProducts(client.interestedProducts || '');
+    setNotes(client.notes || '');
+    setFollowUpDate(client.followUpDate ? new Date(client.followUpDate).toISOString().slice(0, 16) : '');
+    
+    if (client.location?.latitude && client.location?.longitude) {
+      setCoords({ latitude: client.location.latitude, longitude: client.location.longitude });
+    } else {
+      setCoords(null);
+    }
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    const performDelete = async () => {
+      try {
+        await api.delete(`/onboarding/${id}`);
+        Toast.show({ type: 'success', text1: 'Deleted', text2: 'Client removed successfully' });
+        fetchClients();
+      } catch (e) {
+        console.error('Delete error:', e.response?.data || e.message);
+        Alert.alert('Error', e.response?.data?.message || 'Failed to delete client');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to delete this client?')) {
+        performDelete();
+      }
+    } else {
+      Alert.alert('Delete Client', 'Are you sure you want to delete this client?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: performDelete }
+      ]);
+    }
+  };
 
   return (
     <AppLayout currentScreen="ClientOnboarding" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 22, fontWeight: '900', color: '#0f172a', marginBottom: 16 }}>Client Onboarding</Text>
+        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0f172a', marginBottom: 16, letterSpacing: -0.5 }}>Client Onboarding</Text>
 
         {!showForm ? (
           // ── LIST VIEW ──
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>
                 {clients.length} Client{clients.length !== 1 ? 's' : ''} Onboarded
               </Text>
-              {role === 'Field Executive' && (
-                <TouchableOpacity
-                  onPress={() => { setShowForm(true); acquireGPS(); }}
-                  style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                >
-                  <Ionicons name="add" size={16} color="#fff" />
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>New Client</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                onPress={() => { setShowForm(true); acquireGPS(); }}
+                style={{ backgroundColor: '#0f172a', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 30, flexDirection: 'row', alignItems: 'center', gap: 6, shadowColor: '#0f172a', shadowOpacity: 0.3, shadowOffset: { width: 0, height: 4 }, shadowRadius: 8, elevation: 5 }}
+              >
+                <Ionicons name="add" size={16} color="#fff" />
+                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>New Client</Text>
+              </TouchableOpacity>
             </View>
 
             {refreshing && clients.length === 0 ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator size="large" color="#0284c7" />
+                <ActivityIndicator size="large" color="#0f172a" />
               </View>
             ) : clients.length === 0 ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                <View style={{ backgroundColor: '#eff6ff', borderRadius: 20, padding: 20 }}>
-                  <Ionicons name="briefcase-outline" size={40} color="#0284c7" />
+                <View style={{ backgroundColor: '#f1f5f9', borderRadius: 30, padding: 24 }}>
+                  <Ionicons name="briefcase-outline" size={48} color="#94a3b8" />
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: '#64748b' }}>No clients onboarded yet</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#475569' }}>No clients onboarded yet</Text>
                 {role === 'Field Executive' && (
-                  <Text style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>Tap "New Client" to add your first client</Text>
+                  <Text style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center' }}>Tap "New Client" to add your first client</Text>
                 )}
               </View>
             ) : (
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
                 {clients.map((item) => {
-                  const p = priorityColors[item.priority] || priorityColors.Medium;
                   return (
                     <View key={item._id} style={{
-                      backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0',
-                      padding: 16, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.04,
-                      shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2,
+                      backgroundColor: '#ffffff', borderRadius: 24, borderWidth: 1, borderColor: '#f1f5f9',
+                      padding: 20, marginBottom: 16, shadowColor: '#94a3b8', shadowOpacity: 0.1,
+                      shadowOffset: { width: 0, height: 8 }, shadowRadius: 16, elevation: 3,
                     }}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                        <View style={{ flex: 1, marginRight: 8 }}>
-                          <Text style={{ fontSize: 15, fontWeight: '800', color: '#0f172a' }}>{item.businessName}</Text>
-                          <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.businessType}</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                        <View style={{ flex: 1, marginRight: 12 }}>
+                          <Text style={{ fontSize: 18, fontWeight: '900', color: '#0f172a', marginBottom: 2 }}>{item.businessName}</Text>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: '#64748b' }}>{item.businessType}</Text>
                         </View>
-                        <View style={{ backgroundColor: '#eff6ff', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7', textTransform: 'uppercase' }}>Active</Text>
+                        <View style={{ backgroundColor: '#f0fdf4', borderRadius: 30, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#bbf7d0' }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', letterSpacing: 0.5 }}>Active</Text>
                         </View>
                       </View>
 
-                      <View style={{ gap: 4 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="person-outline" size={13} color="#94a3b8" />
-                          <Text style={{ fontSize: 12, color: '#475569' }}>{item.ownerName}</Text>
+                      <View style={{ gap: 8, backgroundColor: '#f8fafc', padding: 12, borderRadius: 16, marginBottom: 12 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="person" size={12} color="#0284c7" /></View>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>{item.ownerName}</Text>
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="call-outline" size={13} color="#94a3b8" />
-                          <Text style={{ fontSize: 12, color: '#475569' }}>{item.phone}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="call" size={12} color="#16a34a" /></View>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>{item.phone}</Text>
                         </View>
                         {item.email ? (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Ionicons name="mail-outline" size={13} color="#94a3b8" />
-                            <Text style={{ fontSize: 12, color: '#475569' }}>{item.email}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="mail" size={12} color="#e11d48" /></View>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>{item.email}</Text>
                           </View>
                         ) : null}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="location-outline" size={13} color="#94a3b8" />
-                          <Text style={{ fontSize: 12, color: '#475569' }} numberOfLines={1}>
-                            {item.location?.city}, {item.location?.pincode}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="location" size={12} color="#d97706" /></View>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155', flex: 1 }} numberOfLines={1}>
+                            {item.location?.city || item.city}, {item.location?.state || item.state}
                           </Text>
                         </View>
                         {item.gstNumber ? (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Ionicons name="document-text-outline" size={13} color="#94a3b8" />
-                            <Text style={{ fontSize: 12, color: '#475569' }}>GST: {item.gstNumber}</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <View style={{ backgroundColor: '#fff', padding: 4, borderRadius: 8, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: {width:0, height:2}, shadowRadius: 4, elevation:1 }}><Ionicons name="document-text" size={12} color="#7c3aed" /></View>
+                            <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>GST: {item.gstNumber}</Text>
                           </View>
                         ) : null}
                       </View>
 
                       {item.followUpDate && (
-                        <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Ionicons name="calendar-outline" size={13} color="#0284c7" />
-                          <Text style={{ fontSize: 11, color: '#0284c7', fontWeight: '600' }}>
-                            Follow-up: {new Date(item.followUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eff6ff', padding: 12, borderRadius: 16 }}>
+                          <Ionicons name="calendar" size={16} color="#0284c7" />
+                          <Text style={{ fontSize: 12, color: '#0284c7', fontWeight: '700' }}>
+                            Next Follow-up: {new Date(item.followUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </Text>
                         </View>
                       )}
 
-                      <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f1f5f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text style={{ fontSize: 10, color: '#94a3b8' }}>
-                          {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <View style={{ paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#94a3b8' }}>
+                          Onboarded {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </Text>
-                        {role === 'Admin' && item.executive && (
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7', backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                            By: {item.executive.name}
-                          </Text>
-                        )}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          {(role === 'Admin' || userData.id === item.executive?._id || userData.employeeId === item.executive?.employeeId) && (
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <TouchableOpacity onPress={() => handleEdit(item)} style={{ backgroundColor: '#f1f5f9', padding: 8, borderRadius: 12 }}>
+                                <Ionicons name="pencil" size={16} color="#475569" />
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ backgroundColor: '#fef2f2', padding: 8, borderRadius: 12 }}>
+                                <Ionicons name="trash" size={16} color="#ef4444" />
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                          {role === 'Admin' && item.executive && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f8fafc', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                              <Ionicons name="person-circle" size={14} color="#64748b" />
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
+                                {item.executive.name.split(' ')[0]}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
                     </View>
                   );
@@ -396,8 +522,8 @@ export default function ClientOnboardingScreen({ navigation }) {
             {/* SECTION 3: Address */}
             <SectionCard title="Address Information" icon="location-outline">
               <Field label="Full Address" required value={address} onChangeText={setAddress} placeholder="Street, Building, Area" multiline />
-              <Field label="City" required value={city} onChangeText={setCity} placeholder="E.g. Mumbai" />
-              <Field label="State" value={state} onChangeText={setState} placeholder="E.g. Maharashtra" />
+              <SelectField label="State" required value={selectedState} onChange={(v) => { setSelectedState(v); setCity(''); }} options={STATES} />
+              <SelectField label="City" required value={city} onChange={setCity} options={selectedState ? LOCATION_DATA[selectedState] || [] : []} />
               <Field label="Pincode" required value={pincode} onChangeText={setPincode} keyboardType="numeric" placeholder="E.g. 400001" />
               <Field label="Landmark" value={landmark} onChangeText={setLandmark} placeholder="E.g. Near Railway Station" />
             </SectionCard>
@@ -437,14 +563,12 @@ export default function ClientOnboardingScreen({ navigation }) {
               <Field label="Lead Source" value={leadSource} onChangeText={setLeadSource} placeholder="E.g. Cold Call, Reference" />
               <Field label="Expected Business Volume" value={expectedVolume} onChangeText={setExpectedVolume} placeholder="E.g. ₹50,000/month" />
               <Field label="Interested Products / Services" value={interestedProducts} onChangeText={setInterestedProducts} placeholder="E.g. Fertilizers, Seeds" multiline />
-              <FieldLabel text="Priority Level" />
-              <PillSelector options={PRIORITY_LEVELS} value={priority} onSelect={setPriority} />
             </SectionCard>
 
             {/* SECTION 6: Remarks & Follow-up */}
             <SectionCard title="Remarks & Follow-up" icon="document-text-outline">
               <Field label="Notes / Remarks" value={notes} onChangeText={setNotes} placeholder="Initial discussion summary, requirements..." multiline />
-              <DateField label="Follow-up Date" value={followUpDate} onChange={setFollowUpDate} />
+              <DateField label="Follow-up Date & Time" value={followUpDate} onChange={setFollowUpDate} mode="datetime" />
               <DateField label="Next Meeting Date" value={nextMeetingDate} onChange={setNextMeetingDate} />
             </SectionCard>
 
@@ -488,7 +612,7 @@ export default function ClientOnboardingScreen({ navigation }) {
             >
               {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />}
               <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>
-                {submitting ? 'Submitting...' : 'Complete Onboarding'}
+                {submitting ? (editId ? 'Updating...' : 'Submitting...') : (editId ? 'Update Client' : 'Complete Onboarding')}
               </Text>
             </TouchableOpacity>
 

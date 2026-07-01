@@ -49,7 +49,7 @@ export default function DashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [checkedIn, setCheckedIn] = useState(false);
   const [metrics, setMetrics] = useState({
-    pendingTasks: 0, completedTasks: 0,
+    pendingTasks: 0, inProgressTasks: 0, completedTasks: 0,
     visitsToday: 0, followUpsToday: 0,
     totalClients: 0, attendancePct: 0,
   });
@@ -92,6 +92,7 @@ export default function DashboardScreen({ navigation }) {
 
       setMetrics({
         pendingTasks: tasks.filter(t => t.status === 'Pending').length,
+        inProgressTasks: tasks.filter(t => t.status === 'In Progress').length,
         completedTasks: tasks.filter(t => t.status === 'Completed').length,
         visitsToday,
         followUpsToday,
@@ -110,14 +111,15 @@ export default function DashboardScreen({ navigation }) {
     return unsub;
   }, [navigation]);
 
+  // Socket connection for task_assigned events (notification toasts are handled by AppLayout)
   useEffect(() => {
     let sock = null;
     (async () => {
       sock = await connectSocket();
-      if (!sock) return;
-      sock.on('notification', (n) => Toast.show({ type: 'info', text1: n.title, text2: n.message, visibilityTime: 5000 }));
+      // Note: 'notification' toasts+sound are handled centrally in AppLayout
+      // We only need socket here for reloading data on key events
     })();
-    return () => { if (sock) sock.off('notification'); };
+    return () => {};
   }, []);
 
   // Live location tracking
@@ -196,9 +198,33 @@ export default function DashboardScreen({ navigation }) {
             <StatCard icon="alarm" label="Follow-ups Due" value={metrics.followUpsToday} color="#d97706" bg="#fffbeb" />
           </View>
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-            <StatCard icon="clipboard" label="Pending Tasks" value={metrics.pendingTasks} color="#e11d48" bg="#fff1f2" />
+            {/* Task cards: dynamically reflect status */}
+            {metrics.inProgressTasks > 0 ? (
+              <StatCard
+                icon="sync-circle"
+                label="In Progress"
+                value={metrics.inProgressTasks}
+                color="#0284c7"
+                bg="#eff6ff"
+              />
+            ) : (
+              <StatCard
+                icon="clipboard"
+                label="Pending Tasks"
+                value={metrics.pendingTasks}
+                color="#e11d48"
+                bg="#fff1f2"
+              />
+            )}
             <StatCard icon="checkmark-done" label="Completed" value={metrics.completedTasks} color="#16a34a" bg="#f0fdf4" />
           </View>
+          {/* Show both pending and in-progress when both exist */}
+          {metrics.inProgressTasks > 0 && metrics.pendingTasks > 0 && (
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <StatCard icon="clipboard" label="Pending Tasks" value={metrics.pendingTasks} color="#e11d48" bg="#fff1f2" />
+              <View style={{ flex: 1 }} />
+            </View>
+          )}
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
             <StatCard icon="briefcase" label="Clients Added" value={metrics.totalClients} color="#7c3aed" bg="#faf5ff" />
             <StatCard icon="stats-chart" label="Attendance %" value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" />

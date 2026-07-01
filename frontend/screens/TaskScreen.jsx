@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ScrollView, ActivityIndicator, Alert, TextInput, Image, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
 import api from '../api/api';
 import { connectSocket, getSocket } from '../utils/socket';
@@ -78,15 +79,20 @@ export default function TaskScreen({ navigation }) {
     setUpdatePhoto(null);
   };
 
-  const handlePickPhoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.7,
+  const handlePickCamera = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Permission needed', 'Camera access is required.'); return; }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true, quality: 0.7,
     });
-    if (!result.canceled) {
-      setUpdatePhoto(result.assets[0]);
-    }
+    if (!result.canceled) setUpdatePhoto(result.assets[0]);
+  };
+
+  const handlePickDocument = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: '*/*', copyToCacheDirectory: true,
+    });
+    if (!result.canceled) setUpdatePhoto(result.assets[0]);
   };
 
   const submitUpdate = async (id) => {
@@ -106,10 +112,8 @@ export default function TaskScreen({ navigation }) {
       formData.append('status', updateStatus);
       
       if (updatePhoto) {
-        // Need to extract the filename or just use a generic one
-        const filename = updatePhoto.uri.split('/').pop() || 'evidence.jpg';
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        const filename = updatePhoto.name || updatePhoto.fileName || updatePhoto.uri.split('/').pop() || 'evidence.file';
+        const type = updatePhoto.mimeType || updatePhoto.type || 'application/octet-stream';
         
         formData.append('photo', {
           uri: Platform.OS === 'ios' ? updatePhoto.uri.replace('file://', '') : updatePhoto.uri,
@@ -312,30 +316,49 @@ export default function TaskScreen({ navigation }) {
 
                       {/* Photo Upload (Required for Completed) */}
                       <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748b', marginBottom: 4 }}>
-                        Photo Evidence {updateStatus === 'Completed' && <Text style={{ color: '#ef4444' }}>*</Text>}
+                        Evidence (Photo/Document) {updateStatus === 'Completed' && <Text style={{ color: '#ef4444' }}>*</Text>}
                       </Text>
                       {updatePhoto ? (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                          <Image source={{ uri: updatePhoto.uri }} style={{ width: 60, height: 60, borderRadius: 8 }} />
+                          {updatePhoto.mimeType?.startsWith('image') || !updatePhoto.mimeType ? (
+                            <Image source={{ uri: updatePhoto.uri }} style={{ width: 60, height: 60, borderRadius: 8 }} />
+                          ) : (
+                            <View style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center' }}>
+                              <Ionicons name="document-text" size={24} color="#64748b" />
+                            </View>
+                          )}
                           <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }} numberOfLines={1}>Photo Attached</Text>
+                            <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }} numberOfLines={1}>{updatePhoto.name || 'Attachment Added'}</Text>
                             <TouchableOpacity onPress={() => setUpdatePhoto(null)} style={{ marginTop: 4 }}>
                               <Text style={{ fontSize: 11, color: '#ef4444', fontWeight: '600' }}>Remove</Text>
                             </TouchableOpacity>
                           </View>
                         </View>
                       ) : (
-                        <TouchableOpacity
-                          onPress={handlePickPhoto}
-                          style={{
-                            flexDirection: 'row', alignItems: 'center', gap: 8,
-                            backgroundColor: '#fff', borderWidth: 1, borderColor: '#cbd5e1', borderStyle: 'dashed',
-                            padding: 12, borderRadius: 8, justifyContent: 'center', marginBottom: 16
-                          }}
-                        >
-                          <Ionicons name="camera-outline" size={16} color="#64748b" />
-                          <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '600' }}>Upload Photo</Text>
-                        </TouchableOpacity>
+                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+                          <TouchableOpacity
+                            onPress={handlePickCamera}
+                            style={{
+                              flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8,
+                              backgroundColor: '#fff', borderWidth: 1, borderColor: '#cbd5e1', borderStyle: 'dashed',
+                              padding: 12, borderRadius: 8, justifyContent: 'center'
+                            }}
+                          >
+                            <Ionicons name="camera-outline" size={16} color="#64748b" />
+                            <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '600' }}>Take Photo</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={handlePickDocument}
+                            style={{
+                              flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8,
+                              backgroundColor: '#fff', borderWidth: 1, borderColor: '#cbd5e1', borderStyle: 'dashed',
+                              padding: 12, borderRadius: 8, justifyContent: 'center'
+                            }}
+                          >
+                            <Ionicons name="document-attach-outline" size={16} color="#64748b" />
+                            <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '600' }}>Document</Text>
+                          </TouchableOpacity>
+                        </View>
                       )}
 
                       {/* Action Buttons */}

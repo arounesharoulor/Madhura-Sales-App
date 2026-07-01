@@ -6,7 +6,10 @@ import Header from '../components/Header';
 import api from '../api/api';
 import { connectSocket, getSocket } from '../utils/socket';
 
-export default function ChatScreen({ navigation }) {
+export default function ChatScreen({ route, navigation }) {
+  const partnerId = route?.params?.partnerId;
+  const partnerName = route?.params?.partnerName;
+
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [userId, setUserId] = useState('');
@@ -16,7 +19,8 @@ export default function ChatScreen({ navigation }) {
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/messages');
+      const url = partnerId ? `/messages?partnerId=${partnerId}` : '/messages';
+      const res = await api.get(url);
       setMessages(res.data.data);
     } catch (e) {
       console.error(e);
@@ -30,9 +34,11 @@ export default function ChatScreen({ navigation }) {
   };
 
   const setupChat = async () => {
+    let currentUserId = '';
     const storedUser = await AsyncStorage.getItem('user');
     if (storedUser) {
-      setUserId(JSON.parse(storedUser).id);
+      currentUserId = JSON.parse(storedUser).id;
+      setUserId(currentUserId);
     }
 
     await fetchMessages();
@@ -43,9 +49,20 @@ export default function ChatScreen({ navigation }) {
     }
 
     if (socket) {
-      socket.on('team_message', (msg) => {
-        setMessages((prev) => [...prev, msg]);
-      });
+      if (partnerId) {
+        socket.on('private_message', (msg) => {
+          if (
+            (msg.sender._id === partnerId && msg.receiver._id === currentUserId) ||
+            (msg.sender._id === currentUserId && msg.receiver._id === partnerId)
+          ) {
+            setMessages((prev) => [...prev, msg]);
+          }
+        });
+      } else {
+        socket.on('team_message', (msg) => {
+          setMessages((prev) => [...prev, msg]);
+        });
+      }
     }
   };
 
@@ -57,7 +74,7 @@ export default function ChatScreen({ navigation }) {
     if (!text.trim()) return;
 
     try {
-      const payload = { text };
+      const payload = partnerId ? { text, receiver: partnerId } : { text };
       setText('');
       await api.post('/messages', payload);
     } catch (e) {
@@ -73,7 +90,7 @@ export default function ChatScreen({ navigation }) {
           className="flex-1"
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
-          <Header title="Company Team Chat" onBack={handleGoBack} />
+          <Header title={partnerName ? `Chat with ${partnerName}` : "Company Team Chat"} onBack={handleGoBack} />
 
           <FlatList
             ref={flatListRef}

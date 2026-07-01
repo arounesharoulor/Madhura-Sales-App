@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import AppLayout from '../components/AppLayout';
@@ -210,6 +211,18 @@ export default function UserManagementScreen({ navigation }) {
                           </Text>
                         </TouchableOpacity>
                       </View>
+                    </View>
+                    <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-slate-100 justify-end">
+                      <TouchableOpacity
+                        onPress={() => navigation.navigate('Chat', {
+                          partnerId: item._id,
+                          partnerName: item.name
+                        })}
+                        className="bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100 flex-row items-center"
+                      >
+                        <Ionicons name="chatbubbles-outline" size={14} color="#0284c7" style={{ marginRight: 4 }} />
+                        <Text className="text-[10px] text-sky-600 font-bold">Message</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 );

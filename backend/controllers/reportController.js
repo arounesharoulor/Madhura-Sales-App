@@ -3,10 +3,12 @@ const Task = require('../models/Task');
 const Meeting = require('../models/Meeting');
 const FollowUp = require('../models/FollowUp');
 const User = require('../models/User');
+const { buildReportExcel } = require('../utils/excelBuilder');
+const { sendMail } = require('../utils/mailer');
 
-// @desc    Generate a status report (Admin / Manager)
+// @desc    Generate a status report
 // @route   POST /api/reports
-// @access  Private/Admin/Manager
+// @access  Private
 exports.generateReport = async (req, res, next) => {
   try {
     const { title, type, startDate, endDate } = req.body;
@@ -20,7 +22,6 @@ exports.generateReport = async (req, res, next) => {
       queryFilter.executive = req.user.id;
     }
 
-    // Note: Tasks use 'assignedTo' instead of 'executive'
     const taskQueryFilter = { createdAt: { $gte: start, $lte: end } };
     if (req.user.role === 'Field Executive') {
       taskQueryFilter.assignedTo = req.user.id;
@@ -64,7 +65,6 @@ exports.generateReport = async (req, res, next) => {
       });
     });
 
-    // Sort by date descending
     activities.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const report = await Report.create({
@@ -73,13 +73,7 @@ exports.generateReport = async (req, res, next) => {
       startDate: start,
       endDate: end,
       generatedBy: req.user.id,
-      summary: {
-        totalTasks,
-        completedTasks,
-        totalMeetings,
-        totalFollowUps,
-        totalExecutivesActive,
-      },
+      summary: { totalTasks, completedTasks, totalMeetings, totalFollowUps, totalExecutivesActive },
       activities,
     });
 
@@ -102,12 +96,129 @@ exports.getReports = async (req, res, next) => {
       .populate('generatedBy', 'name role')
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      count: reports.length,
-      data: reports,
-    });
+    res.status(200).json({ success: true, count: reports.length, data: reports });
   } catch (error) {
     next(error);
+  }
+};
+
+// @desc    Download report as Excel file
+// @route   GET /api/reports/:id/download
+// @access  Private
+exports.downloadReportExcel = async (req, res, next) => {
+  try {
+    const report = await Report.findById(req.params.id).populate('generatedBy', 'name');
+    if (!report) {
+      res.status(404);
+      throw new Error('Report not found');
+    }
+
+    const buffer = await buildReportExcel(report);
+    const filename = `report_${report.title.replace(/\s+/g, '_')}_${new Date(report.startDate).toISOString().split('T')[0]}.xlsx`;
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', buffer.length);
+    res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Send report as Excel to a client email (Admin only)
+// @route   POST /api/reports/:id/send-email
+// @access  Private/Admin
+exports.sendReportEmail = async (req, res, next) => {
+  try {
+    const { clientEmail, clientName, message } = req.body;
+    if (!clientEmail) {
+      res.status(400);
+      throw new Error('Client email is required');
+    }
+
+    const report = await Report.findById(req.params.id).populate('generatedBy', 'name');
+    if (!report) {
+      res.status(404);
+      throw new Error('Report not found');
+    }
+
+    const buffer = await buildReportExcel(report);
+    const filename = `report_${report.title.replace(/\s+/g, '_')}.xlsx`;
+
+    const emailHtml = `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#0284c7;padding:24px;border-radius:12px 12px 0 0">
+          <h2 style="color:#fff;margin:0">Madhura Sales — Activity Report</h2>
+        </div>
+        <div style="background:#f8fafc;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
+          <p>Dear <strong>${clientName || 'Client'}</strong>,</p>
+          <p>${message || `Please find attached the <strong>${report.title}</strong> activity report for the period <strong>${new Date(report.startDate).toLocaleDateString('en-IN')} – ${new Date(report.endDate).toLocaleDateString('en-IN')}</strong>.`}</p>
+          <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#fff;border-radius:8px;overflow:hidden">
+            <tr style="background:#eff6ff"><td style="padding:10px 14px;font-weight:600">Report</td><td style="padding:10px 14px">${report.title}</td></tr>
+            <tr><td style="padding:10px 14px;font-weight:600">Period</td><td style="padding:10px 14px">${new Date(report.startDate).toLocaleDateString('en-IN')} – ${new Date(report.endDate).toLocaleDateString('en-IN')}</td></tr>
+            <tr style="background:#eff6ff"><td style="padding:10px 14px;font-weight:600">Meetings</td><td style="padding:10px 14px">${report.summary?.totalMeetings || 0}</td></tr>
+            <tr><td style="padding:10px 14px;font-weight:600">Follow-Ups</td><td style="padding:10px 14px">${report.summary?.totalFollowUps || 0}</td></tr>
+          </table>
+          <p style="color:#64748b;font-size:12px">The detailed Excel report is attached to this email.</p>
+          <p style="color:#64748b;font-size:12px">— Madhura Sales Team</p>
+        </div>
+      </div>
+    `;
+
+    await sendMail({
+      to: clientEmail,
+      subject: `[Madhura Sales] ${report.title} – Activity Report`,
+      html: emailHtml,
+      attachments: [{ filename, content: buffer, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }],
+    });
+
+    res.status(200).json({ success: true, message: `Report sent to ${clientEmail}` });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Weekly Friday reminder – auto-send all weekly reports (called by cron)
+exports.sendWeeklyFridayReminder = async () => {
+  try {
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+
+    const admins = await User.find({ role: 'Admin', isActive: true }).select('email name');
+    if (!admins.length) return;
+
+    const emailHtml = `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#0284c7;padding:24px;border-radius:12px 12px 0 0">
+          <h2 style="color:#fff;margin:0">📊 Weekly Report Reminder</h2>
+        </div>
+        <div style="background:#f8fafc;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
+          <p>This is your automated Friday reminder.</p>
+          <p>Please log in to the <strong>Madhura Sales App</strong> to generate and send weekly activity reports to your clients.</p>
+          <p style="background:#eff6ff;padding:14px;border-radius:8px;border-left:4px solid #0284c7">
+            📅 Week: <strong>${startDate.toLocaleDateString('en-IN')} – ${endDate.toLocaleDateString('en-IN')}</strong>
+          </p>
+          <p style="color:#64748b;font-size:12px">— Madhura Sales Automated System</p>
+        </div>
+      </div>
+    `;
+
+    for (const admin of admins) {
+      try {
+        await sendMail({
+          to: admin.email,
+          subject: '📊 [Madhura Sales] Weekly Report Reminder – Friday',
+          html: emailHtml,
+        });
+      } catch (e) {
+        console.error(`Failed to send Friday reminder to ${admin.email}:`, e.message);
+      }
+    }
+    console.log(`✅ Friday weekly reminders sent to ${admins.length} admin(s)`);
+  } catch (error) {
+    console.error('Weekly reminder error:', error.message);
   }
 };

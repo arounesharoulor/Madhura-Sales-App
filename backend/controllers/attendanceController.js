@@ -234,35 +234,46 @@ exports.approveAttendance = async (req, res, next) => {
       throw new Error('Attendance record not found');
     }
 
+    // Safe executive ID — works whether populated or just ObjectId
+    const executiveId = attendance.executive?._id ?? attendance.executive;
+    if (!executiveId) {
+      res.status(404);
+      throw new Error('Employee linked to this attendance record no longer exists');
+    }
+
     let action = '';
-    if (attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Held') {
+    if (attendance.status === 'Pending Check-In' || attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Held') {
       attendance.status = 'Checked In';
       attendance.checkInStatus = 'Approved';
       action = 'Check-In Approved';
-    } else if (attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Held') {
+    } else if (attendance.status === 'Pending Check-Out' || attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Held') {
       attendance.status = 'Checked Out';
       attendance.checkOutStatus = 'Approved';
       action = 'Check-Out Approved';
-    } else if (attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Held') {
+    } else if (attendance.status === 'Pending Leave' || attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Held') {
       attendance.status = 'On Leave';
       attendance.leaveStatus = 'Approved';
       action = 'Leave Approved';
     } else {
       res.status(400);
-      throw new Error('No pending action to approve');
+      throw new Error('No pending action to approve for this record');
     }
 
     await attendance.save();
 
-    // Notify employee
-    const notif = await Notification.create({
-      recipient: attendance.executive._id,
-      sender: req.user.id,
-      title: action,
-      message: `Your ${action.toLowerCase()} for ${attendance.date} has been approved by the Admin.`,
-      type: 'Success',
-    });
-    if (req.io) req.io.to(attendance.executive._id.toString()).emit('notification', notif);
+    // Notify employee (wrapped so a notification failure never blocks the response)
+    try {
+      const notif = await Notification.create({
+        recipient: executiveId,
+        sender: req.user.id,
+        title: action,
+        message: `Your ${action.toLowerCase()} for ${attendance.date} has been approved by the Admin.`,
+        type: 'Success',
+      });
+      if (req.io) req.io.to(executiveId.toString()).emit('notification', notif);
+    } catch (notifErr) {
+      console.error('Notification creation failed (non-fatal):', notifErr.message);
+    }
 
     res.status(200).json({ success: true, data: attendance });
   } catch (error) {
@@ -282,38 +293,49 @@ exports.rejectAttendance = async (req, res, next) => {
       throw new Error('Attendance record not found');
     }
 
+    // Safe executive ID — works whether populated or just ObjectId
+    const executiveId = attendance.executive?._id ?? attendance.executive;
+    if (!executiveId) {
+      res.status(404);
+      throw new Error('Employee linked to this attendance record no longer exists');
+    }
+
     let action = '';
-    if (attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Held') {
+    if (attendance.status === 'Pending Check-In' || attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Held') {
       attendance.status = 'Rejected Check-In';
       attendance.checkInStatus = 'Rejected';
       action = 'Check-In Rejected';
-    } else if (attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Held') {
+    } else if (attendance.status === 'Pending Check-Out' || attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Held') {
       // Revert back to checked in since checkout was rejected
       attendance.status = 'Checked In';
       attendance.checkOutStatus = 'Rejected';
       action = 'Check-Out Rejected';
-    } else if (attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Held') {
+    } else if (attendance.status === 'Pending Leave' || attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Held') {
       attendance.status = 'Rejected Leave';
       attendance.leaveStatus = 'Rejected';
       action = 'Leave Rejected';
     } else {
       res.status(400);
-      throw new Error('No pending action to reject');
+      throw new Error('No pending action to reject for this record');
     }
 
     await attendance.save();
 
-    // Notify employee
-    const notif = await Notification.create({
-      recipient: attendance.executive._id,
-      sender: req.user.id,
-      title: action,
-      message: `Your ${action.toLowerCase()} request for ${attendance.date} has been rejected.${
-        feedback ? ` Reason: ${feedback}` : ''
-      }`,
-      type: 'Warning',
-    });
-    if (req.io) req.io.to(attendance.executive._id.toString()).emit('notification', notif);
+    // Notify employee (wrapped so a notification failure never blocks the response)
+    try {
+      const notif = await Notification.create({
+        recipient: executiveId,
+        sender: req.user.id,
+        title: action,
+        message: `Your ${action.toLowerCase()} request for ${attendance.date} has been rejected.${
+          feedback ? ` Reason: ${feedback}` : ''
+        }`,
+        type: 'Warning',
+      });
+      if (req.io) req.io.to(executiveId.toString()).emit('notification', notif);
+    } catch (notifErr) {
+      console.error('Notification creation failed (non-fatal):', notifErr.message);
+    }
 
     res.status(200).json({ success: true, data: attendance });
   } catch (error) {
@@ -333,16 +355,16 @@ exports.holdAttendance = async (req, res, next) => {
     }
 
     let action = '';
-    if (attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Rejected') {
+    if (attendance.status === 'Pending Check-In' || attendance.status === 'Rejected Check-In' || attendance.checkInStatus === 'Pending' || attendance.checkInStatus === 'Rejected') {
       // Keep status as 'Pending Check-In' or revert to it
       attendance.status = 'Pending Check-In';
       attendance.checkInStatus = 'Held';
       action = 'Check-In Held in Queue';
-    } else if (attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Rejected') {
+    } else if (attendance.status === 'Pending Check-Out' || attendance.status === 'Rejected Check-Out' || attendance.checkOutStatus === 'Pending' || attendance.checkOutStatus === 'Rejected') {
       attendance.status = 'Pending Check-Out';
       attendance.checkOutStatus = 'Held';
       action = 'Check-Out Held in Queue';
-    } else if (attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Rejected') {
+    } else if (attendance.status === 'Pending Leave' || attendance.status === 'Rejected Leave' || attendance.leaveStatus === 'Pending' || attendance.leaveStatus === 'Rejected') {
       attendance.status = 'Pending Leave';
       attendance.leaveStatus = 'Held';
       action = 'Leave Held in Queue';

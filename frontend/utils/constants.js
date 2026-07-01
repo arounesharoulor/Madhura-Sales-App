@@ -38,9 +38,9 @@ const STATIC_SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL ||
 
 const FALLBACK_HOST = 'localhost';
 
-export const API_URL = `http://${API_HOST}:5005/api`;
+export const API_URL = STATIC_API_URL || `http://${API_HOST}:5005/api`;
 export const API_FALLBACK_URL = `http://${FALLBACK_HOST}:5005/api`;
-export const SOCKET_URL = `http://${API_HOST}:5005`;
+export const SOCKET_URL = STATIC_SOCKET_URL || `http://${API_HOST}:5005`;
 export const THEME = {
   primary: '#0284c7', // sky-600
   backgroundDark: '#0f172a', // slate-900

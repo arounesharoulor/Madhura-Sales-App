@@ -131,7 +131,21 @@ export default function AdminDashboardPremium({ navigation }) {
             <StatCard label="Client Visits" value={metrics.clientVisitsToday} icon="location" color="#0ea5e9" bg="#e0f2fe" />
             <StatCard label="New Clients Added" value={metrics.newClientsToday} icon="briefcase" color="#d946ef" bg="#fae8ff" />
             <StatCard label="Pending Tasks" value={metrics.openTasks} icon="clipboard" color="#f43f5e" bg="#ffe4e6" />
-            <StatCard label="Open Follow-ups" value={metrics.pendingFollowUps} icon="alarm" color="#f97316" bg="#ffedd5" />
+            {/* Follow-ups card is tappable → goes to admin follow-up management */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('AdminFollowupManagement')}
+              style={{ flex: 1, backgroundColor: '#ffedd5', borderRadius: 18, padding: 14, minWidth: '45%', marginBottom: 12, borderWidth: 1, borderColor: '#f97316' + '44' }}
+            >
+              <View style={{ backgroundColor: '#f97316' + '22', borderRadius: 10, padding: 8, alignSelf: 'flex-start', marginBottom: 6 }}>
+                <Ionicons name="alarm" size={18} color="#f97316" />
+              </View>
+              <Text style={{ fontSize: 28, fontWeight: '900', color: '#0f172a' }}>{metrics.pendingFollowUps}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>Open Follow-ups</Text>
+                <Ionicons name="chevron-forward" size={11} color="#f97316" />
+              </View>
+            </TouchableOpacity>
           </View>
 
           <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 20, marginTop: 20 }}>

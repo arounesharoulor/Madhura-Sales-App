@@ -5,14 +5,14 @@ const path = require('path');
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  const filetypes = /jpeg|jpg|png|webp/;
+  const filetypes = /jpeg|jpg|png|webp|pdf|doc|docx|csv|txt/;
   const mimetype = filetypes.test(file.mimetype);
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
-  if (mimetype && extname) {
+  if (mimetype || extname) {
     return cb(null, true);
   }
-  cb(new Error('Only images (jpeg, jpg, png, webp) are allowed!'));
+  cb(new Error('Only images and documents (pdf, docx, csv, txt) are allowed!'));
 };
 
 const upload = multer({
