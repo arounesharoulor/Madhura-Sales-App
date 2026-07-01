@@ -24,6 +24,11 @@ const reportSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    customClientName: { type: String, default: '' },
+    customProjectName: { type: String, default: '' },
+    customSummary: { type: String, default: '' },
+    customNextSteps: { type: String, default: '' },
+    customQuotes: { type: String, default: '' },
     summary: {
       totalTasks: { type: Number, default: 0 },
       completedTasks: { type: Number, default: 0 },

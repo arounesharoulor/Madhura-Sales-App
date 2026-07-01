@@ -11,7 +11,7 @@ const { sendMail } = require('../utils/mailer');
 // @access  Private
 exports.generateReport = async (req, res, next) => {
   try {
-    const { title, type, startDate, endDate } = req.body;
+    const { title, type, startDate, endDate, customClientName, customProjectName, customSummary, customNextSteps, customQuotes } = req.body;
 
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -75,6 +75,11 @@ exports.generateReport = async (req, res, next) => {
       generatedBy: req.user.id,
       summary: { totalTasks, completedTasks, totalMeetings, totalFollowUps, totalExecutivesActive },
       activities,
+      customClientName,
+      customProjectName,
+      customSummary,
+      customNextSteps,
+      customQuotes,
     });
 
     res.status(201).json({ success: true, data: report });

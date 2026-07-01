@@ -46,6 +46,33 @@ const buildReportExcel = async (report) => {
   summarySheet.addRow(['Completed Tasks', report.summary?.completedTasks || 0]).getCell(1).style = labelStyle;
   summarySheet.addRow(['Active Executives', report.summary?.totalExecutivesActive || 0]).getCell(1).style = labelStyle;
 
+  if (report.customClientName || report.customProjectName || report.customSummary) {
+    summarySheet.addRow([]);
+    summarySheet.addRow(['CUSTOM REPORT DETAILS', '']).eachCell(cell => Object.assign(cell, headerStyle));
+    summarySheet.mergeCells(`A${summarySheet.rowCount}:B${summarySheet.rowCount}`);
+    
+    if (report.customClientName) {
+      summarySheet.addRow(['Client Name', report.customClientName]).getCell(1).style = labelStyle;
+      summarySheet.getRow(summarySheet.rowCount).getCell(2).alignment = { wrapText: true, vertical: 'top' };
+    }
+    if (report.customProjectName) {
+      summarySheet.addRow(['Project / Subject', report.customProjectName]).getCell(1).style = labelStyle;
+      summarySheet.getRow(summarySheet.rowCount).getCell(2).alignment = { wrapText: true, vertical: 'top' };
+    }
+    if (report.customSummary) {
+      summarySheet.addRow(['Executive Summary', report.customSummary]).getCell(1).style = labelStyle;
+      summarySheet.getRow(summarySheet.rowCount).getCell(2).alignment = { wrapText: true, vertical: 'top' };
+    }
+    if (report.customNextSteps) {
+      summarySheet.addRow(['Next Steps', report.customNextSteps]).getCell(1).style = labelStyle;
+      summarySheet.getRow(summarySheet.rowCount).getCell(2).alignment = { wrapText: true, vertical: 'top' };
+    }
+    if (report.customQuotes) {
+      summarySheet.addRow(['Quotations / Pricing', report.customQuotes]).getCell(1).style = labelStyle;
+      summarySheet.getRow(summarySheet.rowCount).getCell(2).alignment = { wrapText: true, vertical: 'top' };
+    }
+  }
+
   // ── Sheet 2: Activity Details ────────────────────────────
   const actSheet = workbook.addWorksheet('Activity Details');
   actSheet.columns = [
