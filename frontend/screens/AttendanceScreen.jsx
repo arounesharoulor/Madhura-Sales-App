@@ -163,15 +163,22 @@ export default function AttendanceScreen() {
       }
     };
 
+    // On web, Alert.alert buttons don't fire callbacks — call doCheckout directly.
+    // On mobile, show native confirmation dialog.
     if (!isEarly) {
-      Alert.alert(
-        'Confirm Check-Out',
-        'Are you sure you want to check out? Your location and summary will be sent to the admin.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Check Out', style: 'destructive', onPress: doCheckout },
-        ]
-      );
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm('Are you sure you want to check out? Your location and summary will be sent to the admin.');
+        if (confirmed) doCheckout();
+      } else {
+        Alert.alert(
+          'Confirm Check-Out',
+          'Are you sure you want to check out? Your location and summary will be sent to the admin.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Check Out', style: 'destructive', onPress: doCheckout },
+          ]
+        );
+      }
     } else {
       doCheckout();
     }
