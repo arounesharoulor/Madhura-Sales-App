@@ -105,10 +105,13 @@ exports.checkOut = async (req, res, next) => {
     }
 
     // ── Early Checkout Detection ─────────────────────────
-    // Office ends at 18:00 (6:00 PM) IST
-    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-    const officeEndHour = 18; // 6 PM
-    const isEarly = nowIST.getHours() < officeEndHour;
+    // IST = UTC + 5h30m. Calculate IST hour directly from UTC to avoid
+    // toLocaleString timezone issues on Node.js environments without full ICU.
+    const nowUTC = new Date();
+    const ISTOffsetMs = 5.5 * 60 * 60 * 1000;
+    const nowIST = new Date(nowUTC.getTime() + ISTOffsetMs);
+    const officeEndHour = 18; // 6 PM IST
+    const isEarly = nowIST.getUTCHours() < officeEndHour;
 
     if (isEarly) {
       // Check if admin has locked this employee's early checkout

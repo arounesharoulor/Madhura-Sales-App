@@ -119,9 +119,10 @@ export default function AttendanceScreen() {
       return;
     }
 
-    // Detect early checkout (before 6 PM IST)
-    const nowIST = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-    const isEarly = nowIST.getHours() < 18;
+    // Detect early checkout (before 6 PM IST) using UTC offset — more reliable across environments
+    const nowUTC = new Date();
+    const nowIST = new Date(nowUTC.getTime() + 5.5 * 60 * 60 * 1000);
+    const isEarly = nowIST.getUTCHours() < 18;
 
     // If early and no reason given yet — show the reason modal
     if (isEarly && !earlyReason) {
@@ -153,10 +154,13 @@ export default function AttendanceScreen() {
         fetchToday();
       } catch (err) {
         const errData = err.response?.data;
+        const errMsg = errData?.message || err.message || 'Check-out failed. Please try again.';
         if (errData?.isEarly) {
           setShowEarlyModal(true);
+        } else if (Platform.OS === 'web') {
+          window.alert('Check-Out Failed: ' + errMsg);
         } else {
-          Alert.alert('Check-Out Failed', errData?.message || 'Check-out failed. Please try again.');
+          Alert.alert('Check-Out Failed', errMsg);
         }
       } finally {
         setSubmitting(false);
