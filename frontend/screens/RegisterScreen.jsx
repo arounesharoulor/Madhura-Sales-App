@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   useWindowDimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -142,9 +143,7 @@ export default function RegisterScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>M</Text>
-          </View>
+          <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join Madhura Sales as an Admin or Field Executive</Text>
         </View>
@@ -382,7 +381,7 @@ export default function RegisterScreen() {
           <View style={styles.webLeftPane}>
             <View style={styles.webLeftContent}>
               <View style={styles.webIconWrap}>
-                <Text style={{ fontSize: 52, fontWeight: '900', color: '#1B2B4B' }}>M</Text>
+                <Image source={require('../assets/logo.png')} style={{width: 60, height: 60}} resizeMode="contain" />
               </View>
               <Text style={styles.webLeftTitle}>MADHURA</Text>
               <Text style={styles.webLeftBrand}>Sales Portal</Text>
@@ -500,6 +499,12 @@ const styles = StyleSheet.create({
   backBtn: { marginBottom: 20, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center' },
   backText: { color: '#2563eb', fontSize: 14, fontWeight: '600' },
   header: { alignItems: 'center', marginBottom: 28 },
+  logoImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 14,
+    borderRadius: 18,
+  },
   logoCircle: {
     width: 64,
     height: 64,

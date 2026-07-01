@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   useWindowDimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -124,9 +125,7 @@ export default function LoginScreen() {
       <View style={styles.formInner}>
         {/* Logo / Brand Header */}
         <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>M</Text>
-          </View>
+          <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
           <Text style={styles.brandName}>Madhura Sales</Text>
           <Text style={styles.brandTagline}>
             Field Staff Management Platform
@@ -301,7 +300,7 @@ export default function LoginScreen() {
 
             <View style={styles.webLeftContent}>
               <View style={styles.webIconWrap}>
-                <Text style={{ fontSize: 42, fontWeight: '900', color: '#1B2B4B' }}>M</Text>
+                <Image source={require('../assets/logo.png')} style={{width: 60, height: 60}} resizeMode="contain" />
               </View>
               <Text style={styles.webLeftTitle}>MADHURA</Text>
               <Text style={styles.webLeftBrand}>Sales Portal</Text>
@@ -450,6 +449,12 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 36,
+  },
+  logoImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+    borderRadius: 22,
   },
   logoCircle: {
     width: 72,

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   StatusBar,
   Animated,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -54,11 +55,7 @@ export default function SplashScreen() {
       <View style={styles.container}>
         <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.logoWrap}>
-            <View style={styles.logoOuter}>
-              <View style={styles.logoInner}>
-                <Text style={styles.logoChar}>M</Text>
-              </View>
-            </View>
+            <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
           </View>
           <Text style={styles.appName}>Madhura Sales</Text>
           <Text style={styles.tagline}>Field Staff Management</Text>
@@ -86,31 +83,10 @@ const styles = StyleSheet.create({
   },
   content: { alignItems: 'center' },
   logoWrap: { marginBottom: 28 },
-  logoOuter: {
-    width: 100,
-    height: 100,
+  logoImage: {
+    width: 120,
+    height: 120,
     borderRadius: 30,
-    backgroundColor: 'rgba(37,99,235,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(37,99,235,0.3)',
-  },
-  logoInner: {
-    width: 76,
-    height: 76,
-    borderRadius: 22,
-    backgroundColor: '#2563eb',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 14,
-    // Web shadow fallback
-    boxShadow: '0px 8px 16px rgba(37,99,235,0.5)',
-  },
-  logoChar: {
-    fontSize: 40,
-    fontWeight: '900',
-    color: '#fff',
   },
   appName: {
     fontSize: 30,

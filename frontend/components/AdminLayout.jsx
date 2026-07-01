@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -96,7 +96,7 @@ export default function AdminLayout({ children, currentScreen, scrollable = true
           <View style={styles.mobileTopBar}>
             <View style={styles.mobileTopLeft}>
               <View style={styles.mobileLogo}>
-                <Text style={styles.mobileLogoText}>M</Text>
+                <Image source={require('../assets/logo.png')} style={{width: 32, height: 32, borderRadius: 10}} resizeMode="contain" />
               </View>
               <Text style={styles.mobileBrand}>Madhura</Text>
             </View>
