@@ -1,8 +1,5 @@
 {
-<<<<<<< HEAD
-=======
   "installCommand": "npm install && chmod +x ./node_modules/.bin/expo",
->>>>>>> Sales
   "buildCommand": "npm run build:web",
   "outputDirectory": "dist",
   "framework": null,
