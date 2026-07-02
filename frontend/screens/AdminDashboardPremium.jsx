@@ -64,11 +64,28 @@ export default function AdminDashboardPremium({ navigation }) {
       const attendancePct = totalEmployees ? Math.round(((checkedIn + checkedOut) / totalEmployees) * 100) : 0;
       const pendingList = attendance.filter(a => a.status === 'Pending Check-In' || a.status === 'Pending Check-Out' || a.status === 'Pending Leave').slice(0, 5);
 
+      // Client Onboarding Leaderboard
+      const lbMap = {};
+      onboardings.forEach(o => {
+        if (!o.executive) return;
+        const eId = o.executive._id?.toString() || o.executive.toString();
+        if (!lbMap[eId]) {
+          lbMap[eId] = {
+            id: eId,
+            name: o.executive.name || 'Unknown',
+            designation: o.executive.designation || 'Field Executive',
+            count: 0
+          };
+        }
+        lbMap[eId].count++;
+      });
+      const clientLeaderboard = Object.values(lbMap).sort((a, b) => b.count - a.count);
+
       setMetrics({
         totalEmployees, checkedIn, checkedOut,
         clientVisitsToday: visitsToday, newClientsToday, totalClients: onboardings.length,
         pendingFollowUps, openTasks, attendancePct,
-        pendingList
+        pendingList, clientLeaderboard
       });
 
     } catch (err) {
@@ -187,6 +204,36 @@ export default function AdminDashboardPremium({ navigation }) {
                     <TouchableOpacity onPress={() => navigation.navigate('AdminAttendance')} style={{ backgroundColor: '#0284c7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
                       <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>Review</Text>
                     </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Client Onboarding Leaderboard */}
+          <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 20, marginTop: 20 }}>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#0f172a', marginBottom: 16 }}>Client Onboarding Leaderboard</Text>
+            {!metrics.clientLeaderboard || metrics.clientLeaderboard.length === 0 ? (
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <Ionicons name="briefcase-outline" size={40} color="#cbd5e1" />
+                <Text style={{ marginTop: 10, fontSize: 13, color: '#64748b', fontWeight: '600' }}>No clients onboarded yet.</Text>
+              </View>
+            ) : (
+              <View style={{ gap: 12 }}>
+                {metrics.clientLeaderboard.map((emp, index) => (
+                  <View key={emp.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#f1f5f9' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: '#e0f2fe', alignItems: 'center', justifyContent: 'center' }}>
+                         <Text style={{ color: '#0284c7', fontWeight: '800', fontSize: 14 }}>{index + 1}</Text>
+                      </View>
+                      <View>
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#1e293b' }}>{emp.name}</Text>
+                        <Text style={{ fontSize: 11, color: '#64748b' }}>{emp.designation}</Text>
+                      </View>
+                    </View>
+                    <View style={{ backgroundColor: '#dcfce7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                      <Text style={{ color: '#16a34a', fontSize: 12, fontWeight: '800' }}>{emp.count} Clients</Text>
+                    </View>
                   </View>
                 ))}
               </View>

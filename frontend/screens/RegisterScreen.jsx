@@ -237,18 +237,21 @@ export default function RegisterScreen() {
           {/* Designation — shown for both Admin and Employee */}
           <View style={styles.fieldWrap}>
             <Text style={styles.label}>{form.role === 'Admin' ? 'Your Designation / Title' : 'Designation'}</Text>
-            <View style={inputStyle('designation')}>
-              <Ionicons name="briefcase-outline" size={18} color="#64748b" style={styles.icon} />
-              <TextInput
-                style={styles.input}
-                value={form.designation}
-                onChangeText={v => update('designation', v)}
-                placeholder={form.role === 'Admin' ? 'e.g. Branch Manager, Director' : 'e.g. Sales Executive, Caller'}
-                placeholderTextColor="#94a3b8"
-                autoCapitalize="words"
-                onFocus={() => setFocusedField('designation')}
-                onBlur={() => setFocusedField(null)}
-              />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+              {(form.role === 'Admin' ? ['Branch Manager', 'Sales Manager', 'Director', 'Other'] : ['BDE', 'BDM', 'Pre Sales', 'Other']).map(d => (
+                <TouchableOpacity
+                  key={d}
+                  onPress={() => update('designation', d)}
+                  style={{
+                    paddingHorizontal: 16, paddingVertical: 10,
+                    borderRadius: 14, borderWidth: 1.5,
+                    borderColor: form.designation === d ? '#F5A623' : '#e2e8f0',
+                    backgroundColor: form.designation === d ? '#1B2B4B' : 'rgba(241, 245, 249, 0.99)',
+                  }}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: form.designation === d ? '#fff' : '#64748b' }}>{d}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
             {errors.designation && <Text style={styles.errorText}>{errors.designation}</Text>}
           </View>

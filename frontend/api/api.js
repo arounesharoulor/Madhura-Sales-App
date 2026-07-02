@@ -1,15 +1,15 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 import { API_URL, API_FALLBACK_URL } from '../utils/constants';
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 60000, // Increased to 60s to allow Render free tier to wake up
+  timeout: 60000, // 60s — enough for Render free tier cold start
 });
-console.log('API_URL:', API_URL, 'API_FALLBACK_URL:', API_FALLBACK_URL);
 
-// Request Interceptor to add auth token
+console.log('API_URL:', API_URL, '| Fallback:', API_FALLBACK_URL);
+
+// ── Request Interceptor: attach auth token ──────────────────────────────────
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('token');
@@ -21,35 +21,36 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor to handle network errors globally
+// ── Response Interceptor: handle network failures ───────────────────────────
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const config = error.config || {};
-    const fallbackUrls = [
-      Platform.OS === 'android' ? 'http://10.0.2.2:5005/api' : null,
-      API_FALLBACK_URL
-    ].filter(Boolean);
 
+    // Only retry on network errors (no HTTP response received)
     if (!error.response) {
-      config._retryCount = (config._retryCount || 0) + 1;
-      const nextFallback = fallbackUrls[config._retryCount - 1];
-      
-      if (nextFallback && nextFallback !== config.baseURL) {
-        config.baseURL = nextFallback;
-        console.warn('Primary API host failed, retrying with fallback host:', nextFallback);
+      // First retry: try the production fallback URL (handles emulator→physical
+      // switch or Render cold-start on the first call)
+      if (!config._retried && config.baseURL !== API_FALLBACK_URL) {
+        config._retried = true;
+        config.baseURL = API_FALLBACK_URL;
+        console.warn(`Network error on ${config.baseURL} — retrying against production: ${API_FALLBACK_URL}`);
+
+        // Small delay to let Render wake up if it was cold
+        await new Promise((r) => setTimeout(r, 1500));
         return api(config);
       }
 
-      console.error('API request failed without response. Check network and host:', config.baseURL || API_URL, {
-        message: error.message,
-        baseURL: config.baseURL,
+      // All retries exhausted — surface a clean error
+      console.error('API unreachable after retry. Check your internet connection.', {
         url: config.url,
         method: config.method,
+        baseURL: config.baseURL,
       });
     }
 
-    if (error.response && error.response.status === 401) {
+    // Auto-logout on 401
+    if (error.response?.status === 401) {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
     }

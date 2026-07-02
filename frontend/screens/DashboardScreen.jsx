@@ -163,7 +163,10 @@ export default function DashboardScreen({ navigation }) {
           <View style={{ marginBottom: 20 }}>
             <Text style={{ fontSize: 13, color: '#94a3b8', fontWeight: '600' }}>{greeting()},</Text>
             <Text style={{ fontSize: 26, fontWeight: '900', color: '#0f172a', letterSpacing: -0.5 }}>{user.name || 'Agent'}</Text>
-            <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
+            <View style={{ backgroundColor: '#e0f2fe', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start', marginTop: 4 }}>
+               <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>{user.designation || 'Field Executive'}</Text>
+            </View>
+            <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 6 }}>
               {today.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </Text>
           </View>

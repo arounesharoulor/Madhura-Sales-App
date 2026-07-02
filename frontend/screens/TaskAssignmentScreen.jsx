@@ -284,8 +284,8 @@ export default function TaskAssignmentScreen({ navigation }) {
             <View style={styles.pageIconWrap}>
               <Ionicons name="clipboard" size={24} color="#0284c7" />
             </View>
-            <View>
-              <Text style={styles.pageTitle}>Task Assignment</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.pageTitle} numberOfLines={2}>Task Assignment</Text>
               <Text style={styles.pageSubtitle}>Assign tasks with deadlines to your field team</Text>
             </View>
           </View>

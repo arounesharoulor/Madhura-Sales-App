@@ -18,6 +18,7 @@ export default function UserManagementScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('Field Executive'); // default
+  const [designation, setDesignation] = useState('');
   const [loading, setLoading] = useState(false);
 
   const fetchUsers = async () => {
@@ -58,20 +59,21 @@ export default function UserManagementScreen({ navigation }) {
   }, []);
 
   const handleCreateUser = async () => {
-    if (!name || !email || !password || !phone) {
+    if (!name || !email || !password || !phone || !designation) {
       Alert.alert('Validation Error', 'Please complete all required fields.');
       return;
     }
 
     setLoading(true);
     try {
-      await api.post('/users', { name, email, password, phone, role });
+      await api.post('/users', { name, email, password, phone, role, designation });
       Alert.alert('Success', `${role} user successfully added!`);
       setName('');
       setEmail('');
       setPassword('');
       setPhone('');
       setRole('Field Executive');
+      setDesignation('');
       setShowAddForm(false);
       fetchUsers();
     } catch (e) {
@@ -114,6 +116,19 @@ export default function UserManagementScreen({ navigation }) {
               <CustomInput label="Email Address *" value={email} onChangeText={setEmail} placeholder="executive@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" />
               <CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
               <CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" />
+              
+              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Designation *</Text>
+              <View className="flex-row flex-wrap gap-2 mb-4">
+                {['BDE', 'BDM', 'Pre Sales', 'Manager', 'Other'].map((d) => (
+                  <TouchableOpacity
+                    key={d}
+                    onPress={() => setDesignation(d)}
+                    className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-600 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
+                  >
+                    <Text className={`text-xs font-bold ${designation === d ? 'text-white' : 'text-slate-600'}`}>{d}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
               
               <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">User Role *</Text>
               <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
@@ -186,7 +201,7 @@ export default function UserManagementScreen({ navigation }) {
                       <View className="flex-1 pr-3">
                         <Text className="font-bold text-sm text-slate-900">{item.name}</Text>
                         <Text className="text-xs text-slate-500">{item.email}</Text>
-                        <Text className="text-xs text-slate-500 mt-1">Role: {item.role} | Phone: {item.phone}</Text>
+                        <Text className="text-xs text-slate-500 mt-1">Role: {item.role} | Desig: {item.designation || 'N/A'} | Phone: {item.phone}</Text>
                       </View>
                       <View className="flex-row items-center gap-2">
                         {item.role === 'Field Executive' ? (
