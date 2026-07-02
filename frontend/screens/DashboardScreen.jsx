@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
 import api from '../api/api';
 import { connectSocket } from '../utils/socket';
 import * as Location from 'expo-location';
@@ -13,34 +12,15 @@ const today = new Date();
 function StatCard({ icon, label, value, color, bg }) {
   return (
     <View style={{
-      flex: 1, backgroundColor: bg || '#eff6ff', borderRadius: 18,
-      padding: 14, gap: 4, borderWidth: 1, borderColor: color + '33',
+      flex: 1, backgroundColor: bg || '#eff6ff', borderRadius: 14,
+      padding: 10, gap: 2, borderWidth: 1, borderColor: color + '33',
     }}>
-      <View style={{ backgroundColor: color + '22', borderRadius: 10, padding: 7, alignSelf: 'flex-start' }}>
-        <Ionicons name={icon} size={18} color={color} />
+      <View style={{ backgroundColor: color + '22', borderRadius: 8, padding: 5, alignSelf: 'flex-start' }}>
+        <Ionicons name={icon} size={14} color={color} />
       </View>
-      <Text style={{ fontSize: 26, fontWeight: '900', color: '#0f172a', marginTop: 4 }}>{value}</Text>
-      <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</Text>
+      <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginTop: 3 }}>{value}</Text>
+      <Text style={{ fontSize: 9, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
     </View>
-  );
-}
-
-function QuickAction({ icon, label, color, bg, onPress }) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.8}
-      style={{
-        width: '48%', backgroundColor: '#fff', borderRadius: 18, borderWidth: 1,
-        borderColor: '#e2e8f0', padding: 16, flexDirection: 'row', alignItems: 'center',
-        gap: 12, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 6, elevation: 1,
-      }}
-    >
-      <View style={{ backgroundColor: bg, borderRadius: 12, padding: 10 }}>
-        <Ionicons name={icon} size={20} color={color} />
-      </View>
-      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', flex: 1, flexWrap: 'wrap' }}>{label}</Text>
-    </TouchableOpacity>
   );
 }
 
@@ -68,32 +48,30 @@ export default function DashboardScreen({ navigation }) {
         api.get('/onboarding').catch(() => ({ data: { data: [] } })),
       ]);
 
-      const tasks = tasksRes.data.data || [];
-      const meetings = meetingsRes.data.data || [];
-      const followUps = followUpsRes.data.data || [];
-      const attendance = attendanceRes.data.data || [];
+      const tasks       = tasksRes.data.data    || [];
+      const meetings    = meetingsRes.data.data  || [];
+      const followUps   = followUpsRes.data.data || [];
+      const attendance  = attendanceRes.data.data || [];
 
-      const todayStr = today.toDateString();
+      const todayStr    = today.toDateString();
       const visitsToday = meetings.filter(m => new Date(m.createdAt).toDateString() === todayStr).length;
       const followUpsToday = followUps.filter(f => {
         const fDate = f.followUpDate ? new Date(f.followUpDate).toDateString() : '';
         return fDate === todayStr && f.status !== 'Completed';
       }).length;
 
-      const safeAttendance = Array.isArray(attendance) ? attendance : [];
-      
-      const presentDays = safeAttendance.filter(a => a.checkInStatus === 'Approved').length;
+      const safeAttendance  = Array.isArray(attendance) ? attendance : [];
+      const presentDays     = safeAttendance.filter(a => a.checkInStatus === 'Approved').length;
       const totalWorkingDays = safeAttendance.length || 1;
-      const attendancePct = Math.round((presentDays / totalWorkingDays) * 100);
+      const attendancePct   = Math.round((presentDays / totalWorkingDays) * 100);
 
-      // Check today's attendance
       const todayAttendance = safeAttendance.find(a => new Date(a.createdAt).toDateString() === todayStr);
       setCheckedIn(!!todayAttendance);
 
       setMetrics({
-        pendingTasks: tasks.filter(t => t.status === 'Pending').length,
+        pendingTasks:    tasks.filter(t => t.status === 'Pending').length,
         inProgressTasks: tasks.filter(t => t.status === 'In Progress').length,
-        completedTasks: tasks.filter(t => t.status === 'Completed').length,
+        completedTasks:  tasks.filter(t => t.status === 'Completed').length,
         visitsToday,
         followUpsToday,
         totalClients: onboardingRes.data.data?.length || 0,
@@ -111,18 +89,10 @@ export default function DashboardScreen({ navigation }) {
     return unsub;
   }, [navigation]);
 
-  // Socket connection for task_assigned events (notification toasts are handled by AppLayout)
   useEffect(() => {
-    let sock = null;
-    (async () => {
-      sock = await connectSocket();
-      // Note: 'notification' toasts+sound are handled centrally in AppLayout
-      // We only need socket here for reloading data on key events
-    })();
-    return () => {};
+    (async () => { await connectSocket(); })();
   }, []);
 
-  // Live location tracking
   useEffect(() => {
     let watcher = null;
     (async () => {
@@ -133,10 +103,13 @@ export default function DashboardScreen({ navigation }) {
         async (loc) => {
           try {
             await api.post('/locations', {
-              latitude: loc.coords.latitude, longitude: loc.coords.longitude,
-              speed: loc.coords.speed || 0, heading: loc.coords.heading || 0, accuracy: loc.coords.accuracy || 0,
+              latitude:  loc.coords.latitude,
+              longitude: loc.coords.longitude,
+              speed:     loc.coords.speed    || 0,
+              heading:   loc.coords.heading  || 0,
+              accuracy:  loc.coords.accuracy || 0,
             });
-          } catch (e) {}
+          } catch (_) {}
         }
       );
     })();
@@ -157,47 +130,49 @@ export default function DashboardScreen({ navigation }) {
           <ActivityIndicator size="large" color="#0284c7" />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
 
-          {/* Greeting */}
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ fontSize: 13, color: '#94a3b8', fontWeight: '600' }}>{greeting()},</Text>
-            <Text style={{ fontSize: 26, fontWeight: '900', color: '#0f172a', letterSpacing: -0.5 }}>{user.name || 'Agent'}</Text>
-            <View style={{ backgroundColor: '#e0f2fe', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, alignSelf: 'flex-start', marginTop: 4 }}>
-               <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>{user.designation || 'Field Executive'}</Text>
+          {/* ── Greeting row ── */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <View>
+              <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600' }}>{greeting()},</Text>
+              <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', letterSpacing: -0.3 }}>
+                {user.name || 'Agent'}
+              </Text>
+              <View style={{ backgroundColor: '#e0f2fe', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, alignSelf: 'flex-start', marginTop: 3 }}>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7' }}>
+                  {user.designation || 'Field Executive'}
+                </Text>
+              </View>
             </View>
-            <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 6 }}>
-              {today.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            <Text style={{ fontSize: 10, color: '#94a3b8', textAlign: 'right' }}>
+              {today.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
             </Text>
           </View>
 
-          {/* New Professional Clients Banner */}
-          <View style={{ backgroundColor: '#0f172a', borderRadius: 24, padding: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, shadowColor: '#000', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.15, shadowRadius: 12, elevation: 5 }}>
-            <View>
-              <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1.2 }}>Total Clients Onboarded</Text>
-              <Text style={{ color: '#fff', fontSize: 36, fontWeight: '900', marginTop: 4 }}>{metrics.totalClients}</Text>
-            </View>
-            <View style={{ backgroundColor: '#1e293b', borderRadius: 18, padding: 14, borderWidth: 1, borderColor: '#334155' }}>
-              <Ionicons name="briefcase" size={28} color="#38bdf8" />
-            </View>
-          </View>
-
-          {/* Attendance & Location Status */}
-          <View style={{ backgroundColor: checkedIn ? '#f0fdf4' : '#fff7ed', borderRadius: 18, borderWidth: 1, borderColor: checkedIn ? '#bbf7d0' : '#fed7aa', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-            <View style={{ backgroundColor: checkedIn ? '#dcfce7' : '#ffedd5', borderRadius: 12, padding: 10 }}>
-              <Ionicons name={checkedIn ? 'checkmark-circle' : 'time-outline'} size={22} color={checkedIn ? '#16a34a' : '#ea580c'} />
-            </View>
+          {/* ── Attendance strip ── */}
+          <View style={{
+            backgroundColor: checkedIn ? '#f0fdf4' : '#fff7ed',
+            borderRadius: 14, borderWidth: 1,
+            borderColor: checkedIn ? '#bbf7d0' : '#fed7aa',
+            padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14,
+          }}>
+            <Ionicons
+              name={checkedIn ? 'checkmark-circle' : 'time-outline'}
+              size={20}
+              color={checkedIn ? '#16a34a' : '#ea580c'}
+            />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: checkedIn ? '#15803d' : '#c2410c' }}>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: checkedIn ? '#15803d' : '#c2410c' }}>
                 {checkedIn ? 'Checked In Today ✓' : 'Not Checked In Yet'}
               </Text>
-              <Text style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
-                {checkedIn ? 'Attendance is active' : 'Please mark your attendance'}
+              <Text style={{ fontSize: 10, color: '#94a3b8' }}>
+                {checkedIn ? 'Attendance active' : 'Please mark attendance'}
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => navigation.navigate('Attendance')}
-              style={{ backgroundColor: checkedIn ? '#16a34a' : '#ea580c', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}
+              style={{ backgroundColor: checkedIn ? '#16a34a' : '#ea580c', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}
             >
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 11 }}>
                 {checkedIn ? 'View' : 'Check In'}
@@ -205,46 +180,39 @@ export default function DashboardScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Stats Grid */}
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Today's Overview</Text>
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-            <StatCard icon="location" label="Visits Today" value={metrics.visitsToday} color="#0284c7" bg="#eff6ff" />
-            <StatCard icon="alarm" label="Follow-ups Due" value={metrics.followUpsToday} color="#d97706" bg="#fffbeb" />
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-            {/* Task cards: dynamically reflect status */}
-            {metrics.inProgressTasks > 0 ? (
-              <StatCard
-                icon="sync-circle"
-                label="In Progress"
-                value={metrics.inProgressTasks}
-                color="#0284c7"
-                bg="#eff6ff"
-              />
-            ) : (
-              <StatCard
-                icon="clipboard"
-                label="Pending Tasks"
-                value={metrics.pendingTasks}
-                color="#e11d48"
-                bg="#fff1f2"
-              />
-            )}
-            <StatCard icon="checkmark-done" label="Completed" value={metrics.completedTasks} color="#16a34a" bg="#f0fdf4" />
-          </View>
-          {/* Show both pending and in-progress when both exist */}
-          {metrics.inProgressTasks > 0 && metrics.pendingTasks > 0 && (
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-              <StatCard icon="clipboard" label="Pending Tasks" value={metrics.pendingTasks} color="#e11d48" bg="#fff1f2" />
-              <View style={{ flex: 1 }} />
+          {/* ── Clients slim banner ── */}
+          <View style={{
+            backgroundColor: '#0f172a', borderRadius: 16,
+            paddingVertical: 12, paddingHorizontal: 16,
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
+          }}>
+            <View>
+              <Text style={{ color: '#64748b', fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 }}>
+                Total Clients Onboarded
+              </Text>
+              <Text style={{ color: '#fff', fontSize: 28, fontWeight: '900', marginTop: 1 }}>
+                {metrics.totalClients}
+              </Text>
             </View>
-          )}
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
-            <StatCard icon="stats-chart" label="Attendance %" value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" />
-            <View style={{ flex: 1 }} />
+            <View style={{ backgroundColor: '#1e293b', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: '#334155' }}>
+              <Ionicons name="briefcase" size={20} color="#38bdf8" />
+            </View>
           </View>
 
-
+          {/* ── Stats 3×2 compact grid ── */}
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+            Today's Overview
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+            <StatCard icon="location"    label="Visits Today"   value={metrics.visitsToday}         color="#0284c7" bg="#eff6ff" />
+            <StatCard icon="alarm"       label="Follow-ups Due" value={metrics.followUpsToday}      color="#d97706" bg="#fffbeb" />
+            <StatCard icon="stats-chart" label="Attendance"     value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" />
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
+            <StatCard icon="clipboard"      label="Pending"     value={metrics.pendingTasks}    color="#e11d48" bg="#fff1f2" />
+            <StatCard icon="sync-circle"    label="In Progress" value={metrics.inProgressTasks} color="#0284c7" bg="#eff6ff" />
+            <StatCard icon="checkmark-done" label="Completed"   value={metrics.completedTasks}  color="#16a34a" bg="#f0fdf4" />
+          </View>
 
         </ScrollView>
       )}
