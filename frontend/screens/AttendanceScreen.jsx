@@ -125,7 +125,9 @@ export default function AttendanceScreen() {
     const isEarly = nowIST.getUTCHours() < 18;
 
     // If early and no reason given yet — show the reason modal
-    if (isEarly && !earlyReason) {
+    const validReason = typeof earlyReason === 'string' ? earlyReason.trim() : null;
+    
+    if (isEarly && !validReason) {
       setShowEarlyModal(true);
       return;
     }
@@ -138,7 +140,7 @@ export default function AttendanceScreen() {
           workSummary: workSummary.trim(),
           latitude,
           longitude,
-          ...(earlyReason && { earlyCheckoutReason: earlyReason }),
+          earlyCheckoutReason: validReason || '',
         });
         Toast.show({
           type: isEarly ? 'error' : 'info',

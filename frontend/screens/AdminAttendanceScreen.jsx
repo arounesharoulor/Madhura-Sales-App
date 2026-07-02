@@ -58,6 +58,7 @@ export default function AdminAttendanceScreen() {
   const [selectedReason, setSelectedReason] = useState('');
   const [customReason, setCustomReason] = useState('');
   const [actionLoading, setActionLoading] = useState(null); // record id
+  const [isExporting, setIsExporting] = useState(false);
 
   // Live locations
   const [locations, setLocations] = useState([]);
@@ -104,6 +105,8 @@ export default function AdminAttendanceScreen() {
   };
 
   const handleExportLog = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
     try {
       const token = await AsyncStorage.getItem('token');
       const baseUrl = api.defaults?.baseURL || '';
@@ -143,7 +146,12 @@ export default function AdminAttendanceScreen() {
       }
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', `Could not download the attendance log. ${e.message}`);
+      // Suppress the "Another share request" error from popping up to the user since it just means they tapped it twice
+      if (e.message && !e.message.includes('Another share request')) {
+        Alert.alert('Error', `Could not download the attendance log. ${e.message}`);
+      }
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -451,9 +459,13 @@ export default function AdminAttendanceScreen() {
             <Text style={styles.subtitle}>{queue.length} pending approval{queue.length !== 1 ? 's' : ''}</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity style={styles.exportBtn} onPress={handleExportLog}>
-              <Ionicons name="download-outline" size={16} color="#16a34a" />
-              <Text style={styles.exportBtnText}>Excel</Text>
+            <TouchableOpacity style={[styles.exportBtn, isExporting && { opacity: 0.7 }]} onPress={handleExportLog} disabled={isExporting}>
+              {isExporting ? (
+                <ActivityIndicator size="small" color="#16a34a" />
+              ) : (
+                <Ionicons name="download-outline" size={16} color="#16a34a" />
+              )}
+              <Text style={styles.exportBtnText}>{isExporting ? 'Exporting...' : 'Excel'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchAttendance(true)}>
               <Ionicons name="refresh" size={18} color="#0284c7" />
