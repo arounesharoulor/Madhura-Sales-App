@@ -130,8 +130,8 @@ export default function AttendanceScreen() {
       return;
     }
 
-    const doCheckout = async () => {
-      setSubmitting(true);
+    const doCheckout = async (retrying = false) => {
+      if (!retrying) setSubmitting(true);
       try {
         const { latitude, longitude } = await getCurrentLocation();
         await api.put('/attendance/checkout', {
@@ -153,8 +153,22 @@ export default function AttendanceScreen() {
         setShowEarlyModal(false);
         fetchToday();
       } catch (err) {
+        const status = err.response?.status;
         const errData = err.response?.data;
         const errMsg = errData?.message || err.message || 'Check-out failed. Please try again.';
+
+        // Render cold-start — server waking up, retry once after 2.5s
+        if (!retrying && (!err.response || status === 404 || status === 503)) {
+          Toast.show({
+            type: 'info',
+            text1: '⏳ Server is waking up…',
+            text2: 'Retrying checkout in 3 seconds. Please wait.',
+            visibilityTime: 3000,
+          });
+          setTimeout(() => doCheckout(true), 3000);
+          return;
+        }
+
         if (errData?.isEarly) {
           setShowEarlyModal(true);
         } else if (Platform.OS === 'web') {
@@ -163,7 +177,7 @@ export default function AttendanceScreen() {
           Alert.alert('Check-Out Failed', errMsg);
         }
       } finally {
-        setSubmitting(false);
+        if (retrying) setSubmitting(false);
       }
     };
 
