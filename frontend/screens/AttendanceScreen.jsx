@@ -442,6 +442,18 @@ export default function AttendanceScreen() {
               />
             </View>
 
+            {todayRecord.executive?.earlyCheckoutLocked && (
+              <View style={[styles.doneCard, { backgroundColor: '#fef2f2', borderColor: '#fecaca', padding: 16, marginBottom: 20 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <Ionicons name="lock-closed" size={20} color="#ef4444" />
+                  <Text style={[styles.doneTitle, { color: '#b91c1c', fontSize: 16, marginTop: 0 }]}>Early Checkout Locked</Text>
+                </View>
+                <Text style={[styles.doneText, { color: '#dc2626' }]}>
+                  Your ability to check out before 6:00 PM has been locked by the Admin. You cannot check out early.
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
               style={[styles.actionBtn, styles.checkoutBtn, submitting && styles.btnDisabled]}
               onPress={handleCheckOut}

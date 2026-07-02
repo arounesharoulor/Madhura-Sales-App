@@ -177,7 +177,8 @@ exports.checkOut = async (req, res, next) => {
 exports.getTodayAttendance = async (req, res, next) => {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const attendance = await Attendance.findOne({ executive: req.user.id, date: today });
+    const attendance = await Attendance.findOne({ executive: req.user.id, date: today })
+      .populate('executive', 'earlyCheckoutLocked');
     res.status(200).json({ success: true, data: attendance || null });
   } catch (error) {
     next(error);
@@ -207,7 +208,7 @@ exports.getAllAttendance = async (req, res, next) => {
     if (executiveId) query.executive = executiveId;
 
     const records = await Attendance.find(query)
-      .populate('executive', 'name email phone employeeId designation')
+      .populate('executive', 'name email phone employeeId designation earlyCheckoutLocked')
       .sort({ date: -1, checkInTime: -1 });
 
     res.status(200).json({ success: true, count: records.length, data: records });
@@ -446,6 +447,61 @@ exports.toggleEarlyCheckoutLock = async (req, res, next) => {
         earlyCheckoutCount: employee.earlyCheckoutCount,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Export attendance log to Excel
+// @route   GET /api/attendance/export
+// @access  Private/Admin
+exports.exportAttendanceLog = async (req, res, next) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const records = await Attendance.find().populate('executive', 'name employeeId designation');
+    
+    // Aggregate by employee
+    const summary = {};
+    records.forEach(r => {
+      if (!r.executive) return;
+      const empId = r.executive._id.toString();
+      if (!summary[empId]) {
+        summary[empId] = {
+          name: r.executive.name,
+          employeeId: r.executive.employeeId || 'N/A',
+          designation: r.executive.designation || 'N/A',
+          present: 0,
+          leave: 0,
+          earlyCheckout: 0
+        };
+      }
+      if (r.status === 'Checked Out' || r.status === 'Checked In') summary[empId].present++;
+      if (r.status === 'On Leave') summary[empId].leave++;
+      if (r.earlyCheckout) summary[empId].earlyCheckout++;
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Attendance Summary');
+    
+    sheet.columns = [
+      { header: 'Employee Name', key: 'name', width: 25 },
+      { header: 'Employee ID', key: 'employeeId', width: 15 },
+      { header: 'Designation', key: 'designation', width: 20 },
+      { header: 'Days Present', key: 'present', width: 15 },
+      { header: 'Leaves Taken', key: 'leave', width: 15 },
+      { header: 'Early Checkouts', key: 'earlyCheckout', width: 18 },
+    ];
+    
+    sheet.getRow(1).font = { bold: true };
+    
+    Object.values(summary).forEach(emp => {
+      sheet.addRow(emp);
+    });
+    
+    const buffer = await workbook.xlsx.writeBuffer();
+    res.setHeader('Content-Disposition', 'attachment; filename="Attendance_Log.xlsx"');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
   } catch (error) {
     next(error);
   }

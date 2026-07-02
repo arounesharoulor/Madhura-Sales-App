@@ -25,16 +25,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const config = error.config || {};
+    const config = error.config;
 
     // Only retry on network errors (no HTTP response received)
-    if (!error.response) {
+    if (!error.response && config && config.url) {
       // First retry: try the production fallback URL (handles emulator→physical
       // switch or Render cold-start on the first call)
       if (!config._retried && config.baseURL !== API_FALLBACK_URL) {
         config._retried = true;
+        
+        // Axios might have made config.url absolute during the first try.
+        // We need to strip the old baseURL so the new API_FALLBACK_URL is applied.
+        if (config.url.startsWith('http')) {
+          const relativeUrl = config.url.replace(config.baseURL, '');
+          config.url = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`;
+        }
+        
         config.baseURL = API_FALLBACK_URL;
-        console.warn(`Network error on ${config.baseURL} — retrying against production: ${API_FALLBACK_URL}`);
+        console.warn(`Network error — retrying against production: ${API_FALLBACK_URL}${config.url}`);
 
         // Small delay to let Render wake up if it was cold
         await new Promise((r) => setTimeout(r, 1500));

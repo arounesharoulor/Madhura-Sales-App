@@ -11,6 +11,7 @@ const {
   rejectAttendance,
   holdAttendance,
   toggleEarlyCheckoutLock,
+  exportAttendanceLog,
 } = require('../controllers/attendanceController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -21,6 +22,7 @@ router.put('/checkout', authorize('Field Executive'), checkOut);
 router.post('/leave', authorize('Field Executive'), requestLeave);
 router.get('/today', authorize('Field Executive'), getTodayAttendance);
 router.get('/my', authorize('Field Executive'), getMyAttendance);
+router.get('/export', authorize('Admin', 'Manager'), exportAttendanceLog);
 router.get('/', authorize('Admin', 'Manager'), getAllAttendance);
 router.put('/:id/approve', authorize('Admin'), approveAttendance);
 router.put('/:id/reject', authorize('Admin'), rejectAttendance);

@@ -4,6 +4,7 @@ import {
   FlatList, ActivityIndicator, Alert, Platform, Modal, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 
@@ -100,6 +101,50 @@ export default function AdminAttendanceScreen() {
     const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     if (Platform.OS === 'web') window.open(url, '_blank');
     else require('react-native').Linking.openURL(url).catch(() => {});
+  };
+
+  const handleExportLog = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const baseUrl = api.defaults?.baseURL || '';
+      const url = `${baseUrl}/attendance/export`;
+
+      if (Platform.OS === 'web') {
+        const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (!resp.ok) throw new Error('Failed to download log');
+        const blob = await resp.blob();
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+        a.setAttribute('download', 'Attendance_Log.xlsx');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        const FileSystem = require('expo-file-system/legacy');
+        const Sharing = require('expo-sharing');
+        const localUri = FileSystem.cacheDirectory + 'Attendance_Log.xlsx';
+
+        const dl = await FileSystem.downloadAsync(url, localUri, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (dl.status === 200) {
+          const canShare = await Sharing.isAvailableAsync();
+          if (canShare) {
+            await Sharing.shareAsync(dl.uri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', dialogTitle: 'Save Attendance Log' });
+          } else {
+            Alert.alert('Downloaded', `Saved to: ${dl.uri}`);
+          }
+        } else {
+          Alert.alert('Error', `Download failed with status: ${dl.status}`);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', `Could not download the attendance log. ${e.message}`);
+    }
   };
 
   // --- Approve ---
@@ -405,9 +450,15 @@ export default function AdminAttendanceScreen() {
             <Text style={styles.title}>Team Attendance</Text>
             <Text style={styles.subtitle}>{queue.length} pending approval{queue.length !== 1 ? 's' : ''}</Text>
           </View>
-          <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchAttendance(true)}>
-            <Ionicons name="refresh" size={18} color="#0284c7" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity style={styles.exportBtn} onPress={handleExportLog}>
+              <Ionicons name="download-outline" size={16} color="#16a34a" />
+              <Text style={styles.exportBtnText}>Excel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchAttendance(true)}>
+              <Ionicons name="refresh" size={18} color="#0284c7" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Main Tabs */}
@@ -646,6 +697,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '800', color: '#0f172a' },
   subtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
   refreshBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#e0f2fe', alignItems: 'center', justifyContent: 'center' },
+  exportBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 40, borderRadius: 12, backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0' },
+  exportBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 13 },
 
   tabs: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 14, padding: 4, marginBottom: 14, gap: 4 },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 10, gap: 5 },
