@@ -6,11 +6,12 @@ const Notification = require('../models/Notification');
 // @access  Private/Admin/Manager
 exports.createTask = async (req, res, next) => {
   try {
-    const { title, description, assignedTo, dueDate } = req.body;
+    const { title, description, assignedTo, dueDate, client } = req.body;
 
     const task = await Task.create({
       title,
       description,
+      client: client || null,
       assignedTo,
       assignedBy: req.user.id,
       dueDate,
@@ -71,6 +72,7 @@ exports.getTasks = async (req, res, next) => {
     const tasks = await Task.find(query)
       .populate('assignedTo', 'name email role')
       .populate('assignedBy', 'name email role')
+      .populate('client', 'businessName ownerName phone location')
       .sort({ createdAt: -1 });
 
     res.status(200).json({

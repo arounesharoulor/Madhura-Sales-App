@@ -282,27 +282,48 @@ export default function FollowupScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Filter Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }} contentContainerStyle={{ gap: 8, paddingRight: 8 }}>
-          {STATUS_TABS.map(tab => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => setFilter(tab)}
-              style={{
-                paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-                backgroundColor: filter === tab ? '#0284c7' : '#f1f5f9',
-                flexDirection: 'row', alignItems: 'center', gap: 6,
-              }}
-            >
-              <Text style={{ fontSize: 11, fontWeight: '700', color: filter === tab ? '#fff' : '#64748b' }}>{tab}</Text>
-              {counts[tab] > 0 && (
-                <View style={{ backgroundColor: filter === tab ? 'rgba(255,255,255,0.3)' : '#e2e8f0', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1 }}>
-                  <Text style={{ fontSize: 9, fontWeight: '800', color: filter === tab ? '#fff' : '#64748b' }}>{counts[tab]}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* Professional Underline Tabs */}
+        <View style={{ marginBottom: 16 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 4 }}>
+            {STATUS_TABS.map(tab => {
+              const isActive = filter === tab;
+              return (
+                <TouchableOpacity
+                  key={tab}
+                  onPress={() => setFilter(tab)}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderBottomWidth: 2,
+                    borderBottomColor: isActive ? '#0284c7' : 'transparent',
+                    flexDirection: 'row', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  <Text style={{ 
+                    fontSize: 13, 
+                    fontWeight: isActive ? '800' : '600', 
+                    color: isActive ? '#0284c7' : '#64748b' 
+                  }}>
+                    {tab}
+                  </Text>
+                  {counts[tab] > 0 && (
+                    <View style={{ 
+                      backgroundColor: isActive ? '#e0f2fe' : '#f1f5f9', 
+                      borderRadius: 12, paddingHorizontal: 6, paddingVertical: 2 
+                    }}>
+                      <Text style={{ 
+                        fontSize: 10, 
+                        fontWeight: '800', 
+                        color: isActive ? '#0284c7' : '#94a3b8' 
+                      }}>{counts[tab]}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          <View style={{ height: 1, backgroundColor: '#e2e8f0', width: '100%', marginTop: -2 }} />
+        </View>
 
         {loading ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

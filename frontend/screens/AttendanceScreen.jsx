@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/api';
 
 const LEAVE_TYPES = ['Medical Leave', 'Casual Leave', 'Personal Leave', 'Emergency Leave'];
@@ -65,6 +66,19 @@ export default function AttendanceScreen() {
   const [workSummary, setWorkSummary] = useState('');
   const [earlyCheckoutReason, setEarlyCheckoutReason] = useState('');
   const [showEarlyModal, setShowEarlyModal] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Redirect Admins / Managers to the admin attendance screen on mount
+  useEffect(() => {
+    AsyncStorage.getItem('user').then((s) => {
+      if (!s) return;
+      const user = JSON.parse(s);
+      if (user.role === 'Admin' || user.role === 'Manager') {
+        setIsAdmin(true);
+        router.replace('/AdminAttendance');
+      }
+    });
+  }, []);
 
   // Tabs & Leave state
   const [activeTab, setActiveTab] = useState('Attendance');
@@ -130,16 +144,21 @@ export default function AttendanceScreen() {
   };
 
   const fetchToday = useCallback(async () => {
+    // Don't fetch for admins — they have their own screen
+    if (isAdmin) return;
     try {
       setLoading(true);
       const res = await api.get('/attendance/today');
       setTodayRecord(res.data.data);
     } catch (err) {
-      console.error('Attendance fetch error:', err.message);
+      // 403 means this user is not a Field Executive — silently ignore
+      if (err?.response?.status !== 403) {
+        console.error('Attendance fetch error:', err.message);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     fetchToday();

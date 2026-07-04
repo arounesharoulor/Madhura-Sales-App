@@ -5,11 +5,12 @@ const WorkUpdate = require('../models/WorkUpdate');
 // @access  Private/FieldExecutive
 exports.createUpdate = async (req, res, next) => {
   try {
-    const { notes, tasksCompleted, meetingsCount, hoursWorked } = req.body;
+    const { notes, tasksCompleted, meetingsCount, hoursWorked, client } = req.body;
 
     const workUpdate = await WorkUpdate.create({
       executive: req.user.id,
       notes,
+      client: client || null,
       tasksCompleted: tasksCompleted || [],
       meetingsCount: Number(meetingsCount) || 0,
       hoursWorked: Number(hoursWorked),
@@ -69,6 +70,7 @@ exports.getUpdates = async (req, res, next) => {
 
     const updates = await WorkUpdate.find(query)
       .populate('executive', 'name email role')
+      .populate('client', 'businessName ownerName phone location')
       .populate('tasksCompleted', 'title status')
       .sort({ createdAt: -1 });
 

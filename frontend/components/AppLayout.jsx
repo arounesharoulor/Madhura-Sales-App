@@ -17,7 +17,7 @@ const GOLD_BG= '#FFF8EC';   // gold tint background
 // ──────────────────────────────────────────────────────────────────
 
 // ── Cross-platform notification sound ─────────────────────────────
-export const playNotificationSound = (type = 'notification') => {
+export const playNotificationSound = async (type = 'notification') => {
   try {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -40,10 +40,13 @@ export const playNotificationSound = (type = 'notification') => {
         osc.stop(ctx.currentTime + start + dur + 0.05);
       });
     } else {
+      // Mobile vibration
       const pattern = type === 'chat' ? [0, 60, 40, 60] : [0, 80, 60, 80, 60, 80];
       Vibration.vibrate(pattern);
     }
-  } catch (_) {}
+  } catch (err) {
+    console.log('Audio playback error:', err);
+  }
 };
 // ──────────────────────────────────────────────────────────────────
 
@@ -63,6 +66,7 @@ const adminNavSections = [
     items: [
       { title: 'Live Map & GPS',  screen: 'LiveLocation',    icon: 'map-outline',           iconActive: 'map' },
       { title: 'Attendance Log',  screen: 'AdminAttendance', icon: 'time-outline',          iconActive: 'time' },
+      { title: 'Work Updates',    screen: 'WorkUpdate',      icon: 'document-text-outline', iconActive: 'document-text' },
       { title: 'Reports',         screen: 'Reports',         icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
       { title: 'Team Chat',       screen: 'Chat',            icon: 'chatbubbles-outline',   iconActive: 'chatbubbles' },
       { title: 'Profile',         screen: 'Profile',         icon: 'person-outline',        iconActive: 'person' },
@@ -334,30 +338,8 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
               ))}
             </ScrollView>
 
-            {/* Notification Bell + Logout Footer */}
+            {/* Logout */}
             <View style={styles.sidebarFooter}>
-              {/* Bell button always visible */}
-              <TouchableOpacity
-                onPress={() => { setUnreadCount(0); navigation.navigate('Notification'); }}
-                style={styles.sidebarBellBtn}
-                activeOpacity={0.8}
-              >
-                <View style={{ position: 'relative' }}>
-                  <Ionicons name="notifications-outline" size={20} color={GOLD} />
-                  {unreadCount > 0 && (
-                    <View style={styles.sidebarBellBadge}>
-                      <Text style={styles.sidebarBellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.sidebarBellText}>Notifications</Text>
-                {unreadCount > 0 && (
-                  <View style={styles.navBadgePill}>
-                    <Text style={styles.navBadgePillText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
               <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn} activeOpacity={0.8}>
                 <Ionicons name="log-out-outline" size={18} color="#f87171" />
                 <Text style={styles.logoutText}>Sign Out</Text>
@@ -368,28 +350,32 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
         {/* ── Main Content ── */}
         <View style={styles.main}>
-          {/* Top bar row: back button on sub-screens, bell icon on dashboard screens */}
-          <View style={[
-            styles.topBarRow,
-            { paddingHorizontal: isDesktop ? 32 : 16, paddingTop: isDesktop ? 28 : 12, paddingBottom: 4 }
-          ]}>
-            {currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? (
-              <TouchableOpacity
-                onPress={() => navigation.navigate(role === 'Admin' ? 'AdminDashboard' : 'Dashboard')}
-                style={styles.globalBackBtn}
-                activeOpacity={0.7}
-              >
-                <View style={{ backgroundColor: '#f1f5f9', padding: 6, borderRadius: 10 }}>
-                  <Ionicons name="arrow-back" size={18} color="#475569" />
-                </View>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Back to Dashboard</Text>
-              </TouchableOpacity>
-            ) : (
-              /* Dashboard screens: show notification bell top-right */
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1 }}>
+          {/* Top bar row: back button on sub-screens, bell on desktop */}
+          {(isDesktop || (currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard')) && (
+            <View style={[
+              styles.topBarRow,
+              { paddingHorizontal: isDesktop ? 32 : 16, paddingTop: isDesktop ? 28 : 12, paddingBottom: 4 }
+            ]}>
+              {currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate(userRole === 'Admin' ? 'AdminDashboard' : 'Dashboard')}
+                  style={styles.globalBackBtn}
+                  activeOpacity={0.7}
+                >
+                  <View style={{ backgroundColor: '#f1f5f9', padding: 6, borderRadius: 10 }}>
+                    <Ionicons name="arrow-back" size={18} color="#475569" />
+                  </View>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Back to Dashboard</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={{ flex: 1 }} />
+              )}
+
+              {/* Notification bell — only on desktop; mobile already has it in the top navbar */}
+              {isDesktop && (
                 <TouchableOpacity
                   onPress={() => { setUnreadCount(0); navigation.navigate('Notification'); }}
-                  style={styles.dashBellBtn}
+                  style={[styles.dashBellBtn, currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? { marginLeft: 'auto' } : {}]}
                   activeOpacity={0.8}
                 >
                   <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={22} color={unreadCount > 0 ? GOLD : '#64748b'} />
@@ -399,9 +385,9 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                     </View>
                   )}
                 </TouchableOpacity>
-              </View>
-            )}
-          </View>
+              )}
+            </View>
+          )}
           
           {scrollable ? (
             <ScrollView

@@ -138,7 +138,7 @@ export default function NotificationScreen({ navigation }) {
   };
 
   return (
-    <AppLayout currentScreen="Notification" role="Employee" scrollable={false}>
+    <AppLayout currentScreen="Notification" role={userRole} scrollable={false}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>

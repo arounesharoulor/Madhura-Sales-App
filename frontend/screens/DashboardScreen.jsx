@@ -57,7 +57,7 @@ export default function DashboardScreen({ navigation }) {
       const visitsToday = meetings.filter(m => new Date(m.createdAt).toDateString() === todayStr).length;
       const followUpsToday = followUps.filter(f => {
         const fDate = f.followUpDate ? new Date(f.followUpDate).toDateString() : '';
-        return fDate === todayStr && f.status !== 'Completed';
+        return fDate === todayStr && !['Completed', 'Converted', 'Cancelled', 'Not Interested'].includes(f.status);
       }).length;
 
       const safeAttendance  = Array.isArray(attendance) ? attendance : [];

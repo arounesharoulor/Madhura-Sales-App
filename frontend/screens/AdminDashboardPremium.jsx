@@ -97,16 +97,13 @@ export default function AdminDashboardPremium({ navigation }) {
 
   useEffect(() => {
     AsyncStorage.getItem('user').then(s => { if (s) setAdminName(JSON.parse(s).name); });
-    fetchData();
-
-    let mounted = true;
-    (async () => {
-      const sock = await connectSocket();
-      if (!mounted || !sock) return;
-      sock.on('notification', (n) => Toast.show({ type: 'info', text1: n.title, text2: n.message, visibilityTime: 5000 }));
-    })();
-    return () => { mounted = false; const s = getSocket(); if (s) s.off('notification'); };
   }, []);
+
+  useEffect(() => {
+    const unsub = navigation.addListener('focus', fetchData);
+    fetchData(); // initial fetch
+    return unsub;
+  }, [navigation]);
 
   const getGreeting = () => {
     const h = new Date().getHours();

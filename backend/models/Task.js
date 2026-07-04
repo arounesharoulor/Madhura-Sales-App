@@ -11,6 +11,10 @@ const taskSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please add a task description'],
     },
+    client: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ClientOnboarding',
+    },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -23,7 +27,7 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'In Progress', 'Completed'],
+      enum: ['Pending', 'In Progress', 'Completed', 'Hold'],
       default: 'Pending',
     },
     dueDate: {
@@ -52,7 +56,7 @@ const taskSchema = new mongoose.Schema(
         },
         statusAfterUpdate: {
           type: String,
-          enum: ['Pending', 'In Progress', 'Completed'],
+          enum: ['Pending', 'In Progress', 'Completed', 'Hold'],
         },
         createdAt: {
           type: Date,

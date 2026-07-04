@@ -11,6 +11,10 @@ const workUpdateSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    client: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ClientOnboarding',
+    },
     notes: {
       type: String,
       required: [true, 'Please add update details/notes'],
