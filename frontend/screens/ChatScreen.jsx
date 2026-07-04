@@ -6,15 +6,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import api from '../api/api';
 import { connectSocket, getSocket } from '../utils/socket';
 
 const NAVY = '#1B2B4B';
 const GOLD = '#F5A623';
 
-export default function ChatScreen({ route, navigation }) {
-  const partnerId = route?.params?.partnerId;
-  const partnerName = route?.params?.partnerName;
+export default function ChatScreen() {
+  const router = useRouter();
+  const { partnerId, partnerName } = useLocalSearchParams();
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
@@ -23,10 +24,12 @@ export default function ChatScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef(null);
 
+  const safePartnerId = (partnerId && partnerId !== 'undefined') ? partnerId : null;
+
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const url = partnerId ? `/messages?partnerId=${partnerId}` : '/messages';
+      const url = safePartnerId ? `/messages?partnerId=${safePartnerId}` : '/messages';
       const res = await api.get(url);
       setMessages(res.data.data || []);
     } catch (e) {
@@ -36,66 +39,66 @@ export default function ChatScreen({ route, navigation }) {
     }
   };
 
-  const setupChat = async () => {
-    let currentUserId = '';
-    const storedUser = await AsyncStorage.getItem('user');
-    if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      currentUserId = parsed.id;
-      setUserId(currentUserId);
-      setUserName(parsed.name || '');
-    }
-
-    await fetchMessages();
-
-    let socket = getSocket();
-    if (!socket) socket = await connectSocket();
-
-    if (socket) {
-      if (partnerId) {
-        socket.on('private_message', (msg) => {
-          const senderId = msg.sender?._id || msg.sender;
-          const receiverId = msg.receiver?._id || msg.receiver;
-          if (
-            (senderId === partnerId && receiverId === currentUserId) ||
-            (senderId === currentUserId && receiverId === partnerId)
-          ) {
-            setMessages((prev) => {
-              // Replace any optimistic placeholder from same sender
-              const withoutOptimistic = prev.filter(
-                (m) => !(m._id?.startsWith('optimistic_') && m.sender?._id === senderId && m.text === msg.text)
-              );
-              // Avoid true duplicates
-              if (withoutOptimistic.find((m) => m._id === msg._id)) return withoutOptimistic;
-              return [...withoutOptimistic, msg];
-            });
-          }
-        });
-      } else {
-        socket.on('team_message', (msg) => {
-          setMessages((prev) => {
-            const senderId = msg.sender?._id || msg.sender;
-            const withoutOptimistic = prev.filter(
-              (m) => !(m._id?.startsWith('optimistic_') && m.sender?._id === senderId && m.text === msg.text)
-            );
-            if (withoutOptimistic.find((m) => m._id === msg._id)) return withoutOptimistic;
-            return [...withoutOptimistic, msg];
-          });
-        });
+  useEffect(() => {
+    const initUser = async () => {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        setUserId(parsed.id);
+        setUserName(parsed.name || '');
       }
-    }
-  };
+      fetchMessages();
+    };
+    initUser();
+  }, [safePartnerId]);
 
   useEffect(() => {
-    setupChat();
-    return () => {
-      const socket = getSocket();
-      if (socket) {
-        socket.off('private_message');
-        socket.off('team_message');
+    if (!userId) return;
+
+    let socket = getSocket();
+    if (!socket) return;
+
+    const handlePrivateMsg = (msg) => {
+      const senderId = msg.sender?._id || msg.sender;
+      const receiverId = msg.receiver?._id || msg.receiver;
+      if (
+        (senderId === safePartnerId && receiverId === userId) ||
+        (senderId === userId && receiverId === safePartnerId)
+      ) {
+        setMessages((prev) => {
+          const withoutOptimistic = prev.filter(
+            (m) => !(m._id?.startsWith('optimistic_') && (m.sender?._id || m.sender) === senderId && m.text === msg.text)
+          );
+          if (withoutOptimistic.find((m) => m._id === msg._id)) return withoutOptimistic;
+          return [...withoutOptimistic, msg];
+        });
       }
     };
-  }, []);
+
+    const handleTeamMsg = (msg) => {
+      setMessages((prev) => {
+        const senderId = msg.sender?._id || msg.sender;
+        const withoutOptimistic = prev.filter(
+          (m) => !(m._id?.startsWith('optimistic_') && (m.sender?._id || m.sender) === senderId && m.text === msg.text)
+        );
+        if (withoutOptimistic.find((m) => m._id === msg._id)) return withoutOptimistic;
+        return [...withoutOptimistic, msg];
+      });
+    };
+
+    if (safePartnerId) {
+      socket.on('private_message', handlePrivateMsg);
+    } else {
+      socket.on('team_message', handleTeamMsg);
+    }
+
+    return () => {
+      if (socket) {
+        socket.off('private_message', handlePrivateMsg);
+        socket.off('team_message', handleTeamMsg);
+      }
+    };
+  }, [userId, safePartnerId]);
 
   const handleSend = async () => {
     if (!text.trim()) return;
@@ -107,12 +110,12 @@ export default function ChatScreen({ route, navigation }) {
       _id: `optimistic_${Date.now()}`,
       text: msgText,
       sender: { _id: userId, name: userName },
-      receiver: partnerId ? { _id: partnerId } : null,
+      receiver: safePartnerId ? { _id: safePartnerId } : null,
       createdAt: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimisticMsg]);
 
-    const payload = partnerId ? { text: msgText, receiver: partnerId } : { text: msgText };
+    const payload = safePartnerId ? { text: msgText, receiver: safePartnerId } : { text: msgText };
     try {
       await api.post('/messages', payload);
     } catch (e) {
@@ -175,7 +178,7 @@ export default function ChatScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation?.canGoBack?.() && navigation.goBack()}
+          onPress={() => router.back()}
           style={styles.backBtn}
           activeOpacity={0.7}
         >

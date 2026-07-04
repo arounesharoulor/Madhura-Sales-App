@@ -6,8 +6,10 @@ import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
+import { useRouter } from 'expo-router';
 
 export default function UserManagementScreen({ navigation }) {
+  const router = useRouter();
   const [users, setUsers] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -229,9 +231,9 @@ export default function UserManagementScreen({ navigation }) {
                     </View>
                     <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-slate-100 justify-end">
                       <TouchableOpacity
-                        onPress={() => navigation.navigate('Chat', {
-                          partnerId: item._id,
-                          partnerName: item.name
+                        onPress={() => router.push({
+                          pathname: '/Chat',
+                          params: { partnerId: item._id, partnerName: item.name }
                         })}
                         className="bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100 flex-row items-center"
                       >

@@ -11,6 +11,7 @@ import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
+import { useRouter } from 'expo-router';
 
 // Cross-platform DatePicker
 function CrossPlatformDatePicker({ value, onChange }) {
@@ -148,6 +149,7 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
 }
 
 export default function ReportsScreen({ navigation }) {
+  const router = useRouter();
   const [role, setRole] = useState('Field Executive');
   const [reports, setReports] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -528,7 +530,7 @@ export default function ReportsScreen({ navigation }) {
                           {/* Report Issue (Admin) */}
                           {role === 'Admin' && item.generatedBy?._id && (
                             <TouchableOpacity
-                              onPress={(e) => { e.stopPropagation?.(); navigation.navigate('Chat', { partnerId: item.generatedBy._id, partnerName: item.generatedBy.name }); }}
+                              onPress={(e) => { e.stopPropagation?.(); router.push({ pathname: '/Chat', params: { partnerId: item.generatedBy._id, partnerName: item.generatedBy.name } }); }}
                               style={{ backgroundColor: '#fef2f2', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#fecdd3' }}
                             >
                               <Ionicons name="chatbubble-ellipses-outline" size={14} color="#ef4444" />
