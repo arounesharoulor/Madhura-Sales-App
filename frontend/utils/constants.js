@@ -50,7 +50,7 @@ export const API_URL = STATIC_API_URL ||
   (isAndroidEmulator ? `http://${ANDROID_EMULATOR_HOST}:5005/api` :
    isIosSimulator   ? `http://${IOS_SIMULATOR_HOST}:5005/api` :
    (Platform.OS === 'web' && !isWebProduction) ? `http://${LOCAL_HOST}:5005/api` :
-   (__DEV__ && HOST_FROM_DEBUGGER) ? `http://${HOST_FROM_DEBUGGER}:5005/api` :
+   __DEV__ ? `http://${LOCAL_HOST}:5005/api` :
    PRODUCTION_API_URL);
 
 // Fallback is always the live production server
@@ -60,7 +60,7 @@ export const SOCKET_URL = STATIC_SOCKET_URL ||
   (isAndroidEmulator ? `http://${ANDROID_EMULATOR_HOST}:5005` :
    isIosSimulator   ? `http://${IOS_SIMULATOR_HOST}:5005` :
    (Platform.OS === 'web' && !isWebProduction) ? `http://${LOCAL_HOST}:5005` :
-   (__DEV__ && HOST_FROM_DEBUGGER) ? `http://${HOST_FROM_DEBUGGER}:5005` :
+   __DEV__ ? `http://${LOCAL_HOST}:5005` :
    PRODUCTION_SOCKET_URL);
 
 export const THEME = {

@@ -19,6 +19,15 @@ import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
 import api from '../api/api';
 
+const LEAVE_TYPES = ['Medical Leave', 'Casual Leave', 'Personal Leave', 'Emergency Leave'];
+
+const LEAVE_CRITERIA = {
+  'Medical Leave': ['Fever/Illness', 'Doctor Appointment', 'Hospitalization', 'Other'],
+  'Casual Leave': ['Personal Errands', 'Function/Event', 'Travel', 'Other'],
+  'Personal Leave': ['Family commitments', 'Urgent work', 'Other'],
+  'Emergency Leave': ['Accident', 'Family Emergency', 'Other'],
+};
+
 const STATUS_COLORS = {
   'Pending Check-In': '#f59e0b',
   'Checked In': '#22c55e',
@@ -56,6 +65,69 @@ export default function AttendanceScreen() {
   const [workSummary, setWorkSummary] = useState('');
   const [earlyCheckoutReason, setEarlyCheckoutReason] = useState('');
   const [showEarlyModal, setShowEarlyModal] = useState(false);
+
+  // Tabs & Leave state
+  const [activeTab, setActiveTab] = useState('Attendance');
+  const [leaveType, setLeaveType] = useState('');
+  const [leaveCriteria, setLeaveCriteria] = useState('');
+  const [leaveReason, setLeaveReason] = useState('');
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const fetchHistory = useCallback(async () => {
+    setLoadingHistory(true);
+    try {
+      const all = await api.get('/attendance/my');
+      setHistory(all.data.data || []);
+    } catch {
+      try {
+        const res = await api.get('/attendance/today');
+        setHistory(res.data.data ? [res.data.data] : []);
+      } catch { setHistory([]); }
+    } finally { setLoadingHistory(false); }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'History') fetchHistory();
+  }, [activeTab]);
+
+  const handleLeaveSubmit = async () => {
+    if (!leaveType) { Alert.alert('Required', 'Please select a leave type.'); return; }
+    if (!leaveCriteria) { Alert.alert('Required', 'Please select a leave criteria option.'); return; }
+    if (!leaveReason.trim()) { Alert.alert('Required', 'Please provide a detailed reason for your leave.'); return; }
+
+    setSubmitting(true);
+    try {
+      const fullReason = `[${leaveCriteria}] ${leaveReason.trim()}`;
+      await api.post('/attendance/leave', { leaveType, leaveReason: fullReason });
+      Toast.show({
+        type: 'success',
+        text1: '🌿 Leave Request Submitted',
+        text2: 'Your leave request has been sent to the Admin for approval.',
+        visibilityTime: 5000,
+      });
+      setLeaveType('');
+      setLeaveCriteria('');
+      setLeaveReason('');
+    } catch (e) {
+      const msg = e?.response?.data?.message || 'Could not submit leave request.';
+      Alert.alert('Error', msg);
+    } finally { setSubmitting(false); }
+  };
+
+  const handleChatWithAdmin = async () => {
+    try {
+      const res = await api.get('/users?role=Admin');
+      const admin = res.data?.data?.[0];
+      if (admin) {
+        router.push({ pathname: '/Chat', params: { partnerId: admin._id, partnerName: admin.name } });
+      } else {
+        Alert.alert('Unavailable', 'No Admin found in the system to chat with.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Could not connect to Admin chat.');
+    }
+  };
 
   const fetchToday = useCallback(async () => {
     try {
@@ -309,27 +381,48 @@ export default function AttendanceScreen() {
         </View>
       </Modal>
 
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router?.canGoBack?.() && router.back()}
+          style={styles.backBtn}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={22} color="#0f172a" />
+        </TouchableOpacity>
+        <View>
+          <Text style={styles.headerTitle}>Attendance & Leave</Text>
+          <Text style={styles.headerSub}>
+            {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </Text>
+        </View>
+      </View>
+
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        {[
+          { key: 'Attendance', label: 'Today', icon: 'today-outline' },
+          { key: 'Leave', label: 'Leave', icon: 'umbrella-outline' },
+          { key: 'History', label: 'History', icon: 'time-outline' },
+        ].map((t) => (
+          <TouchableOpacity
+            key={t.key}
+            style={[styles.tab, activeTab === t.key && styles.tabActive]}
+            onPress={() => setActiveTab(t.key)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name={t.icon} size={16} color={activeTab === t.key ? '#0284c7' : '#64748b'} />
+            <Text style={[styles.tabText, activeTab === t.key && styles.tabTextActive]}>{t.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {activeTab === 'Attendance' && (
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router?.canGoBack?.() && router.back()}
-            style={styles.backBtn}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="arrow-back" size={22} color="#0f172a" />
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.headerTitle}>Daily Attendance</Text>
-            <Text style={styles.headerSub}>
-              {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-            </Text>
-          </View>
-        </View>
 
         {/* Status Card */}
         <View style={[styles.statusCard, { borderLeftColor: statusColor }]}>
@@ -563,6 +656,135 @@ export default function AttendanceScreen() {
           </View>
         )}
       </ScrollView>
+      )}
+
+      {/* ── Leave Tab ── */}
+      {activeTab === 'Leave' && (
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <View style={[styles.statusCard, { padding: 14, marginBottom: 16, borderLeftColor: '#0284c7' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Ionicons name="information-circle-outline" size={18} color="#0284c7" />
+              <Text style={{ flex: 1, fontSize: 13, color: '#1e40af', lineHeight: 19 }}>
+                Leave requests require Admin approval. You will be notified once the Admin takes action.
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle}>Leave Type *</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+            {LEAVE_TYPES.map((lt) => (
+              <TouchableOpacity
+                key={lt}
+                style={[{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', backgroundColor: '#fff' }, leaveType === lt && { borderColor: '#0284c7', backgroundColor: '#eff6ff' }]}
+                onPress={() => setLeaveType(lt)}
+                activeOpacity={0.8}
+              >
+                <Text style={[{ fontSize: 13, color: '#475569', fontWeight: '600' }, leaveType === lt && { color: '#0284c7', fontWeight: '700' }]}>
+                  {lt}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {leaveType ? (
+            <>
+              <Text style={styles.sectionTitle}>Select Option *</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                {LEAVE_CRITERIA[leaveType]?.map((crit) => (
+                  <TouchableOpacity
+                    key={crit}
+                    style={[{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', backgroundColor: '#fff' }, leaveCriteria === crit && { borderColor: '#0284c7', backgroundColor: '#eff6ff' }]}
+                    onPress={() => setLeaveCriteria(crit)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[{ fontSize: 13, color: '#475569', fontWeight: '600' }, leaveCriteria === crit && { color: '#0284c7', fontWeight: '700' }]}>
+                      {crit}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          ) : null}
+
+          <Text style={[styles.sectionTitle, { marginTop: 8 }]}>Detailed Reason *</Text>
+          <TextInput
+            style={[styles.textarea, { outlineStyle: 'none' }]}
+            value={leaveReason}
+            onChangeText={setLeaveReason}
+            multiline
+            numberOfLines={4}
+            placeholder="Briefly explain why you need this leave..."
+            placeholderTextColor="#94a3b8"
+            textAlignVertical="top"
+          />
+
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: '#7c3aed' }, submitting && styles.btnDisabled]}
+            onPress={handleLeaveSubmit}
+            disabled={submitting}
+            activeOpacity={0.85}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Ionicons name="paper-plane-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.actionBtnText}>Submit Leave Request</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      )}
+
+      {/* ── History Tab ── */}
+      {activeTab === 'History' && (
+        loadingHistory ? (
+          <ActivityIndicator color="#0284c7" size="large" style={{ marginTop: 60 }} />
+        ) : history.length === 0 ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 }}>
+            <Ionicons name="time-outline" size={56} color="#cbd5e1" />
+            <Text style={{ fontSize: 18, fontWeight: '700', color: '#334155', marginTop: 14 }}>No Records Yet</Text>
+            <Text style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>Your attendance history will appear here.</Text>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+            {history.map((item) => {
+              const cfg = STATUS_COLORS[item.status] ? { color: STATUS_COLORS[item.status], label: item.status } : { color: '#94a3b8', label: item.status };
+              return (
+                <View key={item._id} style={[{ backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 12, borderLeftWidth: 4, borderWidth: 1, borderColor: '#f1f5f9', elevation: 1 }, { borderLeftColor: cfg.color }]}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <View>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: '#0f172a' }}>{item.date}</Text>
+                      {item.leaveType ? <Text style={{ fontSize: 11, color: '#7c3aed', marginTop: 2, fontWeight: '600' }}>{item.leaveType}</Text> : null}
+                    </View>
+                    <View style={[{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, borderWidth: 1 }, { backgroundColor: cfg.color + '20', borderColor: cfg.color + '50' }]}>
+                      <Text style={[{ fontSize: 10, fontWeight: '700' }, { color: cfg.color }]}>{cfg.label}</Text>
+                    </View>
+                  </View>
+                  {item.workPlan ? (
+                    <Text style={{ fontSize: 12, color: '#475569', marginBottom: 4, lineHeight: 18 }} numberOfLines={2}>📋 {item.workPlan}</Text>
+                  ) : null}
+                  {item.leaveReason ? (
+                    <Text style={{ fontSize: 12, color: '#475569', marginBottom: 4, lineHeight: 18 }} numberOfLines={2}>🌿 {item.leaveReason}</Text>
+                  ) : null}
+                  {item.adminFeedback ? (
+                    <Text style={[{ fontSize: 12, color: '#475569', marginBottom: 4, lineHeight: 18 }, { color: '#ef4444' }]}>❌ {item.adminFeedback}</Text>
+                  ) : null}
+                  <View style={{ flexDirection: 'row', gap: 16, marginTop: 6 }}>
+                    <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '600' }}>
+                      In: {item.checkInTime ? new Date(item.checkInTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—'}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '600' }}>
+                      Out: {item.checkOutTime ? new Date(item.checkOutTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—'}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        )
+      )}
+
     </SafeAreaView>
   );
 }
@@ -579,8 +801,45 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
+    paddingHorizontal: 20,
+    marginTop: 16,
     gap: 14,
+  },
+  tabs: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f5f9',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 4,
+    gap: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 5,
+  },
+  tabActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.07,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  tabTextActive: {
+    color: '#0284c7',
+    fontWeight: '700',
   },
   backBtn: {
     width: 42,
