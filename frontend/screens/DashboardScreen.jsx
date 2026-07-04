@@ -9,9 +9,9 @@ import AppLayout from '../components/AppLayout';
 
 const today = new Date();
 
-function StatCard({ icon, label, value, color, bg }) {
+function StatCard({ icon, label, value, color, bg, onPress }) {
   return (
-    <View style={{
+    <TouchableOpacity onPress={onPress} style={{
       flex: 1, backgroundColor: bg || '#eff6ff', borderRadius: 14,
       padding: 10, gap: 2, borderWidth: 1, borderColor: color + '33',
     }}>
@@ -20,7 +20,7 @@ function StatCard({ icon, label, value, color, bg }) {
       </View>
       <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginTop: 3 }}>{value}</Text>
       <Text style={{ fontSize: 9, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -181,7 +181,7 @@ export default function DashboardScreen({ navigation }) {
           </View>
 
           {/* ── Clients slim banner ── */}
-          <View style={{
+          <TouchableOpacity onPress={() => navigation.navigate('Onboarding')} style={{
             backgroundColor: '#0f172a', borderRadius: 16,
             paddingVertical: 12, paddingHorizontal: 16,
             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
@@ -197,21 +197,21 @@ export default function DashboardScreen({ navigation }) {
             <View style={{ backgroundColor: '#1e293b', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: '#334155' }}>
               <Ionicons name="briefcase" size={20} color="#38bdf8" />
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* ── Stats 3×2 compact grid ── */}
           <Text style={{ fontSize: 10, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
             Today's Overview
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-            <StatCard icon="location"    label="Visits Today"   value={metrics.visitsToday}         color="#0284c7" bg="#eff6ff" />
-            <StatCard icon="alarm"       label="Follow-ups Due" value={metrics.followUpsToday}      color="#d97706" bg="#fffbeb" />
-            <StatCard icon="stats-chart" label="Attendance"     value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" />
+            <StatCard icon="location"    label="Visits Today"   value={metrics.visitsToday}         color="#0284c7" bg="#eff6ff" onPress={() => navigation.navigate('Meeting')} />
+            <StatCard icon="alarm"       label="Follow-ups Due" value={metrics.followUpsToday}      color="#d97706" bg="#fffbeb" onPress={() => navigation.navigate('Followup')} />
+            <StatCard icon="stats-chart" label="Attendance"     value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" onPress={() => navigation.navigate('Attendance')} />
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
-            <StatCard icon="clipboard"      label="Pending"     value={metrics.pendingTasks}    color="#e11d48" bg="#fff1f2" />
-            <StatCard icon="sync-circle"    label="In Progress" value={metrics.inProgressTasks} color="#0284c7" bg="#eff6ff" />
-            <StatCard icon="checkmark-done" label="Completed"   value={metrics.completedTasks}  color="#16a34a" bg="#f0fdf4" />
+            <StatCard icon="clipboard"      label="Pending"     value={metrics.pendingTasks}    color="#e11d48" bg="#fff1f2" onPress={() => navigation.navigate('Task')} />
+            <StatCard icon="sync-circle"    label="In Progress" value={metrics.inProgressTasks} color="#0284c7" bg="#eff6ff" onPress={() => navigation.navigate('Task')} />
+            <StatCard icon="checkmark-done" label="Completed"   value={metrics.completedTasks}  color="#16a34a" bg="#f0fdf4" onPress={() => navigation.navigate('Task')} />
           </View>
 
         </ScrollView>

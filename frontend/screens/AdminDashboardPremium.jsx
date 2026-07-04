@@ -9,15 +9,15 @@ import Toast from 'react-native-toast-message';
 
 const todayDateStr = new Date().toDateString();
 
-function StatCard({ label, value, icon, color, bg }) {
+function StatCard({ label, value, icon, color, bg, onPress }) {
   return (
-    <View style={{ flex: 1, backgroundColor: bg || '#fff', borderRadius: 18, padding: 14, minWidth: '45%', marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 6, elevation: 1 }}>
+    <TouchableOpacity onPress={onPress} style={{ width: '48%', backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 }}>
       <View style={{ backgroundColor: color + '22', borderRadius: 10, padding: 8, alignSelf: 'flex-start', marginBottom: 6 }}>
         <Ionicons name={icon} size={18} color={color} />
       </View>
       <Text style={{ fontSize: 28, fontWeight: '900', color: '#0f172a' }}>{value}</Text>
       <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -135,10 +135,10 @@ export default function AdminDashboardPremium({ navigation }) {
 
           {/* ── Top KPI Grid ── */}
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between', marginBottom: 16 }}>
-            <StatCard label="Checked In"    value={metrics.checkedIn}      icon="log-in"   color="#10b981" bg="#dcfce7" />
-            <StatCard label="Total Staff"   value={metrics.totalEmployees} icon="people"   color="#6366f1" bg="#e0e7ff" />
-            <StatCard label="Client Visits" value={metrics.clientVisitsToday} icon="location" color="#0ea5e9" bg="#e0f2fe" />
-            <StatCard label="Open Tasks"    value={metrics.openTasks}      icon="clipboard" color="#f43f5e" bg="#ffe4e6" />
+            <StatCard label="Checked In"    value={metrics.checkedIn}      icon="log-in"   color="#10b981" bg="#dcfce7" onPress={() => navigation.navigate('AdminAttendance')} />
+            <StatCard label="Total Staff"   value={metrics.totalEmployees} icon="people"   color="#6366f1" bg="#e0e7ff" onPress={() => navigation.navigate('UserManagement')} />
+            <StatCard label="Client Visits" value={metrics.clientVisitsToday} icon="location" color="#0ea5e9" bg="#e0f2fe" onPress={() => navigation.navigate('Reports')} />
+            <StatCard label="Open Tasks"    value={metrics.openTasks}      icon="clipboard" color="#f43f5e" bg="#ffe4e6" onPress={() => navigation.navigate('AdminTaskManagement')} />
           </View>
 
           {/* ── Pending Approvals (Compact) ── */}
