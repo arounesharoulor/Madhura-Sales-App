@@ -132,7 +132,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
       // ── Notification events ──
       activeSocket.on('notification', (notif) => {
-        playNotificationSound('notification');
+        if (notif.type !== 'Chat') playNotificationSound('notification');
         Toast.show({
           type: notif.type === 'Warning' ? 'error' : notif.type === 'Success' ? 'success' : 'info',
           text1: notif.title,

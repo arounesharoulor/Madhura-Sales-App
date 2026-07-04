@@ -1,4 +1,6 @@
 const Message = require('../models/Message');
+const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 // @desc    Send a chat message
 // @route   POST /api/messages
@@ -18,15 +20,44 @@ exports.sendMessage = async (req, res, next) => {
       .populate('sender', 'name profilePicture role')
       .populate('receiver', 'name profilePicture role');
 
-    // Emit live Socket.io events
+    // Emit live Socket.io events and create Notifications
     if (req.io) {
       if (receiver) {
         // Private message
         req.io.to(receiver.toString()).emit('private_message', populatedMsg);
         req.io.to(req.user.id.toString()).emit('private_message', populatedMsg);
+        
+        // Create Notification for receiver
+        const notif = await Notification.create({
+          recipient: receiver,
+          sender: req.user.id,
+          title: `New Message from ${populatedMsg.sender.name}`,
+          message: text,
+          type: 'Chat'
+        });
+        req.io.to(receiver.toString()).emit('notification', notif);
+
       } else {
         // Group / Team message
         req.io.emit('team_message', populatedMsg);
+        
+        // Create Notifications for all other active users
+        const allUsers = await User.find({ isActive: true, _id: { $ne: req.user.id } }).select('_id');
+        const notifications = allUsers.map(u => ({
+          recipient: u._id,
+          sender: req.user.id,
+          title: `Team Message from ${populatedMsg.sender.name}`,
+          message: text,
+          type: 'Chat'
+        }));
+        
+        if (notifications.length > 0) {
+          const createdNotifs = await Notification.insertMany(notifications);
+          // Broadcast notification event to everyone except sender
+          createdNotifs.forEach(notif => {
+            req.io.to(notif.recipient.toString()).emit('notification', notif);
+          });
+        }
       }
     }
 
