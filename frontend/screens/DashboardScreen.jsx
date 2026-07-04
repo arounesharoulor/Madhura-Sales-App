@@ -18,8 +18,10 @@ function StatCard({ icon, label, value, color, bg, onPress }) {
       <View style={{ backgroundColor: color + '22', borderRadius: 8, padding: 5, alignSelf: 'flex-start' }}>
         <Ionicons name={icon} size={14} color={color} />
       </View>
-      <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginTop: 3 }}>{value}</Text>
-      <Text style={{ fontSize: 9, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
+      <View>
+        <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginTop: 3 }}>{value}</Text>
+        <Text style={{ fontSize: 9, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -55,10 +57,18 @@ export default function DashboardScreen({ navigation }) {
 
       const todayStr    = today.toDateString();
       const visitsToday = meetings.filter(m => new Date(m.createdAt).toDateString() === todayStr).length;
-      const followUpsToday = followUps.filter(f => {
+      const followUpsTodayList = followUps.filter(f => {
         const fDate = f.followUpDate ? new Date(f.followUpDate).toDateString() : '';
-        return fDate === todayStr && !['Completed', 'Converted', 'Cancelled', 'Not Interested'].includes(f.status);
-      }).length;
+        return fDate === todayStr;
+      });
+      const followUpsToday = followUpsTodayList.length;
+
+      let followUpStatuses = [];
+      if (followUpsToday > 0) {
+        const counts = {};
+        followUpsTodayList.forEach(f => counts[f.status] = (counts[f.status] || 0) + 1);
+        followUpStatuses = Object.entries(counts).map(([status, count]) => `${count} ${status}`);
+      }
 
       const safeAttendance  = Array.isArray(attendance) ? attendance : [];
       const presentDays     = safeAttendance.filter(a => a.checkInStatus === 'Approved').length;
@@ -74,6 +84,7 @@ export default function DashboardScreen({ navigation }) {
         completedTasks:  tasks.filter(t => t.status === 'Completed').length,
         visitsToday,
         followUpsToday,
+        followUpStatuses: followUpStatuses.join(', '),
         totalClients: onboardingRes.data.data?.length || 0,
         attendancePct,
       });
@@ -86,6 +97,7 @@ export default function DashboardScreen({ navigation }) {
 
   useEffect(() => {
     const unsub = navigation.addListener('focus', loadData);
+    loadData(); // run on mount
     return unsub;
   }, [navigation]);
 
@@ -205,7 +217,13 @@ export default function DashboardScreen({ navigation }) {
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
             <StatCard icon="location"    label="Visits Today"   value={metrics.visitsToday}         color="#0284c7" bg="#eff6ff" onPress={() => navigation.navigate('Meeting')} />
-            <StatCard icon="alarm"       label="Follow-ups Due" value={metrics.followUpsToday}      color="#d97706" bg="#fffbeb" onPress={() => navigation.navigate('Followup')} />
+            <StatCard 
+              icon="alarm" 
+              label={metrics.followUpsToday > 0 ? metrics.followUpStatuses : "Follow-ups Due"} 
+              value={metrics.followUpsToday}      
+              color="#d97706" bg="#fffbeb" 
+              onPress={() => navigation.navigate('Followup')} 
+            />
             <StatCard icon="stats-chart" label="Attendance"     value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" onPress={() => navigation.navigate('Attendance')} />
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
