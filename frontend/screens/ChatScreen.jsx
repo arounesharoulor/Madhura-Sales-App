@@ -60,12 +60,27 @@ export default function ChatScreen({ route, navigation }) {
             (senderId === partnerId && receiverId === currentUserId) ||
             (senderId === currentUserId && receiverId === partnerId)
           ) {
-            setMessages((prev) => [...prev, msg]);
+            setMessages((prev) => {
+              // Replace any optimistic placeholder from same sender
+              const withoutOptimistic = prev.filter(
+                (m) => !(m._id?.startsWith('optimistic_') && m.sender?._id === senderId && m.text === msg.text)
+              );
+              // Avoid true duplicates
+              if (withoutOptimistic.find((m) => m._id === msg._id)) return withoutOptimistic;
+              return [...withoutOptimistic, msg];
+            });
           }
         });
       } else {
         socket.on('team_message', (msg) => {
-          setMessages((prev) => [...prev, msg]);
+          setMessages((prev) => {
+            const senderId = msg.sender?._id || msg.sender;
+            const withoutOptimistic = prev.filter(
+              (m) => !(m._id?.startsWith('optimistic_') && m.sender?._id === senderId && m.text === msg.text)
+            );
+            if (withoutOptimistic.find((m) => m._id === msg._id)) return withoutOptimistic;
+            return [...withoutOptimistic, msg];
+          });
         });
       }
     }
@@ -84,11 +99,25 @@ export default function ChatScreen({ route, navigation }) {
 
   const handleSend = async () => {
     if (!text.trim()) return;
-    const payload = partnerId ? { text: text.trim(), receiver: partnerId } : { text: text.trim() };
+    const msgText = text.trim();
     setText('');
+
+    // Optimistic update — show message immediately in the UI
+    const optimisticMsg = {
+      _id: `optimistic_${Date.now()}`,
+      text: msgText,
+      sender: { _id: userId, name: userName },
+      receiver: partnerId ? { _id: partnerId } : null,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimisticMsg]);
+
+    const payload = partnerId ? { text: msgText, receiver: partnerId } : { text: msgText };
     try {
       await api.post('/messages', payload);
     } catch (e) {
+      // Remove the optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m._id !== optimisticMsg._id));
       Alert.alert('Error', 'Failed to send message. Please try again.');
     }
   };

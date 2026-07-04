@@ -16,26 +16,33 @@ const GOLD_BG= '#FFF8EC';   // gold tint background
 // ──────────────────────────────────────────────────────────────────
 
 // ── Cross-platform notification sound ─────────────────────────────
-const playNotificationSound = () => {
+const playNotificationSound = (type = 'notification') => {
   try {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.25, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.45);
+      // Two-tone chime: high note then lower note
+      const notes = type === 'chat'
+        ? [{ freq: 1046, start: 0, dur: 0.12 }, { freq: 784, start: 0.14, dur: 0.16 }]
+        : [{ freq: 880, start: 0, dur: 0.14 }, { freq: 1046, start: 0.16, dur: 0.18 }];
+      notes.forEach(({ freq, start, dur }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+        gain.gain.setValueAtTime(0.0, ctx.currentTime + start);
+        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur + 0.05);
+      });
     } else {
-      // Mobile: short double-vibrate as audio cue
-      Vibration.vibrate([0, 80, 60, 80]);
+      // Mobile: distinct vibration pattern
+      const pattern = type === 'chat' ? [0, 60, 40, 60] : [0, 80, 60, 80, 60, 80];
+      Vibration.vibrate(pattern);
     }
   } catch (_) {}
 };
@@ -97,6 +104,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
   const [userDesignation, setUserDesignation] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(width > 768);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadChat, setUnreadChat] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -116,30 +124,47 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
   useEffect(() => {
     let activeSocket = null;
     const initSocket = async () => {
+      const storedUser = await AsyncStorage.getItem('user');
+      const currentUserId = storedUser ? JSON.parse(storedUser).id : null;
+
       activeSocket = await connectSocket();
-      if (activeSocket) {
-        activeSocket.on('notification', (notif) => {
-          // Play sound
-          playNotificationSound();
-          // Show toast
-          Toast.show({
-            type: notif.type === 'Warning' ? 'error' : notif.type === 'Success' ? 'success' : 'info',
-            text1: notif.title,
-            text2: notif.message,
-            visibilityTime: 6000,
-            onPress: () => {
-              Toast.hide();
-              setUnreadCount(0);
-              navigation.navigate('Notification');
-            }
-          });
-          // Bump unread badge
-          setUnreadCount(prev => prev + 1);
+      if (!activeSocket) return;
+
+      // ── Notification events ──
+      activeSocket.on('notification', (notif) => {
+        playNotificationSound('notification');
+        Toast.show({
+          type: notif.type === 'Warning' ? 'error' : notif.type === 'Success' ? 'success' : 'info',
+          text1: notif.title,
+          text2: notif.message,
+          visibilityTime: 6000,
+          onPress: () => {
+            Toast.hide();
+            setUnreadCount(0);
+            navigation.navigate('Notification');
+          }
         });
-      }
+        setUnreadCount(prev => prev + 1);
+      });
+
+      // ── Chat message events ── (bump badge when NOT on Chat screen)
+      const handleIncomingChat = (msg) => {
+        const senderId = msg.sender?._id || msg.sender;
+        if (senderId === currentUserId) return; // ignore own messages
+        playNotificationSound('chat');
+        setUnreadChat(prev => prev + 1);
+      };
+      activeSocket.on('team_message', handleIncomingChat);
+      activeSocket.on('private_message', handleIncomingChat);
     };
     initSocket();
-    return () => { if (activeSocket) activeSocket.off('notification'); };
+    return () => {
+      if (activeSocket) {
+        activeSocket.off('notification');
+        activeSocket.off('team_message');
+        activeSocket.off('private_message');
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -158,6 +183,8 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
   const handleNav = (screen) => {
     if (width <= 768) setIsSidebarOpen(false);
+    if (screen === 'Chat') setUnreadChat(0);
+    if (screen === 'Notification') setUnreadCount(0);
     navigation.navigate(screen);
   };
 
@@ -258,6 +285,10 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                   <Text style={styles.navSectionTitle}>{section.title}</Text>
                   {section.items.map((item) => {
                     const isActive = currentScreen === item.screen;
+                    // Badge count per screen
+                    const badge =
+                      item.screen === 'Notification' ? unreadCount :
+                      (item.screen === 'Chat') ? unreadChat : 0;
                     return (
                       <TouchableOpacity
                         key={item.screen}
@@ -271,10 +302,20 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                             size={17}
                             color={isActive ? GOLD : '#9EB4D0'}
                           />
+                          {badge > 0 && (
+                            <View style={styles.navBadge}>
+                              <Text style={styles.navBadgeText}>{badge > 9 ? '9+' : badge}</Text>
+                            </View>
+                          )}
                         </View>
                         <Text style={[styles.navItemText, isActive && styles.navItemTextActive]}>
                           {item.title}
                         </Text>
+                        {badge > 0 && !isActive && (
+                          <View style={styles.navBadgePill}>
+                            <Text style={styles.navBadgePillText}>{badge > 9 ? '9+' : badge}</Text>
+                          </View>
+                        )}
                         {isActive && <View style={styles.navActiveBar} />}
                       </TouchableOpacity>
                     );
@@ -434,9 +475,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#243454', alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: '#2E4168',
   },
-  navIconWrapActive: { backgroundColor: GOLD + '22', borderColor: GOLD + '55' },
+  navIconWrapActive: { backgroundColor: GOLD + '22', borderColor: GOLD + '55', position: 'relative' },
   navItemText: { flex: 1, fontSize: 13, color: '#9EB4D0', fontWeight: '600' },
   navItemTextActive: { color: '#fff', fontWeight: '700' },
+
+  // icon-corner badge (small red dot with number)
+  navBadge: {
+    position: 'absolute', top: -4, right: -4,
+    minWidth: 16, height: 16, borderRadius: 8,
+    backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: NAVY, paddingHorizontal: 2,
+  },
+  navBadgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+
+  // pill badge at right of nav row
+  navBadgePill: {
+    backgroundColor: '#ef4444', borderRadius: 99,
+    paddingHorizontal: 7, paddingVertical: 2, minWidth: 20, alignItems: 'center',
+  },
+  navBadgePillText: { color: '#fff', fontSize: 9, fontWeight: '900' },
   navActiveBar: {
     position: 'absolute', right: 0, top: '25%', bottom: '25%',
     width: 3, borderRadius: 3, backgroundColor: GOLD,
