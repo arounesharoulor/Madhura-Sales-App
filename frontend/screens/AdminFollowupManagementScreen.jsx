@@ -259,8 +259,8 @@ export default function AdminFollowupManagementScreen({ navigation }) {
     setAssigning(true);
     try {
       await api.post('/followups', {
-        clientName: selectedClient.clientName,
-        companyName: selectedClient.companyName,
+        clientName: selectedClient.ownerName || selectedClient.clientName,
+        companyName: selectedClient.businessName || selectedClient.companyName,
         notes: notes.trim(),
         followUpDate: dueDate,
         priority,
@@ -382,8 +382,8 @@ export default function AdminFollowupManagementScreen({ navigation }) {
                             }}
                           >
                             <View>
-                              <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.clientName}</Text>
-                              <Text style={{ fontSize: 12, color: '#64748b' }}>{client.companyName}</Text>
+                              <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.ownerName || client.clientName}</Text>
+                              <Text style={{ fontSize: 12, color: '#64748b' }}>{client.businessName || client.companyName}</Text>
                             </View>
                             {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                           </TouchableOpacity>
