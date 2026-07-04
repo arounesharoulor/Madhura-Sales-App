@@ -28,7 +28,7 @@ exports.createUpdate = async (req, res, next) => {
             recipient: adminId,
             sender: req.user.id,
             title: 'Daily Report Notes Submitted',
-            message: `${req.user.name} submitted daily notes: "${notes.substring(0, 50)}..."`,
+            message: `${req.user.name} submitted daily notes: "${(notes || '').substring(0, 50)}..."`,
             type: 'Alert',
           });
           if (req.io) {

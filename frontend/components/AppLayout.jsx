@@ -65,7 +65,6 @@ const adminNavSections = [
       { title: 'Attendance Log',  screen: 'AdminAttendance', icon: 'time-outline',          iconActive: 'time' },
       { title: 'Reports',         screen: 'Reports',         icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
       { title: 'Team Chat',       screen: 'Chat',            icon: 'chatbubbles-outline',   iconActive: 'chatbubbles' },
-      { title: 'Notifications',   screen: 'Notification',    icon: 'notifications-outline', iconActive: 'notifications' },
       { title: 'Profile',         screen: 'Profile',         icon: 'person-outline',        iconActive: 'person' },
     ],
   },
@@ -89,7 +88,6 @@ const employeeNavSections = [
       { title: 'Follow-ups',       screen: 'Followup',        icon: 'alarm-outline',         iconActive: 'alarm' },
       { title: 'Reports',          screen: 'Reports',         icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
       { title: 'Chat',             screen: 'Chat',            icon: 'chatbubbles-outline',   iconActive: 'chatbubbles' },
-      { title: 'Notifications',    screen: 'Notification',    icon: 'notifications-outline', iconActive: 'notifications' },
       { title: 'Profile',          screen: 'Profile',         icon: 'person-outline',        iconActive: 'person' },
     ],
   },
@@ -336,8 +334,30 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
               ))}
             </ScrollView>
 
-            {/* Logout */}
+            {/* Notification Bell + Logout Footer */}
             <View style={styles.sidebarFooter}>
+              {/* Bell button always visible */}
+              <TouchableOpacity
+                onPress={() => { setUnreadCount(0); navigation.navigate('Notification'); }}
+                style={styles.sidebarBellBtn}
+                activeOpacity={0.8}
+              >
+                <View style={{ position: 'relative' }}>
+                  <Ionicons name="notifications-outline" size={20} color={GOLD} />
+                  {unreadCount > 0 && (
+                    <View style={styles.sidebarBellBadge}>
+                      <Text style={styles.sidebarBellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.sidebarBellText}>Notifications</Text>
+                {unreadCount > 0 && (
+                  <View style={styles.navBadgePill}>
+                    <Text style={styles.navBadgePillText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
               <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn} activeOpacity={0.8}>
                 <Ionicons name="log-out-outline" size={18} color="#f87171" />
                 <Text style={styles.logoutText}>Sign Out</Text>
@@ -348,28 +368,47 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
         {/* ── Main Content ── */}
         <View style={styles.main}>
-          {currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' && (
-            <TouchableOpacity 
-              onPress={() => navigation.navigate(role === 'Admin' ? 'AdminDashboard' : 'Dashboard')}
-              style={[
-                styles.globalBackBtn,
-                { paddingHorizontal: isDesktop ? 32 : 16, paddingTop: isDesktop ? 32 : 16, paddingBottom: isDesktop ? 0 : 8 }
-              ]}
-              activeOpacity={0.7}
-            >
-              <View style={{ backgroundColor: '#f1f5f9', padding: 6, borderRadius: 10 }}>
-                <Ionicons name="arrow-back" size={18} color="#475569" />
+          {/* Top bar row: back button on sub-screens, bell icon on dashboard screens */}
+          <View style={[
+            styles.topBarRow,
+            { paddingHorizontal: isDesktop ? 32 : 16, paddingTop: isDesktop ? 28 : 12, paddingBottom: 4 }
+          ]}>
+            {currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? (
+              <TouchableOpacity
+                onPress={() => navigation.navigate(role === 'Admin' ? 'AdminDashboard' : 'Dashboard')}
+                style={styles.globalBackBtn}
+                activeOpacity={0.7}
+              >
+                <View style={{ backgroundColor: '#f1f5f9', padding: 6, borderRadius: 10 }}>
+                  <Ionicons name="arrow-back" size={18} color="#475569" />
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Back to Dashboard</Text>
+              </TouchableOpacity>
+            ) : (
+              /* Dashboard screens: show notification bell top-right */
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1 }}>
+                <TouchableOpacity
+                  onPress={() => { setUnreadCount(0); navigation.navigate('Notification'); }}
+                  style={styles.dashBellBtn}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={22} color={unreadCount > 0 ? GOLD : '#64748b'} />
+                  {unreadCount > 0 && (
+                    <View style={styles.dashBellBadge}>
+                      <Text style={styles.dashBellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Back to Dashboard</Text>
-            </TouchableOpacity>
-          )}
+            )}
+          </View>
           
           {scrollable ? (
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
                 styles.mainContent,
-                { padding: isDesktop ? 32 : 16, paddingTop: currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? 16 : (isDesktop ? 32 : 16) },
+                { padding: isDesktop ? 32 : 16, paddingTop: 12 },
               ]}
             >
               {children}
@@ -377,7 +416,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
           ) : (
             <View style={[
               styles.mainFlex,
-              { padding: isDesktop ? 32 : 16, paddingTop: currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? 16 : (isDesktop ? 32 : 16) },
+              { padding: isDesktop ? 32 : 16, paddingTop: 12 },
             ]}>
               {children}
             </View>
@@ -528,4 +567,35 @@ const styles = StyleSheet.create({
   mainContent: { flexGrow: 1, paddingBottom: 60 },
   mainFlex: { flex: 1, paddingBottom: 60 },
   globalBackBtn: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  topBarRow: { flexDirection: 'row', alignItems: 'center', minHeight: 36 },
+
+  // Sidebar footer bell button
+  sidebarBellBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 12, paddingVertical: 12,
+    borderRadius: 14, backgroundColor: '#1E3355', marginBottom: 8,
+  },
+  sidebarBellText: { flex: 1, color: GOLD, fontWeight: '700', fontSize: 13 },
+  sidebarBellBadge: {
+    position: 'absolute', top: -5, right: -5,
+    minWidth: 15, height: 15, borderRadius: 8,
+    backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: NAVY, paddingHorizontal: 2,
+  },
+  sidebarBellBadgeText: { color: '#fff', fontSize: 7, fontWeight: '900' },
+
+  // Dashboard bell icon (top-right of main content)
+  dashBellBtn: {
+    width: 42, height: 42, borderRadius: 13,
+    backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08, shadowRadius: 6, elevation: 3,
+  },
+  dashBellBadge: {
+    position: 'absolute', top: 5, right: 5, minWidth: 16, height: 16,
+    borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: '#fff', paddingHorizontal: 2,
+  },
+  dashBellBadgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
 });
