@@ -382,8 +382,7 @@ export default function AdminFollowupManagementScreen({ navigation }) {
                             }}
                           >
                             <View>
-                              <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.ownerName || client.clientName}</Text>
-                              <Text style={{ fontSize: 12, color: '#64748b' }}>{client.businessName || client.companyName}</Text>
+                              <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
                             </View>
                             {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                           </TouchableOpacity>
