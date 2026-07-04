@@ -9,6 +9,9 @@ const generateToken = (id) => {
   });
 };
 
+// Hash a token for safe storage in DB
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
+
 // @desc    Register a new user (self-registration as Field Executive)
 // @route   POST /api/auth/register
 // @access  Public
@@ -147,9 +150,15 @@ exports.login = async (req, res, next) => {
       throw new Error('Your account is deactivated. Please contact admin.');
     }
 
+    const token = generateToken(user._id);
+    const tokenHash = hashToken(token);
+
+    // Save active session token hash — this invalidates any other active session
+    await User.findByIdAndUpdate(user._id, { activeSessionToken: tokenHash });
+
     res.status(200).json({
       success: true,
-      token: generateToken(user._id),
+      token,
       user: {
         id: user._id,
         name: user.name,
@@ -163,6 +172,23 @@ exports.login = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// @desc    Logout — clear the active session token
+// @route   POST /api/auth/logout
+// @access  Private
+exports.logout = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
+      await User.findByIdAndUpdate(decoded.id, { activeSessionToken: null });
+    }
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch {
+    // Always respond 200 on logout even if token is already expired
+    res.status(200).json({ success: true, message: 'Logged out' });
   }
 };
 

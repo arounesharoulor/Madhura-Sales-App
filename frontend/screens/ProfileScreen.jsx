@@ -3,6 +3,7 @@ import { View, Text, Alert, ScrollView, TouchableOpacity, ActivityIndicator } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { disconnectSocket } from '../utils/socket';
+import { performLogout } from '../utils/logout';
 import AppLayout from '../components/AppLayout';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
@@ -82,11 +83,7 @@ export default function ProfileScreen({ navigation }) {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign Out', style: 'destructive',
-        onPress: async () => {
-          disconnectSocket();
-          await AsyncStorage.clear();
-          navigation.replace('Login');
-        },
+        onPress: () => performLogout(navigation),
       },
     ]);
   };

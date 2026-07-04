@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 
 // Protect routes - Verify Token
@@ -13,14 +14,24 @@ const protect = async (req, res, next) => {
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
 
-      // Verify token
+      // Verify token signature & expiry
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
 
-      // Get user from token and attach to request
-      req.user = await User.findById(decoded.id).select('-password');
+      // Get user and the stored session token hash
+      req.user = await User.findById(decoded.id).select('-password +activeSessionToken');
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
+      }
+
+      // Single-session check: compare incoming token hash with stored hash
+      const incomingHash = crypto.createHash('sha256').update(token).digest('hex');
+      if (req.user.activeSessionToken && req.user.activeSessionToken !== incomingHash) {
+        return res.status(401).json({
+          success: false,
+          code: 'SESSION_TAKEN',
+          message: 'This account is already logged in on another device.',
+        });
       }
 
       next();

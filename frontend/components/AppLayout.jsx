@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet, Platform, Vibration, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet, Platform, Vibration, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,7 @@ import { useNavigation } from 'expo-router';
 import { connectSocket, disconnectSocket } from '../utils/socket';
 import Toast from 'react-native-toast-message';
 import * as Location from 'expo-location';
+import { performLogout } from '../utils/logout';
 import api from '../api/api';
 
 // ── Brand Tokens ──────────────────────────────────────────────────
@@ -189,11 +190,32 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
     try {
       await Location.stopLocationUpdatesAsync('background-location-task');
     } catch (e) {}
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('user');
-    disconnectSocket();
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    await performLogout(navigation);
   };
+
+  // Global 401 SESSION_TAKEN interceptor — force logout if another device logs in
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (
+          error?.response?.status === 401 &&
+          error?.response?.data?.code === 'SESSION_TAKEN'
+        ) {
+          // Remove the interceptor to avoid multiple alerts
+          api.interceptors.response.eject(interceptor);
+          Alert.alert(
+            '🔒 Account In Use',
+            'Your account has been logged in on another device. You have been signed out.',
+            [{ text: 'OK', onPress: () => performLogout(navigation) }],
+            { cancelable: false }
+          );
+        }
+        return Promise.reject(error);
+      }
+    );
+    return () => api.interceptors.response.eject(interceptor);
+  }, [navigation]);
 
   const handleNav = (screen) => {
     if (width <= 768) setIsSidebarOpen(false);

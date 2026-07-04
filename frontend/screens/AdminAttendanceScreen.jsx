@@ -82,7 +82,7 @@ export default function AdminAttendanceScreen() {
 
   useEffect(() => { fetchAttendance(); }, []);
   useEffect(() => {
-    if (searchDate.length === 10 || searchDate.length === 0) fetchAttendance();
+    fetchAttendance();
   }, [searchDate]);
   useEffect(() => {
     if (mainTab === 'Location') fetchLiveLocations();
@@ -492,36 +492,45 @@ export default function AdminAttendanceScreen() {
           ))}
         </View>
 
-        {/* Date Filter (for Queue & History) */}
+        {/* Date Filter (for Queue & History & Held) */}
         {mainTab !== 'Location' && (
           <View style={styles.filterRow}>
             {Platform.OS === 'web' ? (
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="calendar-outline" size={15} color="#64748b" style={{ marginRight: 8 }} />
-                <TextInput
-                  style={[styles.filterInput, { outlineStyle: 'none', flex: 1 }]}
+              // Native HTML date picker on web — shows a calendar on click
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="calendar-outline" size={15} color="#64748b" />
+                <input
+                  type="date"
                   value={searchDate}
-                  onChangeText={setSearchDate}
-                  placeholder="Filter by date (YYYY-MM-DD)"
-                  placeholderTextColor="#94a3b8"
-                  maxLength={10}
-                  keyboardType="numeric"
+                  onChange={(e) => setSearchDate(e.target.value)}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: 14,
+                    color: searchDate ? '#0f172a' : '#94a3b8',
+                    backgroundColor: 'transparent',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
                 />
               </View>
             ) : (
               <TouchableOpacity
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Ionicons name="calendar-outline" size={15} color="#64748b" />
-                <Text style={{ color: searchDate ? '#0f172a' : '#94a3b8', fontSize: 14, marginLeft: 8 }}>
-                  {searchDate || 'Filter by date'}
+                <Ionicons name="calendar-outline" size={15} color="#0284c7" />
+                <Text style={{ color: searchDate ? '#0f172a' : '#94a3b8', fontSize: 14 }}>
+                  {searchDate
+                    ? new Date(searchDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : 'Tap to pick a date'}
                 </Text>
               </TouchableOpacity>
             )}
             {searchDate ? (
-              <TouchableOpacity onPress={() => setSearchDate('')} style={{ paddingLeft: 8 }}>
-                <Ionicons name="close-circle" size={18} color="#94a3b8" />
+              <TouchableOpacity onPress={() => setSearchDate('')} style={{ paddingLeft: 4 }}>
+                <Ionicons name="close-circle" size={20} color="#94a3b8" />
               </TouchableOpacity>
             ) : null}
           </View>
