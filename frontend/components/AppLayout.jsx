@@ -7,6 +7,7 @@ import { useNavigation } from 'expo-router';
 import { connectSocket, disconnectSocket } from '../utils/socket';
 import Toast from 'react-native-toast-message';
 import * as Location from 'expo-location';
+import api from '../api/api';
 
 // ── Brand Tokens ──────────────────────────────────────────────────
 const NAVY   = '#1B2B4B';   // Madhura deep navy
@@ -16,13 +17,12 @@ const GOLD_BG= '#FFF8EC';   // gold tint background
 // ──────────────────────────────────────────────────────────────────
 
 // ── Cross-platform notification sound ─────────────────────────────
-const playNotificationSound = (type = 'notification') => {
+export const playNotificationSound = (type = 'notification') => {
   try {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
-      // Two-tone chime: high note then lower note
       const notes = type === 'chat'
         ? [{ freq: 1046, start: 0, dur: 0.12 }, { freq: 784, start: 0.14, dur: 0.16 }]
         : [{ freq: 880, start: 0, dur: 0.14 }, { freq: 1046, start: 0.16, dur: 0.18 }];
@@ -40,7 +40,6 @@ const playNotificationSound = (type = 'notification') => {
         osc.stop(ctx.currentTime + start + dur + 0.05);
       });
     } else {
-      // Mobile: distinct vibration pattern
       const pattern = type === 'chat' ? [0, 60, 40, 60] : [0, 80, 60, 80, 60, 80];
       Vibration.vibrate(pattern);
     }
@@ -62,11 +61,12 @@ const adminNavSections = [
   {
     title: 'Tracking',
     items: [
-      { title: 'Live Map & GPS',  screen: 'LiveLocation',    icon: 'map-outline',      iconActive: 'map' },
-      { title: 'Attendance Log',  screen: 'AdminAttendance', icon: 'time-outline',     iconActive: 'time' },
-      { title: 'Reports',         screen: 'Reports',         icon: 'bar-chart-outline',iconActive: 'bar-chart' },
-      { title: 'Team Chat',       screen: 'Chat',            icon: 'chatbubbles-outline', iconActive: 'chatbubbles' },
-      { title: 'Profile',         screen: 'Profile',         icon: 'person-outline',   iconActive: 'person' },
+      { title: 'Live Map & GPS',  screen: 'LiveLocation',    icon: 'map-outline',           iconActive: 'map' },
+      { title: 'Attendance Log',  screen: 'AdminAttendance', icon: 'time-outline',          iconActive: 'time' },
+      { title: 'Reports',         screen: 'Reports',         icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
+      { title: 'Team Chat',       screen: 'Chat',            icon: 'chatbubbles-outline',   iconActive: 'chatbubbles' },
+      { title: 'Notifications',   screen: 'Notification',    icon: 'notifications-outline', iconActive: 'notifications' },
+      { title: 'Profile',         screen: 'Profile',         icon: 'person-outline',        iconActive: 'person' },
     ],
   },
 ];
@@ -121,6 +121,18 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
     load();
   }, [role]);
 
+  // Load initial unread notification count from the server
+  useEffect(() => {
+    const loadUnread = async () => {
+      try {
+        const res = await api.get('/notifications?isRead=false');
+        const data = res.data.data || [];
+        setUnreadCount(data.length);
+      } catch (_) {}
+    };
+    loadUnread();
+  }, []);
+
   useEffect(() => {
     let activeSocket = null;
     const initSocket = async () => {
@@ -132,7 +144,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
       // ── Notification events ──
       activeSocket.on('notification', (notif) => {
-        if (notif.type !== 'Chat') playNotificationSound('notification');
+        playNotificationSound(notif.type === 'Chat' ? 'chat' : 'notification');
         Toast.show({
           type: notif.type === 'Warning' ? 'error' : notif.type === 'Success' ? 'success' : 'info',
           text1: notif.title,
@@ -288,7 +300,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                     // Badge count per screen
                     const badge =
                       item.screen === 'Notification' ? unreadCount :
-                      (item.screen === 'Chat') ? unreadChat : 0;
+                      (item.screen === 'Chat' || item.screen === 'TeamChat') ? unreadChat : 0;
                     return (
                       <TouchableOpacity
                         key={item.screen}

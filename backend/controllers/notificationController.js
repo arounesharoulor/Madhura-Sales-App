@@ -6,7 +6,13 @@ const User = require('../models/User');
 // @access  Private
 exports.getNotifications = async (req, res, next) => {
   try {
-    const notifications = await Notification.find({ recipient: req.user.id })
+    const query = { recipient: req.user.id };
+    // Allow filtering by read status: ?isRead=false or ?isRead=true
+    if (req.query.isRead !== undefined) {
+      query.isRead = req.query.isRead === 'true';
+    }
+
+    const notifications = await Notification.find(query)
       .populate('sender', 'name profilePicture')
       .sort({ createdAt: -1 });
 
