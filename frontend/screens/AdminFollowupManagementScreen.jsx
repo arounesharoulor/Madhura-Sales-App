@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-  StyleSheet, Modal, ScrollView, Alert, TextInput, Platform,
+  StyleSheet, Modal, ScrollView, Alert, TextInput, Platform, KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
@@ -357,7 +357,12 @@ export default function AdminFollowupManagementScreen({ navigation }) {
         </View>
 
         {activeTab === 'assign' ? (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 80}
+          >
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
             {/* Create Follow-up Form */}
             <View style={styles.cardBox}>
               <Text style={styles.cardLabel}>NEW FOLLOW-UP DETAILS</Text>
@@ -374,7 +379,7 @@ export default function AdminFollowupManagementScreen({ navigation }) {
                         return (
                           <TouchableOpacity
                             key={client._id}
-                            onPress={() => setSelectedClient(client)}
+                          onPress={() => setSelectedClient(isSelected ? null : client)}
                             style={{
                               padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
                               backgroundColor: isSelected ? '#eff6ff' : '#fff',
@@ -497,6 +502,7 @@ export default function AdminFollowupManagementScreen({ navigation }) {
             </TouchableOpacity>
 
           </ScrollView>
+          </KeyboardAvoidingView>
         ) : (
           /* History / Monitoring Tab */
           <View style={{ flex: 1 }}>
