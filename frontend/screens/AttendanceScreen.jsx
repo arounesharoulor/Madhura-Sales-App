@@ -11,6 +11,7 @@ import {
   StatusBar,
   Modal,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -444,6 +445,11 @@ export default function AttendanceScreen() {
       </View>
 
       {activeTab === 'Attendance' && (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -682,11 +688,21 @@ export default function AttendanceScreen() {
           </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
       )}
 
       {/* ── Leave Tab ── */}
       {activeTab === 'Leave' && (
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={[styles.statusCard, { padding: 14, marginBottom: 16, borderLeftColor: '#0284c7' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Ionicons name="information-circle-outline" size={18} color="#0284c7" />
@@ -760,6 +776,7 @@ export default function AttendanceScreen() {
             )}
           </TouchableOpacity>
         </ScrollView>
+        </KeyboardAvoidingView>
       )}
 
       {/* ── History Tab ── */}

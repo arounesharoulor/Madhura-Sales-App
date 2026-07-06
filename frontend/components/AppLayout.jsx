@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet, Platform, Vibration, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet, Platform, Vibration, Image, Alert, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -229,7 +229,11 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={[styles.root, { flexDirection: isDesktop ? 'row' : 'column' }]}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={[styles.root, { flexDirection: isDesktop ? 'row' : 'column' }]}>
 
         {/* ── Mobile Top Bar ── */}
         {!isDesktop && (
@@ -431,7 +435,8 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
           )}
         </View>
 
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
