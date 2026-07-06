@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ScrollView, Alert, TextInput, ActivityIndicator, Modal, Platform, StyleSheet, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,6 +7,7 @@ import * as Location from 'expo-location';
 import Toast from 'react-native-toast-message';
 import api from '../api/api';
 import AppLayout from '../components/AppLayout';
+import { connectSocket, getSocket } from '../utils/socket';
 
 const STATUS_TABS = ['All', 'Pending', 'Called', 'Visited', 'Call Not Picked Up', 'Client Busy', 'Other', 'Completed', 'Cancelled'];
 
@@ -258,6 +259,33 @@ export default function FollowupScreen({ navigation }) {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // ── Real-time socket listeners ─────────────────────────────────────────────
+  useEffect(() => {
+    let mounted = true;
+    const setupSocket = async () => {
+      const sock = await connectSocket();
+      if (!sock || !mounted) return;
+
+      const refresh = () => { if (mounted) fetchData(); };
+
+      sock.on('followup_assigned', refresh);
+      sock.on('followup_updated', refresh);
+
+      return () => {
+        sock.off('followup_assigned', refresh);
+        sock.off('followup_updated', refresh);
+      };
+    };
+
+    let cleanup;
+    setupSocket().then(fn => { cleanup = fn; });
+
+    return () => {
+      mounted = false;
+      if (cleanup) cleanup();
+    };
+  }, [fetchData]);
 
   const filtered = filter === 'All' ? followUps : followUps.filter(f => f.status === filter);
   const counts = STATUS_TABS.reduce((acc, t) => {

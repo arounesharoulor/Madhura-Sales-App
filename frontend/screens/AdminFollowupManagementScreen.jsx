@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import api from '../api/api';
 import AppLayout from '../components/AppLayout';
+import { connectSocket } from '../utils/socket';
 
 const PRIORITY_CONFIG = {
   High:   { bg: '#fef2f2', text: '#e11d48', border: '#fecdd3', dot: '#e11d48', icon: 'arrow-up-circle' },
@@ -250,6 +251,33 @@ export default function AdminFollowupManagementScreen({ navigation }) {
   }, []);
 
   useEffect(() => { fetchData(); }, []);
+
+  // ── Real-time socket listeners (auto-refresh when any follow-up changes) ──────
+  useEffect(() => {
+    let mounted = true;
+    const setupSocket = async () => {
+      const sock = await connectSocket();
+      if (!sock || !mounted) return;
+
+      const refresh = () => { if (mounted) fetchData(); };
+
+      sock.on('followup_updated', refresh);
+      sock.on('followup_assigned', refresh);
+
+      return () => {
+        sock.off('followup_updated', refresh);
+        sock.off('followup_assigned', refresh);
+      };
+    };
+
+    let cleanup;
+    setupSocket().then(fn => { cleanup = fn; });
+
+    return () => {
+      mounted = false;
+      if (cleanup) cleanup();
+    };
+  }, [fetchData]);
 
   const handleCreateAndAssign = async () => {
     if (!selectedClient || !dueDate || !selectedEmployee) {

@@ -2,6 +2,17 @@ const FollowUp = require('../models/FollowUp');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 
+// Helper: broadcast a socket event to every connected Admin
+async function emitToAdmins(io, event, payload) {
+  if (!io) return;
+  try {
+    const admins = await User.find({ role: 'Admin', isActive: true }).select('_id');
+    admins.forEach(a => io.to(a._id.toString()).emit(event, payload));
+  } catch (e) {
+    console.error('emitToAdmins failed (non-fatal):', e.message);
+  }
+}
+
 // @desc    Create a client follow-up reminder (Employee or Admin)
 // @route   POST /api/followups
 // @access  Private
@@ -45,7 +56,11 @@ exports.createFollowUp = async (req, res, next) => {
       } catch (e) {
         console.error('Follow-up creation notification failed (non-fatal):', e.message);
       }
+      // Real-time: push new follow-up to assigned employee
+      if (req.io) req.io.to(assignedTo.toString()).emit('followup_assigned', followUp);
     }
+    // Real-time: notify all admins so their monitoring tab refreshes
+    await emitToAdmins(req.io, 'followup_updated', followUp);
 
     res.status(201).json({ success: true, data: followUp });
   } catch (error) {
@@ -126,7 +141,11 @@ exports.assignFollowUp = async (req, res, next) => {
       } catch (e) {
         console.error('Follow-up assignment notification failed (non-fatal):', e.message);
       }
+      // Real-time: push reassignment to employee
+      if (req.io) req.io.to(assignedTo.toString()).emit('followup_assigned', { followUpId: followUp._id });
     }
+    // Real-time: notify all admins
+    await emitToAdmins(req.io, 'followup_updated', { followUpId: followUp._id });
 
     const populated = await FollowUp.findById(req.params.id)
       .populate('executive', 'name email designation')
@@ -197,6 +216,14 @@ exports.updateFollowUpStatus = async (req, res, next) => {
         console.error('Follow-up status notification failed (non-fatal):', e.message);
       }
     }
+
+    // Real-time: push status change to the executive themselves (if someone else updated)
+    const execId = followUp.executive?.toString();
+    if (execId && execId !== req.user.id) {
+      if (req.io) req.io.to(execId).emit('followup_updated', { followUpId: followUp._id, status });
+    }
+    // Real-time: notify all admins so monitoring tab refreshes immediately
+    await emitToAdmins(req.io, 'followup_updated', { followUpId: followUp._id, status });
 
     res.status(200).json({ success: true, data: followUp });
   } catch (error) {
