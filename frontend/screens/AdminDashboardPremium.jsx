@@ -138,7 +138,7 @@ export default function AdminDashboardPremium({ navigation }) {
             <StatCard label="Checked In"    value={metrics.checkedIn}      icon="log-in"   color="#10b981" bg="#dcfce7" onPress={() => navigation.navigate('AdminAttendance')} />
             <StatCard label="Total Staff"   value={metrics.totalEmployees} icon="people"   color="#6366f1" bg="#e0e7ff" onPress={() => navigation.navigate('UserManagement')} />
             <StatCard label="Client Visits" value={metrics.clientVisitsToday} icon="location" color="#0ea5e9" bg="#e0f2fe" onPress={() => navigation.navigate('Reports')} />
-            <StatCard label="Open Tasks"    value={metrics.openTasks}      icon="clipboard" color="#f43f5e" bg="#ffe4e6" onPress={() => navigation.navigate('AdminTaskManagement')} />
+            <StatCard label="Open Tasks"    value={metrics.openTasks}      icon="clipboard" color="#f43f5e" bg="#ffe4e6" onPress={() => navigation.navigate('TaskAssignment')} />
           </View>
 
           {/* ── Pending Approvals (Compact) ── */}
