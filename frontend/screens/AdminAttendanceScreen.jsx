@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
+import { useSocketRefresh } from '../hooks/useSocketRefresh';
 
 const REJECT_REASONS_ATTENDANCE = [
   'Location not verified',
@@ -84,6 +85,11 @@ export default function AdminAttendanceScreen() {
   useEffect(() => {
     fetchAttendance();
   }, [searchDate]);
+  
+  useSocketRefresh(() => {
+    fetchAttendance();
+  }, ['attendance_updated']);
+
   useEffect(() => {
     if (mainTab === 'Location') fetchLiveLocations();
   }, [mainTab]);

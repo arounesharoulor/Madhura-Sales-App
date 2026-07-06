@@ -18,6 +18,7 @@ import Toast from 'react-native-toast-message';
 import api from '../api/api';
 import AppLayout from '../components/AppLayout';
 import { EvidenceImage } from '../components/TaskCard';
+import { useSocketRefresh } from '../hooks/useSocketRefresh';
 
 // Cross-platform DatePicker — native modal on iOS/Android, HTML input on web
 function CrossPlatformDatePicker({ value, onChange }) {
@@ -158,6 +159,11 @@ export default function TaskAssignmentScreen({ navigation }) {
   useEffect(() => {
     Promise.all([fetchAvailableEmployees(), fetchTasks()]).finally(() => setFetching(false));
   }, []);
+
+  useSocketRefresh(() => {
+    fetchAvailableEmployees();
+    fetchTasks();
+  }, ['task_assigned', 'task_updated', 'attendance_updated']);
 
   const handleAssign = async () => {
     if (!taskTitle.trim()) {

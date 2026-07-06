@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api/api';
 import { connectSocket } from '../utils/socket';
+import { useSocketRefresh } from '../hooks/useSocketRefresh';
 import * as Location from 'expo-location';
 import AppLayout from '../components/AppLayout';
 
@@ -57,16 +58,14 @@ export default function DashboardScreen({ navigation }) {
 
       const todayStr    = today.toDateString();
       const visitsToday = meetings.filter(m => new Date(m.createdAt).toDateString() === todayStr).length;
-      const followUpsTodayList = followUps.filter(f => {
-        const fDate = f.followUpDate ? new Date(f.followUpDate).toDateString() : '';
-        return fDate === todayStr;
-      });
-      const followUpsToday = followUpsTodayList.length;
+      // Active follow-ups (including admin-assigned) regardless of just today
+      const activeFollowUps = followUps.filter(f => !['Completed', 'Cancelled'].includes(f.status));
+      const followUpsCount = activeFollowUps.length;
 
       let followUpStatuses = [];
-      if (followUpsToday > 0) {
+      if (followUpsCount > 0) {
         const counts = {};
-        followUpsTodayList.forEach(f => counts[f.status] = (counts[f.status] || 0) + 1);
+        activeFollowUps.forEach(f => counts[f.status] = (counts[f.status] || 0) + 1);
         followUpStatuses = Object.entries(counts).map(([status, count]) => `${count} ${status}`);
       }
 
@@ -83,8 +82,8 @@ export default function DashboardScreen({ navigation }) {
         inProgressTasks: tasks.filter(t => t.status === 'In Progress').length,
         completedTasks:  tasks.filter(t => t.status === 'Completed').length,
         visitsToday,
-        followUpsToday,
-        followUpStatuses: followUpStatuses.join(', '),
+        followUpsCount,
+        followUpStatuses: followUpStatuses.length > 0 ? followUpStatuses.join(', ') : '0 Follow-ups',
         totalClients: onboardingRes.data.data?.length || 0,
         attendancePct,
       });
@@ -100,6 +99,9 @@ export default function DashboardScreen({ navigation }) {
     loadData(); // run on mount
     return unsub;
   }, [navigation]);
+
+  // Real-time updates for dashboard
+  useSocketRefresh(loadData, ['task_assigned', 'task_updated', 'followup_assigned', 'followup_updated', 'attendance_updated']);
 
   useEffect(() => {
     (async () => { await connectSocket(); })();
@@ -219,8 +221,8 @@ export default function DashboardScreen({ navigation }) {
             <StatCard icon="location"    label="Visits Today"   value={metrics.visitsToday}         color="#0284c7" bg="#eff6ff" onPress={() => navigation.navigate('Meeting')} />
             <StatCard 
               icon="alarm" 
-              label={metrics.followUpsToday > 0 ? metrics.followUpStatuses : "Follow-ups Due"} 
-              value={metrics.followUpsToday}      
+              label={metrics.followUpStatuses} 
+              value={metrics.followUpsCount}      
               color="#d97706" bg="#fffbeb" 
               onPress={() => navigation.navigate('Followup')} 
             />

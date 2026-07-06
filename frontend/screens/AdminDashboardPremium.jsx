@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { connectSocket, getSocket } from '../utils/socket';
 import api from '../api/api';
+import { connectSocket } from '../utils/socket';
+import { useSocketRefresh } from '../hooks/useSocketRefresh';
 import AppLayout from '../components/AppLayout';
 import Toast from 'react-native-toast-message';
 
@@ -104,6 +105,8 @@ export default function AdminDashboardPremium({ navigation }) {
     fetchData(); // initial fetch
     return unsub;
   }, [navigation]);
+
+  useSocketRefresh(fetchData, ['task_assigned', 'task_updated', 'followup_assigned', 'followup_updated', 'attendance_updated']);
 
   const getGreeting = () => {
     const h = new Date().getHours();

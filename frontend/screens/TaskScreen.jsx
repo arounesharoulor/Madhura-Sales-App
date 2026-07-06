@@ -55,14 +55,17 @@ export default function TaskScreen({ navigation }) {
       if (!mounted || !sock) return;
       sock.on('task_assigned', (t) => {
         Toast.show({ type: 'info', text1: '📋 New Task', text2: t.title, visibilityTime: 5000 });
-        fetchTasks();
+        if (mounted) fetchTasks();
+      });
+      sock.on('task_updated', () => {
+        if (mounted) fetchTasks();
       });
       sock.on('notification', (n) => Toast.show({ type: 'info', text1: n.title, text2: n.message }));
     })();
     return () => {
       mounted = false;
       const s = getSocket();
-      if (s) { s.off('task_assigned'); s.off('notification'); }
+      if (s) { s.off('task_assigned'); s.off('task_updated'); s.off('notification'); }
     };
   }, []);
 
