@@ -146,7 +146,7 @@ exports.assignFollowUp = async (req, res, next) => {
 exports.updateFollowUpStatus = async (req, res, next) => {
   try {
     const { status, remarks } = req.body;
-    const validStatuses = ['Pending', 'Called', 'Visited', 'Converted', 'Not Interested', 'Completed', 'Cancelled'];
+    const validStatuses = ['Pending', 'Called', 'Visited', 'Completed', 'Cancelled', 'Call Not Picked Up', 'Client Busy', 'Other'];
     if (!validStatuses.includes(status)) { res.status(400); throw new Error('Invalid status'); }
 
     const followUp = await FollowUp.findById(req.params.id);
@@ -183,7 +183,7 @@ exports.updateFollowUpStatus = async (req, res, next) => {
     await followUp.save();
 
     // If status is Completed/Converted, notify admin who assigned this
-    if (['Completed', 'Converted'].includes(status) && followUp.assignedByAdmin) {
+    if (['Completed', 'Call Not Picked Up', 'Client Busy', 'Other'].includes(status) && followUp.assignedByAdmin) {
       try {
         const notif = await Notification.create({
           recipient: followUp.assignedByAdmin,

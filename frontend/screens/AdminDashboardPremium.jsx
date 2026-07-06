@@ -53,7 +53,7 @@ export default function AdminDashboardPremium({ navigation }) {
       // Calculate today's metrics
       const visitsToday = meetings.filter(m => new Date(m.createdAt).toDateString() === todayDateStr).length;
       const newClientsToday = onboardings.filter(o => new Date(o.createdAt).toDateString() === todayDateStr).length;
-      const pendingFollowUps = followUps.filter(f => f.status !== 'Completed' && f.status !== 'Converted' && f.status !== 'Not Interested').length;
+      const pendingFollowUps = followUps.filter(f => f.status !== 'Completed' && f.status !== 'Cancelled').length;
       const openTasks = tasks.filter(t => t.status === 'Pending' || t.status === 'In Progress').length;
       
       const attendanceToday = attendance.filter(a => new Date(a.date).toDateString() === todayDateStr);

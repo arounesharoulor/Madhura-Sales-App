@@ -8,14 +8,17 @@ import Toast from 'react-native-toast-message';
 import api from '../api/api';
 import AppLayout from '../components/AppLayout';
 
-const STATUS_TABS = ['All', 'Pending', 'Called', 'Visited', 'Converted', 'Not Interested'];
+const STATUS_TABS = ['All', 'Pending', 'Called', 'Visited', 'Call Not Picked Up', 'Client Busy', 'Other', 'Completed', 'Cancelled'];
 
 const STATUS_CONFIG = {
   'Pending':       { bg: '#fff7ed', text: '#ea580c', border: '#fed7aa', icon: 'time-outline' },
   'Called':        { bg: '#eff6ff', text: '#0284c7', border: '#bfdbfe', icon: 'call-outline' },
   'Visited':       { bg: '#faf5ff', text: '#7c3aed', border: '#e9d5ff', icon: 'location-outline' },
-  'Converted':     { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0', icon: 'checkmark-circle-outline' },
-  'Not Interested':{ bg: '#fef2f2', text: '#e11d48', border: '#fecdd3', icon: 'close-circle-outline' },
+  'Call Not Picked Up': { bg: '#fffbeb', text: '#d97706', border: '#fde68a', icon: 'call-outline' },
+  'Client Busy':   { bg: '#fef2f2', text: '#ef4444', border: '#fecdd3', icon: 'time-outline' },
+  'Other':         { bg: '#f8fafc', text: '#64748b', border: '#e2e8f0', icon: 'ellipsis-horizontal-outline' },
+  'Completed':     { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0', icon: 'checkmark-circle-outline' },
+  'Cancelled':     { bg: '#fef2f2', text: '#e11d48', border: '#fecdd3', icon: 'close-circle-outline' },
 };
 
 
@@ -113,7 +116,7 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
 
           <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Update Status</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
-            {['Called', 'Visited', 'Converted', 'Not Interested'].map(s => {
+            {['Called', 'Visited', 'Call Not Picked Up', 'Client Busy', 'Other', 'Completed', 'Cancelled'].map(s => {
               const sc = STATUS_CONFIG[s];
               return (
                 <TouchableOpacity key={s} onPress={() => setStatus(s)}
@@ -268,7 +271,7 @@ export default function FollowupScreen({ navigation }) {
   };
 
   const isOverdue = (item) => {
-    if (!item.followUpDate || ['Converted', 'Completed', 'Cancelled', 'Not Interested'].includes(item.status)) return false;
+    if (!item.followUpDate || ['Completed', 'Cancelled'].includes(item.status)) return false;
     return new Date(item.followUpDate) < new Date() && new Date(item.followUpDate).toDateString() !== new Date().toDateString();
   };
 
@@ -403,7 +406,7 @@ export default function FollowupScreen({ navigation }) {
                     ) : null}
                   </View>
 
-                  {item.status !== 'Converted' && item.status !== 'Not Interested' && item.status !== 'Completed' && item.status !== 'Cancelled' && (
+                  {item.status !== 'Completed' && item.status !== 'Cancelled' && (
                     <View style={{ borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 12 }}>
                       <TouchableOpacity
                         onPress={() => { setSelectedItem(item); setShowModal(true); }}

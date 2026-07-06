@@ -28,7 +28,7 @@ const followUpSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Called', 'Visited', 'Converted', 'Not Interested', 'Completed', 'Cancelled'],
+      enum: ['Pending', 'Called', 'Visited', 'Completed', 'Cancelled', 'Call Not Picked Up', 'Client Busy', 'Other'],
       default: 'Pending',
     },
     remarks: {

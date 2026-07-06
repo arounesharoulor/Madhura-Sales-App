@@ -53,7 +53,7 @@ export default function ProfileScreen({ navigation }) {
         setMetrics({
           tasks: (tasksRes.data.data || []).filter(t => t.status === 'Completed').length,
           visits: meetingsRes.data.data?.length || 0,
-          followUps: (followUpsRes.data.data || []).filter(f => f.status === 'Converted').length,
+          followUps: (followUpsRes.data.data || []).filter(f => f.status === 'Completed').length,
           onboarded: onboardingRes.data.data?.length || 0,
         });
       } catch (e) {}
@@ -125,7 +125,7 @@ export default function ProfileScreen({ navigation }) {
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
           {[
             { label: 'Visits', value: metrics.visits, icon: 'location', color: '#0284c7', bg: '#eff6ff' },
-            { label: 'Converted', value: metrics.followUps, icon: 'checkmark-circle', color: '#16a34a', bg: '#f0fdf4' },
+            { label: 'Completed', value: metrics.followUps, icon: 'checkmark-circle', color: '#16a34a', bg: '#f0fdf4' },
             { label: 'Clients', value: metrics.onboarded, icon: 'briefcase', color: '#7c3aed', bg: '#faf5ff' },
             { label: 'Tasks Done', value: metrics.tasks, icon: 'clipboard', color: '#d97706', bg: '#fffbeb' },
           ].map(s => (

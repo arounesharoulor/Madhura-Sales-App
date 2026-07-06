@@ -15,16 +15,17 @@ const PRIORITY_CONFIG = {
 };
 
 const STATUS_CONFIG = {
-  Pending:         { bg: '#fff7ed', text: '#ea580c', icon: 'time-outline' },
-  Called:          { bg: '#eff6ff', text: '#0284c7', icon: 'call-outline' },
-  Visited:         { bg: '#faf5ff', text: '#7c3aed', icon: 'location-outline' },
-  Converted:       { bg: '#f0fdf4', text: '#16a34a', icon: 'checkmark-circle-outline' },
-  'Not Interested':{ bg: '#fef2f2', text: '#e11d48', icon: 'close-circle-outline' },
-  Completed:       { bg: '#f0fdf4', text: '#16a34a', icon: 'checkmark-done-circle-outline' },
-  Cancelled:       { bg: '#f1f5f9', text: '#64748b', icon: 'ban-outline' },
+  Pending:              { bg: '#fff7ed', text: '#ea580c', icon: 'time-outline' },
+  Called:               { bg: '#eff6ff', text: '#0284c7', icon: 'call-outline' },
+  Visited:              { bg: '#faf5ff', text: '#7c3aed', icon: 'location-outline' },
+  'Call Not Picked Up': { bg: '#fffbeb', text: '#d97706', icon: 'call-outline' },
+  'Client Busy':        { bg: '#fef2f2', text: '#ef4444', icon: 'time-outline' },
+  Other:                { bg: '#f8fafc', text: '#64748b', icon: 'ellipsis-horizontal-outline' },
+  Completed:            { bg: '#f0fdf4', text: '#16a34a', icon: 'checkmark-done-circle-outline' },
+  Cancelled:            { bg: '#f1f5f9', text: '#64748b', icon: 'ban-outline' },
 };
 
-const STATUS_TABS = ['All', 'Pending', 'Called', 'Visited', 'Converted', 'Not Interested', 'Completed'];
+const STATUS_TABS = ['All', 'Pending', 'Called', 'Visited', 'Call Not Picked Up', 'Client Busy', 'Other', 'Completed', 'Cancelled'];
 
 // Cross-platform DatePicker — native modal on iOS/Android, HTML input on web
 function CrossPlatformDatePicker({ value, onChange }) {
@@ -291,7 +292,7 @@ export default function AdminFollowupManagementScreen({ navigation }) {
   };
 
   const isOverdue = (item) => {
-    if (!item.followUpDate || ['Converted', 'Completed', 'Cancelled', 'Not Interested'].includes(item.status)) return false;
+    if (!item.followUpDate || ['Completed', 'Cancelled'].includes(item.status)) return false;
     return new Date(item.followUpDate) < new Date() &&
       new Date(item.followUpDate).toDateString() !== new Date().toDateString();
   };
@@ -637,7 +638,7 @@ export default function AdminFollowupManagementScreen({ navigation }) {
                         ) : null}
                       </View>
 
-                      {!['Converted', 'Completed', 'Cancelled'].includes(item.status) && (
+                      {!['Completed', 'Cancelled'].includes(item.status) && (
                         <TouchableOpacity onPress={() => openAssign(item)} style={styles.reassignBtn}>
                           <Ionicons name="swap-horizontal-outline" size={14} color="#0284c7" />
                           <Text style={styles.reassignBtnText}>Reassign / Change Priority</Text>
