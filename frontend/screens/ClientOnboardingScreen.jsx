@@ -480,7 +480,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                               </TouchableOpacity>
                             </View>
                           )}
-                          {role === 'Admin' && item.executive && (
+                          {item.executive && (
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f8fafc', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
                               <Ionicons name="person-circle" size={14} color="#64748b" />
                               <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>

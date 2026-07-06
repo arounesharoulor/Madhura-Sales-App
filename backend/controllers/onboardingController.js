@@ -81,9 +81,7 @@ exports.onboardClient = async (req, res, next) => {
 exports.getOnboardedClients = async (req, res, next) => {
   try {
     let query = {};
-    if (req.user.role !== 'Admin') {
-      query.executive = req.user.id;
-    }
+    // Removed filtering by executive ID so all employees can see all clients
 
     const onboardings = await ClientOnboarding.find(query)
       .populate('executive', 'name employeeId designation')
