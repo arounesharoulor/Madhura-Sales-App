@@ -14,7 +14,7 @@ const resolveExpoHost = () => {
   return hostFromDebug?.split(':')[0];
 };
 
-const WEB_HOST = typeof window !== 'undefined' ? window.location.hostname : null;
+const WEB_HOST = (typeof window !== 'undefined' && window.location) ? window.location.hostname : null;
 const HOST_FROM_DEBUGGER = resolveExpoHost();
 const LOCAL_HOST = WEB_HOST || HOST_FROM_DEBUGGER || '192.168.0.118';
 
