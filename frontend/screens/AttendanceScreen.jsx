@@ -19,6 +19,7 @@ import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/api';
+import { useSocketRefresh } from '../hooks/useSocketRefresh';
 
 const LEAVE_TYPES = ['Medical Leave', 'Casual Leave', 'Personal Leave', 'Emergency Leave'];
 
@@ -163,6 +164,12 @@ export default function AttendanceScreen() {
   useEffect(() => {
     fetchToday();
   }, [fetchToday]);
+
+  // ── Real-time: auto-refresh attendance when any update fires ─────────────────
+  useSocketRefresh(() => {
+    fetchToday();
+    if (activeTab === 'History') fetchHistory();
+  }, ['attendance_updated'], [fetchToday, fetchHistory, activeTab]);
 
   const getCurrentLocation = async () => {
     try {

@@ -23,6 +23,17 @@ const notifyAdmins = async (io, senderId, title, message, type = 'Alert') => {
   }
 };
 
+// Helper: emit attendance_updated to all admins
+const emitAttendanceUpdate = async (io, payload) => {
+  if (!io) return;
+  try {
+    const admins = await User.find({ role: 'Admin', isActive: true }).select('_id');
+    admins.forEach(a => io.to(a._id.toString()).emit('attendance_updated', payload));
+  } catch (e) {
+    console.error('emitAttendanceUpdate failed (non-fatal):', e.message);
+  }
+};
+
 // @desc    Check in for today
 // @route   POST /api/attendance/checkin
 // @access  Private/FieldExecutive
@@ -68,6 +79,10 @@ exports.checkIn = async (req, res, next) => {
       `${req.user.name} requested Check-in at ${timeStr}. Plan: ${workPlan.substring(0, 80)}`,
       'Alert'
     );
+
+    // Real-time: push new attendance to all admins & employee
+    await emitAttendanceUpdate(req.io, { executiveId: req.user.id, action: 'checkin' });
+    if (req.io) req.io.to(req.user.id.toString()).emit('attendance_updated', { action: 'checkin' });
 
     res.status(201).json({ success: true, data: attendance });
   } catch (error) {
@@ -164,6 +179,10 @@ exports.checkOut = async (req, res, next) => {
       isEarly ? 'Warning' : 'Info'
     );
 
+    // Real-time: push checkout update to all admins & employee
+    await emitAttendanceUpdate(req.io, { executiveId: req.user.id, action: 'checkout' });
+    if (req.io) req.io.to(req.user.id.toString()).emit('attendance_updated', { action: 'checkout' });
+
     res.status(200).json({ success: true, data: attendance });
   } catch (error) {
     next(error);
@@ -257,6 +276,10 @@ exports.requestLeave = async (req, res, next) => {
       'Warning'
     );
 
+    // Real-time: push leave request to all admins & employee
+    await emitAttendanceUpdate(req.io, { executiveId: req.user.id, action: 'leave_request' });
+    if (req.io) req.io.to(req.user.id.toString()).emit('attendance_updated', { action: 'leave_request' });
+
     res.status(201).json({ success: true, data: attendance });
   } catch (error) {
     next(error);
@@ -314,6 +337,10 @@ exports.approveAttendance = async (req, res, next) => {
     } catch (notifErr) {
       console.error('Notification creation failed (non-fatal):', notifErr.message);
     }
+
+    // Real-time: push approval to employee and all admins
+    if (req.io) req.io.to(executiveId.toString()).emit('attendance_updated', { attendanceId: attendance._id, action });
+    await emitAttendanceUpdate(req.io, { attendanceId: attendance._id, executiveId: executiveId.toString(), action });
 
     res.status(200).json({ success: true, data: attendance });
   } catch (error) {
@@ -377,6 +404,10 @@ exports.rejectAttendance = async (req, res, next) => {
       console.error('Notification creation failed (non-fatal):', notifErr.message);
     }
 
+    // Real-time: push rejection to employee and all admins
+    if (req.io) req.io.to(executiveId.toString()).emit('attendance_updated', { attendanceId: attendance._id, action });
+    await emitAttendanceUpdate(req.io, { attendanceId: attendance._id, executiveId: executiveId.toString(), action });
+
     res.status(200).json({ success: true, data: attendance });
   } catch (error) {
     next(error);
@@ -414,6 +445,11 @@ exports.holdAttendance = async (req, res, next) => {
     }
 
     await attendance.save();
+
+    // Real-time: push hold update to all admins
+    const heldExecId = attendance.executive?._id ?? attendance.executive;
+    if (heldExecId && req.io) req.io.to(heldExecId.toString()).emit('attendance_updated', { attendanceId: attendance._id, action });
+    await emitAttendanceUpdate(req.io, { attendanceId: attendance._id, action });
 
     res.status(200).json({ success: true, data: attendance });
   } catch (error) {

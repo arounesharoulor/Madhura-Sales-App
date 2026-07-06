@@ -1,5 +1,17 @@
 const Task = require('../models/Task');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
+
+// Helper: broadcast a socket event to every connected Admin
+async function emitToAdmins(io, event, payload) {
+  if (!io) return;
+  try {
+    const admins = await User.find({ role: 'Admin', isActive: true }).select('_id');
+    admins.forEach(a => io.to(a._id.toString()).emit(event, payload));
+  } catch (e) {
+    console.error('emitToAdmins (task) failed (non-fatal):', e.message);
+  }
+}
 
 // @desc    Create a task
 // @route   POST /api/tasks
@@ -220,6 +232,8 @@ exports.updateTaskStatus = async (req, res, next) => {
       req.io.to(task.assignedBy.toString()).emit('task_updated', task);
       req.io.to(task.assignedTo.toString()).emit('task_updated', task);
     }
+    // Real-time: also notify all admins so TaskAssignment screen refreshes
+    await emitToAdmins(req.io, 'task_updated', { taskId: task._id, status: task.status });
 
     res.status(200).json({
       success: true,
