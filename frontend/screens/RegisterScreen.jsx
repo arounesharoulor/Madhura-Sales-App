@@ -13,6 +13,7 @@ import {
   Platform,
   useWindowDimensions,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -39,6 +40,9 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [showAdminEmpIdModal, setShowAdminEmpIdModal] = useState(false);
+  const [adminEmpId, setAdminEmpId] = useState('');
+  const [registeredUser, setRegisteredUser] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -85,8 +89,12 @@ export default function RegisterScreen() {
   // ── Step 2 validation ──────────────────────────────────────────────────────
   const validateStep2 = () => {
     const errs = {};
-    if (!form.designation.trim()) errs.designation = 'Please select a designation';
-    if (form.designation === 'Other' && !form.customDesignation.trim()) errs.customDesignation = 'Please specify your designation';
+    if ((form.role !== 'Admin' || form.adminLevel !== 'Super Admin') && !form.designation.trim()) {
+      errs.designation = 'Please select a designation';
+    }
+    if ((form.role !== 'Admin' || form.adminLevel !== 'Super Admin') && form.designation === 'Other' && !form.customDesignation.trim()) {
+      errs.customDesignation = 'Please specify your designation';
+    }
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 6) errs.password = 'Minimum 6 characters';
     if (!form.confirmPassword) errs.confirmPassword = 'Please confirm your password';
@@ -113,6 +121,7 @@ export default function RegisterScreen() {
       if (form.role === 'Admin') {
         if (form.adminLevel === 'Super Admin') {
           finalRole = 'Managing Director MD';
+          finalDesignation = 'Managing Director MD';
         } else if (['Project Manager', 'Team Lead', 'HR'].includes(finalDesignation)) {
           finalRole = finalDesignation;
         } else {
@@ -136,21 +145,43 @@ export default function RegisterScreen() {
       setServerError('');
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
+      setRegisteredUser(user);
+      
       Toast.show({
         type: 'success',
         text1: '🎉 Account Created!',
         text2: `Welcome, ${user.name}!`,
         visibilityTime: 3000,
       });
-      setTimeout(() => {
-        router.replace(user.role === 'Admin' ? '/AdminDashboard' : '/Dashboard');
-      }, 1500);
+
+      if (['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(user.role)) {
+        setShowAdminEmpIdModal(true);
+      } else {
+        setTimeout(() => {
+          router.replace('/Dashboard');
+        }, 1500);
+      }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Something went wrong.';
       setServerError(msg);
       Alert.alert('Registration Failed', msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAdminEmpIdSubmit = async () => {
+    try {
+      if (adminEmpId.trim()) {
+        const res = await api.put('/users/profile', { employeeId: adminEmpId.trim() });
+        const updated = res.data.data;
+        await AsyncStorage.setItem('user', JSON.stringify(updated));
+      }
+    } catch (error) {
+      console.log('Failed to save Admin Employee ID:', error);
+    } finally {
+      setShowAdminEmpIdModal(false);
+      router.replace('/AdminDashboard');
     }
   };
 
@@ -313,15 +344,14 @@ export default function RegisterScreen() {
   const Step2 = (
     <View>
       {/* Designation chips */}
-      <View style={styles.fieldWrap}>
-        <Text style={styles.label}>{form.role === 'Admin' ? 'Your Title' : 'Designation'}</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+      {(form.role !== 'Admin' || form.adminLevel !== 'Super Admin') && (
+        <View style={styles.fieldWrap}>
+          <Text style={styles.label}>{form.role === 'Admin' ? 'Your Title' : 'Designation'}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
           {(() => {
             let options = [];
             if (form.role === 'Admin') {
-              const defaultAdmins = ['Project Manager', 'Team Lead', 'HR', 'Other Admin'];
-              const customAdmins = (designations.admin || []).filter(d => !defaultAdmins.includes(d) && d !== 'Managing Director MD' && d !== 'Super Admin' && d !== 'Admin' && d !== 'Other');
-              options = [...defaultAdmins, ...customAdmins, 'Other'];
+              options = ['Project Manager', 'Team Lead', 'HR', 'Other'];
             } else {
               const defaultEmps = ['BDE', 'BDM', 'Pre Sales'];
               const customEmps = (designations.employee || []).filter(d => !defaultEmps.includes(d) && d !== 'Other');
@@ -344,9 +374,10 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             ));
           })()}
+          </View>
+          {errors.designation && <Text style={styles.errorText}>{errors.designation}</Text>}
         </View>
-        {errors.designation && <Text style={styles.errorText}>{errors.designation}</Text>}
-      </View>
+      )}
 
       {form.designation === 'Other' && (
         <View style={styles.fieldWrap}>
@@ -522,6 +553,56 @@ export default function RegisterScreen() {
           <View style={{ flex: 1 }}>{FormContent}</View>
         )
       )}
+
+      {/* Admin Employee ID Modal */}
+      <Modal
+        visible={showAdminEmpIdModal}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <Ionicons name="id-card-outline" size={28} color="#F5A623" />
+            </View>
+            <Text style={styles.modalTitle}>Enter Employee ID</Text>
+            <Text style={styles.modalSub}>
+              Please enter your employee ID to complete your admin profile. You can also do this later in your profile settings.
+            </Text>
+            
+            <View style={[styles.inputContainer, { borderColor: '#e2e8f0', marginBottom: 20 }]}>
+              <Ionicons name="pricetag-outline" size={17} color="#64748b" style={styles.icon} />
+              <TextInput
+                style={styles.input}
+                value={adminEmpId}
+                onChangeText={setAdminEmpId}
+                placeholder="Admin Employee ID (e.g. ADM-001)"
+                placeholderTextColor="#94a3b8"
+                autoCapitalize="characters"
+              />
+            </View>
+
+            <TouchableOpacity 
+              style={styles.modalBtn} 
+              onPress={handleAdminEmpIdSubmit}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalBtnText}>Complete Setup →</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={{ alignItems: 'center', marginTop: 14 }}
+              onPress={() => {
+                setShowAdminEmpIdModal(false);
+                router.replace('/AdminDashboard');
+              }}
+            >
+              <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600' }}>Skip for now</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -630,4 +711,26 @@ const styles = StyleSheet.create({
   signinRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 18 },
   signinLabel: { color: '#64748b', fontSize: 13 },
   signinLink: { color: '#F5A623', fontSize: 13, fontWeight: '700' },
+
+  // Modal
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    alignItems: 'center', justifyContent: 'center', padding: 20,
+  },
+  modalCard: {
+    backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 360,
+    alignItems: 'center', elevation: 10,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20,
+  },
+  modalIconWrap: {
+    width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF8EC',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '900', color: '#0f172a', marginBottom: 8 },
+  modalSub: { fontSize: 13, color: '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 18 },
+  modalBtn: {
+    backgroundColor: '#1B2B4B', borderRadius: 14, width: '100%', height: 48,
+    alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: '#F5A623',
+  },
+  modalBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });

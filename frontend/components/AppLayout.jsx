@@ -51,7 +51,17 @@ export const playNotificationSound = async (type = 'notification') => {
 };
 // ──────────────────────────────────────────────────────────────────
 
-const adminNavSections = [
+// ── Screen access definitions per role ──────────────────────────────
+// HR: Only Attendance, Leave management, Client Onboarding, Excel export (via AdminAttendance)
+const HR_ALLOWED = ['AdminAttendance', 'ClientOnboarding', 'Profile'];
+
+// Admin (Project Manager / Team Lead / plain Admin): Everything EXCEPT Attendance & Leave
+const ADMIN_BLOCKED = ['AdminAttendance'];
+
+// Super Admin (Managing Director MD): All screens — no filter applied
+
+// ── All possible admin nav sections (full set) ───────────────────────
+const allAdminNavSections = [
   {
     title: 'Operations',
     items: [
@@ -98,6 +108,41 @@ const employeeNavSections = [
     ],
   },
 ];
+
+function buildNavSections(role) {
+  // Employee
+  if (!['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(role)) {
+    return JSON.parse(JSON.stringify(employeeNavSections));
+  }
+
+  const base = JSON.parse(JSON.stringify(allAdminNavSections));
+
+  // HR — whitelist only
+  if (role === 'HR') {
+    return [
+      {
+        title: 'HR Management',
+        items: [
+          { title: 'Attendance Log',    screen: 'AdminAttendance', icon: 'time-outline',     iconActive: 'time' },
+          { title: 'Client Onboarding', screen: 'ClientOnboarding', icon: 'briefcase-outline', iconActive: 'briefcase' },
+          { title: 'Log Client Visit',  screen: 'Meeting',          icon: 'location-outline',  iconActive: 'location' },
+          { title: 'Profile',           screen: 'Profile',           icon: 'person-outline',    iconActive: 'person' },
+        ],
+      },
+    ];
+  }
+
+  // Super Admin (MD) — full access, no filtering
+  if (role === 'Managing Director MD') {
+    return base;
+  }
+
+  // Admin / Project Manager / Team Lead — block attendance screens
+  base.forEach(section => {
+    section.items = section.items.filter(i => !ADMIN_BLOCKED.includes(i.screen));
+  });
+  return base;
+}
 
 export default function AppLayout({ children, currentScreen, scrollable = true, role = 'Admin' }) {
   const navigation = useNavigation();
@@ -227,17 +272,18 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
   const isDesktop = width > 768;
   const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
-  const isAdmin = adminRoles.includes(role);
-  
-  let navSections = isAdmin ? JSON.parse(JSON.stringify(adminNavSections)) : JSON.parse(JSON.stringify(employeeNavSections));
-  
-  if (role === 'HR') {
-    navSections[0].items = navSections[0].items.filter(i => ['ClientOnboarding', 'Meeting'].includes(i.screen));
-    navSections[1].items = navSections[1].items.filter(i => ['AdminAttendance', 'Profile'].includes(i.screen));
-  } else if (role === 'Project Manager' || role === 'Team Lead') {
-    navSections[0].items = navSections[0].items.filter(i => !['ClientOnboarding'].includes(i.screen));
-    navSections[1].items = navSections[1].items.filter(i => !['AdminAttendance'].includes(i.screen));
-  }
+  const isAdmin = adminRoles.includes(userRole);
+
+  const navSections = buildNavSections(userRole);
+
+  const portalLabel = (() => {
+    if (userRole === 'Managing Director MD') return 'SUPER ADMIN';
+    if (userRole === 'HR') return 'HR PORTAL';
+    if (userRole === 'Project Manager') return 'PROJECT MANAGER';
+    if (userRole === 'Team Lead') return 'TEAM LEAD';
+    if (isAdmin) return 'ADMIN PORTAL';
+    return userDesignation ? userDesignation.toUpperCase() : 'EMPLOYEE PORTAL';
+  })();
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView 
@@ -318,7 +364,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.userPortalLabel}>
-                    {isAdmin ? 'ADMIN PORTAL' : (userDesignation ? userDesignation.toUpperCase() : 'EMPLOYEE PORTAL')}
+                    {portalLabel}
                   </Text>
                   <Text style={styles.userName} numberOfLines={1}>{userName}</Text>
                 </View>
