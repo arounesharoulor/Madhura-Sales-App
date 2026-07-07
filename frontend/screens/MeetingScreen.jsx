@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, Image, Alert, RefreshControl,
-  ScrollView, Platform, StyleSheet, ActivityIndicator,
+  ScrollView, Platform, StyleSheet, ActivityIndicator, SafeAreaView as RNSafeAreaView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -130,7 +130,27 @@ export default function MeetingScreen({ navigation }) {
     try {
       setRefreshing(true);
       const res = await api.get('/meetings');
-      setMeetings(res.data.data || []);
+      const data = res.data.data || [];
+      setMeetings(data);
+
+      // Check for today's scheduled meetings and show reminder toast
+      const today = new Date();
+      const todayMeetings = data.filter(m => {
+        if (m.status !== 'Scheduled' || !m.scheduledAt) return false;
+        const d = new Date(m.scheduledAt);
+        return d.getFullYear() === today.getFullYear() &&
+               d.getMonth() === today.getMonth() &&
+               d.getDate() === today.getDate();
+      });
+      todayMeetings.forEach(m => {
+        const timeStr = new Date(m.scheduledAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        Toast.show({
+          type: 'info',
+          text1: `⏰ Meeting Today: ${m.clientName}`,
+          text2: `${m.meetingType} meeting with ${m.companyName} at ${timeStr}`,
+          visibilityTime: 7000,
+        });
+      });
     } catch (e) {
       console.error(e);
     } finally {
@@ -240,25 +260,26 @@ export default function MeetingScreen({ navigation }) {
   });
 
   return (
-    <AppLayout currentScreen="Meeting" role={userRole}>
-      <View style={s.container}>
-        {/* Header */}
-        <View style={s.headerBar}>
-          <View>
-            <Text style={s.pageTitle}>Client Meetings</Text>
-            <Text style={s.pageSub}>{meetings.length} total records</Text>
-          </View>
-          {!showAddForm && (
-            <TouchableOpacity onPress={() => setShowAddForm(true)} style={s.addBtn} activeOpacity={0.85}>
-              <Ionicons name="add" size={16} color="#fff" />
-              <Text style={s.addBtnText}>Log Meeting</Text>
+    <>
+      {showAddForm ? (
+        /* ── FORM — standalone full screen ── */
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+          {/* Form Header with back button */}
+          <View style={s.formHeader}>
+            <TouchableOpacity onPress={() => setShowAddForm(false)} style={s.backBtn} activeOpacity={0.75}>
+              <Ionicons name="arrow-back" size={18} color={NAVY} />
             </TouchableOpacity>
-          )}
-        </View>
+            <View style={{ flex: 1 }}>
+              <Text style={s.formTitle}>Log / Schedule Meeting</Text>
+              <Text style={s.formSub}>Fill in the details below</Text>
+            </View>
+          </View>
 
-        {showAddForm ? (
-          /* ── Form ── */
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
+            keyboardShouldPersistTaps="handled"
+          >
 
             {/* GPS Status */}
             <View style={s.gpsBanner}>
@@ -495,9 +516,23 @@ export default function MeetingScreen({ navigation }) {
               <Text style={s.cancelBtnText}>Cancel</Text>
             </TouchableOpacity>
           </ScrollView>
-        ) : (
-          /* ── List View ── */
-          <View style={{ flex: 1 }}>
+        </SafeAreaView>
+      ) : (
+        /* ── LIST VIEW — inside AppLayout ── */
+        <AppLayout currentScreen="Meeting" role={userRole}>
+          <View style={s.container}>
+            {/* Header */}
+            <View style={s.headerBar}>
+              <View>
+                <Text style={s.pageTitle}>Client Meetings</Text>
+                <Text style={s.pageSub}>{meetings.length} total records</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowAddForm(true)} style={s.addBtn} activeOpacity={0.85}>
+                <Ionicons name="add" size={16} color="#fff" />
+                <Text style={s.addBtnText}>Log Meeting</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Tabs */}
             <View style={s.tabs}>
               {[['all', 'All'], ['scheduled', 'Scheduled'], ['completed', 'Completed']].map(([key, label]) => (
@@ -531,9 +566,9 @@ export default function MeetingScreen({ navigation }) {
               )}
             </ScrollView>
           </View>
-        )}
-      </View>
-    </AppLayout>
+        </AppLayout>
+      )}
+    </>
   );
 }
 
@@ -544,6 +579,22 @@ const s = StyleSheet.create({
   pageSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: NAVY, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, elevation: 3 },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 12 },
+
+  // Form header
+  formHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 4 : 12, paddingBottom: 12,
+    borderBottomWidth: 1, borderBottomColor: '#e2e8f0',
+    elevation: 3, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4,
+  },
+  backBtn: {
+    width: 38, height: 38, borderRadius: 10,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  formTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
+  formSub: { fontSize: 11, color: '#94a3b8', marginTop: 1 },
 
   gpsBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', borderRadius: 10, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   gpsText: { fontSize: 12, color: '#64748b', fontWeight: '600' },
