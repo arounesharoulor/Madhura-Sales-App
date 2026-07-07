@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Alert, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { disconnectSocket } from '../utils/socket';
 import { performLogout } from '../utils/logout';
 import AppLayout from '../components/AppLayout';
@@ -29,6 +30,7 @@ export default function ProfileScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [designation, setDesignation] = useState('');
   const [address, setAddress] = useState('');
+  const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [metrics, setMetrics] = useState({ tasks: 0, visits: 0, followUps: 0, onboarded: 0 });
@@ -67,7 +69,31 @@ export default function ProfileScreen({ navigation }) {
     if (!name) { Alert.alert('Error', 'Name is required'); return; }
     setLoading(true);
     try {
-      const res = await api.put('/users/profile', { name, phone, designation, address });
+      let payload;
+      if (photo) {
+        payload = new FormData();
+        payload.append('name', name);
+        payload.append('phone', phone);
+        payload.append('designation', designation);
+        payload.append('address', address);
+        
+        // Handle web or mobile image picker format
+        if (Platform.OS === 'web') {
+          const res = await fetch(photo.uri);
+          const blob = await res.blob();
+          payload.append('profilePicture', blob, 'profile.jpg');
+        } else {
+          payload.append('profilePicture', {
+            uri: photo.uri,
+            type: 'image/jpeg',
+            name: 'profile.jpg',
+          });
+        }
+      } else {
+        payload = { name, phone, designation, address };
+      }
+
+      const res = await api.put('/users/profile', payload, photo ? { headers: { 'Content-Type': 'multipart/form-data' } } : {});
       const updated = res.data.data;
       await AsyncStorage.setItem('user', JSON.stringify(updated));
       setUser(updated);
@@ -77,6 +103,24 @@ export default function ProfileScreen({ navigation }) {
       Alert.alert('Error', 'Failed to update profile');
     } finally {
       setLoading(false);
+      setPhoto(null);
+    }
+  };
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+      if (!result.canceled) {
+        setPhoto(result.assets[0]);
+        setEditing(true);
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Could not pick image');
     }
   };
 
@@ -103,11 +147,20 @@ export default function ProfileScreen({ navigation }) {
           backgroundColor: '#0f172a', borderRadius: 28, padding: 24, marginBottom: 20,
           flexDirection: 'row', alignItems: 'center', gap: 16,
         }}>
-          <View style={{ width: 70, height: 70, borderRadius: 22, backgroundColor: avatarColor + '30', borderWidth: 2.5, borderColor: avatarColor, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 28, fontWeight: '900', color: avatarColor }}>
-              {user?.name?.charAt(0)?.toUpperCase() || '?'}
-            </Text>
-          </View>
+          <TouchableOpacity onPress={pickImage} style={{ width: 70, height: 70, borderRadius: 22, backgroundColor: avatarColor + '30', borderWidth: 2.5, borderColor: avatarColor, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {photo ? (
+              <Image source={{ uri: photo.uri }} style={{ width: 70, height: 70 }} />
+            ) : user?.profilePicture ? (
+              <Image source={{ uri: user.profilePicture }} style={{ width: 70, height: 70 }} />
+            ) : (
+              <Text style={{ fontSize: 28, fontWeight: '900', color: avatarColor }}>
+                {user?.name?.charAt(0)?.toUpperCase() || '?'}
+              </Text>
+            )}
+            <View style={{ position: 'absolute', bottom: 0, width: '100%', height: 16, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="camera" size={10} color="#fff" />
+            </View>
+          </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 20, fontWeight: '900', color: '#fff', letterSpacing: -0.3 }}>{user?.name}</Text>
             <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{user?.designation || 'Field Executive'}</Text>

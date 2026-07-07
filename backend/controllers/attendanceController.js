@@ -542,11 +542,81 @@ exports.exportAttendanceLog = async (req, res, next) => {
     Object.values(summary).forEach(emp => {
       sheet.addRow(emp);
     });
+
+    // Add Detailed Logs Sheet
+    const detailSheet = workbook.addWorksheet('Detailed Logs');
+    detailSheet.columns = [
+      { header: 'Date', key: 'date', width: 15 },
+      { header: 'Employee Name', key: 'name', width: 25 },
+      { header: 'Employee ID', key: 'employeeId', width: 15 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Check In Time', key: 'checkIn', width: 15 },
+      { header: 'Check Out Time', key: 'checkOut', width: 15 },
+      { header: 'Leave Reason', key: 'leaveReason', width: 25 },
+    ];
+    detailSheet.getRow(1).font = { bold: true };
+
+    const recordsWithUser = await Attendance.find().populate('executive', 'name employeeId').sort({ date: -1 });
+    recordsWithUser.forEach(r => {
+      if (!r.executive) return;
+      detailSheet.addRow({
+        date: r.date ? r.date.toISOString().split('T')[0] : 'N/A',
+        name: r.executive.name || 'N/A',
+        employeeId: r.executive.employeeId || 'N/A',
+        status: r.status,
+        checkIn: r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString() : '-',
+        checkOut: r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString() : '-',
+        leaveReason: r.leaveReason || '-',
+      });
+    });
     
     const buffer = await workbook.xlsx.writeBuffer();
     res.setHeader('Content-Disposition', 'attachment; filename="Attendance_Log.xlsx"');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get attendance summary data
+// @route   GET /api/attendance/summary
+// @access  Private/Admin
+exports.getAttendanceSummary = async (req, res, next) => {
+  try {
+    const users = await User.find({ isActive: true }).select('name employeeId designation role address');
+    const records = await Attendance.find();
+    
+    // Aggregate by employee
+    const summary = {};
+    users.forEach(u => {
+      const empId = u._id.toString();
+      summary[empId] = {
+        name: u.name,
+        employeeId: u.employeeId || 'N/A',
+        designation: u.designation || 'N/A',
+        role: u.role || 'N/A',
+        address: u.address || 'N/A',
+        present: 0,
+        leave: 0,
+        earlyCheckout: 0
+      };
+    });
+
+    records.forEach(r => {
+      if (!r.executive) return;
+      const empId = r.executive.toString();
+      if (summary[empId]) {
+        if (r.status === 'Checked Out' || r.status === 'Checked In') summary[empId].present++;
+        if (r.status === 'On Leave') summary[empId].leave++;
+        if (r.earlyCheckout) summary[empId].earlyCheckout++;
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: Object.values(summary)
+    });
   } catch (error) {
     next(error);
   }

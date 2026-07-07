@@ -65,6 +65,11 @@ export default function AdminAttendanceScreen() {
   const [locations, setLocations] = useState([]);
   const [loadingLocs, setLoadingLocs] = useState(false);
 
+  // Summary Data
+  const [summaryData, setSummaryData] = useState([]);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+
   const fetchAttendance = useCallback(async (showRefresh = false) => {
     try {
       if (showRefresh) setRefreshing(true);
@@ -93,6 +98,23 @@ export default function AdminAttendanceScreen() {
   useEffect(() => {
     if (mainTab === 'Location') fetchLiveLocations();
   }, [mainTab]);
+
+  const openSummaryModal = () => {
+    setShowSummaryModal(true);
+    fetchSummaryData();
+  };
+
+  const fetchSummaryData = async () => {
+    try {
+      setLoadingSummary(true);
+      const res = await api.get('/attendance/summary');
+      setSummaryData(res.data.data || []);
+    } catch {
+      Alert.alert('Error', 'Unable to load summary data.');
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
 
   const fetchLiveLocations = async () => {
     try {
@@ -465,6 +487,10 @@ export default function AdminAttendanceScreen() {
             <Text style={styles.subtitle}>{queue.length} pending approval{queue.length !== 1 ? 's' : ''}</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity style={styles.exportBtn} onPress={openSummaryModal} activeOpacity={0.8}>
+              <Ionicons name="eye-outline" size={16} color="#0284c7" />
+              <Text style={[styles.exportBtnText, { color: '#0284c7' }]}>View</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.exportBtn, isExporting && { opacity: 0.7 }]} onPress={handleExportLog} disabled={isExporting}>
               {isExporting ? (
                 <ActivityIndicator size="small" color="#16a34a" />
@@ -789,4 +815,6 @@ const styles = StyleSheet.create({
   cancelBtnText: { fontWeight: '700', color: '#334155', fontSize: 14 },
   confirmRejectBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14, borderRadius: 14, backgroundColor: '#ef4444' },
   confirmRejectText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  modalContent: { backgroundColor: '#fff', borderRadius: 20, padding: 16, overflow: 'hidden' },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 },
 });
