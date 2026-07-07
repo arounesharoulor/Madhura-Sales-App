@@ -147,10 +147,61 @@ exports.updateMeeting = async (req, res, next) => {
     const meeting = await Meeting.findById(req.params.id);
     if (!meeting) { res.status(404); throw new Error('Meeting not found'); }
 
+    const oldStatus = meeting.status;
+
     if (meetingFollowUp !== undefined) meeting.meetingFollowUp = meetingFollowUp;
     if (status) meeting.status = status;
     if (notes) meeting.notes = notes;
+
+    // Handle photo upload if present
+    if (req.file) {
+      try {
+        const photoUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+        meeting.photoUrl = photoUrl;
+      } catch (uploadErr) {
+        console.error('Cloudinary upload failed, storing raw buffer:', uploadErr.message);
+        meeting.photo = { data: req.file.buffer, contentType: req.file.mimetype };
+      }
+    }
+
     await meeting.save();
+
+    // Notify admins if status changed to completed or if there's a new follow-up
+    if ((status === 'Completed' && oldStatus !== 'Completed') || meetingFollowUp) {
+      try {
+        const User = require('../models/User');
+        const Notification = require('../models/Notification');
+        const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+        const admins = await User.find({ role: { $in: adminRoles }, isActive: true }).select('_id');
+        const adminIds = admins.map(a => a._id);
+
+        let notifTitle = 'Meeting Updated';
+        let notifMsg = `${req.user.name} updated the meeting with ${meeting.clientName}.`;
+        
+        if (status === 'Completed' && oldStatus !== 'Completed') {
+          notifTitle = 'Meeting Completed';
+          notifMsg = `${req.user.name} completed the scheduled meeting with ${meeting.clientName}.`;
+        } else if (meetingFollowUp) {
+          notifTitle = 'Meeting Follow-up Added';
+          notifMsg = `${req.user.name} added a follow-up note for the meeting with ${meeting.clientName}.`;
+        }
+
+        await Promise.all(
+          adminIds.map(async (adminId) => {
+            const notif = await Notification.create({
+              recipient: adminId,
+              sender: req.user.id,
+              title: notifTitle,
+              message: notifMsg,
+              type: 'Meeting',
+            });
+            if (req.io) req.io.to(adminId.toString()).emit('notification', notif);
+          })
+        );
+      } catch (err) {
+        console.error('Failed to notify admins of meeting update:', err.message);
+      }
+    }
 
     res.status(200).json({ success: true, data: meeting });
   } catch (error) {

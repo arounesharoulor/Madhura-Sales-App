@@ -12,6 +12,6 @@ router.route('/')
 
 router.route('/:id')
   .get(getMeetingById)
-  .put(updateMeeting);
+  .put(upload.single('photo'), updateMeeting);
 
 module.exports = router;

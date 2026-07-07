@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, Image, Linking, StyleSheet, Platform,
+  View, Text, TouchableOpacity, Image, Linking, StyleSheet, Platform, TextInput, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../api/api';
 import Toast from 'react-native-toast-message';
+import * as ImagePicker from 'expo-image-picker';
 
 const STATUS_COLORS = {
   Scheduled: { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' },
@@ -34,6 +35,8 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
   const [followUpText, setFollowUpText] = useState(item.meetingFollowUp || '');
   const [saving, setSaving] = useState(false);
 
+  const [imageUri, setImageUri] = useState(null);
+
   const statusStyle  = STATUS_COLORS[item.status] || STATUS_COLORS.Completed;
   const typeStyle    = TYPE_COLORS[item.meetingType] || TYPE_COLORS['In-Person'];
 
@@ -47,15 +50,54 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
     Linking.openURL(url);
   };
 
+  const handleCaptureImage = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          if (file) setImageUri(URL.createObjectURL(file));
+        };
+        input.click();
+        return;
+      }
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Toast.show({ type: 'error', text1: 'Camera permission denied.' });
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.7 });
+      if (!result.canceled) setImageUri(result.assets[0].uri);
+    } catch (e) { Toast.show({ type: 'error', text1: 'Could not open camera.' }); }
+  };
+
   const saveFollowUp = async () => {
-    if (!followUpText.trim()) return;
     setSaving(true);
     try {
-      await api.put(`/meetings/${item._id}`, { meetingFollowUp: followUpText, status: 'Completed' });
-      Toast.show({ type: 'success', text1: 'Follow-up saved!' });
+      const fd = new FormData();
+      if (followUpText) fd.append('meetingFollowUp', followUpText);
+      fd.append('status', 'Completed');
+
+      if (imageUri) {
+        const filename = imageUri.split('/').pop() || 'photo.jpg';
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+        if (Platform.OS === 'web') {
+          const blob = await fetch(imageUri).then(r => r.blob());
+          fd.append('photo', new File([blob], filename, { type }));
+        } else {
+          fd.append('photo', { uri: imageUri, name: filename, type });
+        }
+      }
+
+      await api.put(`/meetings/${item._id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      Toast.show({ type: 'success', text1: 'Meeting updated and admins notified!' });
+      setImageUri(null);
       if (onUpdated) onUpdated();
     } catch (e) {
-      Toast.show({ type: 'error', text1: 'Failed to save follow-up' });
+      Toast.show({ type: 'error', text1: 'Failed to update meeting' });
     } finally {
       setSaving(false);
     }
@@ -211,10 +253,57 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
               <Ionicons name="chatbubble-ellipses-outline" size={14} color="#0284c7" />
               <Text style={[styles.detailLabel, { color: '#0284c7' }]}>Meeting Follow-up</Text>
             </View>
-            {item.meetingFollowUp ? (
-              <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
+            
+            {isAdmin ? (
+              item.meetingFollowUp ? (
+                <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
+              ) : (
+                <Text style={styles.noFollowUp}>No follow-up note yet.</Text>
+              )
             ) : (
-              <Text style={styles.noFollowUp}>No follow-up note yet.</Text>
+              <View>
+                <TextInput
+                  value={followUpText}
+                  onChangeText={setFollowUpText}
+                  placeholder="Type follow-up notes or next steps here..."
+                  placeholderTextColor="#94a3b8"
+                  multiline
+                  style={{ backgroundColor: '#fff', borderRadius: 8, padding: 10, fontSize: 12, minHeight: 60, marginTop: 6, borderWidth: 1, borderColor: '#e2e8f0', textAlignVertical: 'top' }}
+                />
+
+                {/* If there's no photo yet, let them add one during update */}
+                {!item.photoUrl && !item.photo?.contentType && (
+                  <View style={{ marginTop: 10 }}>
+                    {imageUri ? (
+                      <View style={{ position: 'relative' }}>
+                        <Image source={{ uri: imageUri }} style={{ width: '100%', height: 120, borderRadius: 8 }} />
+                        <TouchableOpacity onPress={() => setImageUri(null)} style={{ position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(255,255,255,0.8)', padding: 4, borderRadius: 4 }}>
+                          <Text style={{ color: '#dc2626', fontSize: 10, fontWeight: 'bold' }}>Remove</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <TouchableOpacity onPress={handleCaptureImage} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e0f2fe', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#bae6fd' }}>
+                        <Ionicons name="camera-outline" size={16} color="#0284c7" style={{ marginRight: 6 }} />
+                        <Text style={{ color: '#0284c7', fontSize: 12, fontWeight: '600' }}>Add Photo Evidence</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+
+                <TouchableOpacity 
+                  onPress={saveFollowUp} 
+                  disabled={saving || (!followUpText && !imageUri && item.status === 'Completed')}
+                  style={{ backgroundColor: '#2563eb', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 10, opacity: saving ? 0.7 : 1 }}
+                >
+                  {saving ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>
+                      {item.status === 'Scheduled' ? 'Complete Meeting & Notify Admins' : 'Update & Notify Admins'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </View>
