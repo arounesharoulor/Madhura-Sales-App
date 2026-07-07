@@ -1,43 +1,381 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View, Text, TouchableOpacity, Image, Linking, StyleSheet, Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import api from '../api/api';
+import Toast from 'react-native-toast-message';
 
-const MeetingCard = ({ item }) => {
+const STATUS_COLORS = {
+  Scheduled: { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe' },
+  Completed:  { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' },
+  Cancelled:  { bg: '#fef2f2', text: '#dc2626', border: '#fecaca' },
+};
+
+const TYPE_COLORS = {
+  'In-Person': { bg: '#fdf4ff', text: '#9333ea', icon: 'people-outline' },
+  Online:      { bg: '#eff6ff', text: '#2563eb', icon: 'videocam-outline' },
+};
+
+function fmt(dateStr) {
+  if (!dateStr) return null;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true,
+    });
+  } catch { return dateStr; }
+}
+
+const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [followUpText, setFollowUpText] = useState(item.meetingFollowUp || '');
+  const [saving, setSaving] = useState(false);
+
+  const statusStyle  = STATUS_COLORS[item.status] || STATUS_COLORS.Completed;
+  const typeStyle    = TYPE_COLORS[item.meetingType] || TYPE_COLORS['In-Person'];
+
+  const openMap = () => {
+    const lat = item.location?.latitude;
+    const lng = item.location?.longitude;
+    if (!lat || !lng) return;
+    const url = Platform.OS === 'web'
+      ? `https://www.google.com/maps?q=${lat},${lng}`
+      : `geo:${lat},${lng}?q=${lat},${lng}`;
+    Linking.openURL(url);
+  };
+
+  const saveFollowUp = async () => {
+    if (!followUpText.trim()) return;
+    setSaving(true);
+    try {
+      await api.put(`/meetings/${item._id}`, { meetingFollowUp: followUpText, status: 'Completed' });
+      Toast.show({ type: 'success', text1: 'Follow-up saved!' });
+      if (onUpdated) onUpdated();
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Failed to save follow-up' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <View className="mb-4 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm">
-      <View className="flex-row justify-between items-start">
-        <View className="flex-row items-start gap-3">
-          <View className="w-11 h-11 rounded-2xl bg-sky-50 items-center justify-center">
-            <Ionicons name="business-outline" size={20} color="#0284c7" />
-          </View>
-          <View className="flex-1">
-            <Text className="font-semibold text-slate-900 text-base">
-              {item.clientName}
-            </Text>
-            <Text className="text-xs text-slate-500 mt-1">
-              {item.companyName}
-            </Text>
-            <Text className="text-sm leading-relaxed mt-3 text-slate-600">
-              {item.notes}
+    <View style={styles.card}>
+      {/* ── Header Row ── */}
+      <TouchableOpacity
+        onPress={() => setExpanded(v => !v)}
+        activeOpacity={0.85}
+        style={styles.headerRow}
+      >
+        {/* Icon */}
+        <View style={[styles.iconWrap, { backgroundColor: typeStyle.bg }]}>
+          <Ionicons name={typeStyle.icon} size={20} color={typeStyle.text} />
+        </View>
+
+        {/* Info */}
+        <View style={styles.headerInfo}>
+          <Text style={styles.clientName} numberOfLines={1}>{item.clientName}</Text>
+          <Text style={styles.companyName} numberOfLines={1}>{item.companyName}</Text>
+
+          {/* Date row */}
+          <View style={styles.dateRow}>
+            <Ionicons name="time-outline" size={11} color="#94a3b8" />
+            <Text style={styles.dateText}>
+              {item.scheduledAt
+                ? `Scheduled: ${fmt(item.scheduledAt)}`
+                : fmt(item.createdAt)}
             </Text>
           </View>
         </View>
-        <Text className="text-[10px] text-slate-400">
-          {new Date(item.createdAt || item.timestamp).toLocaleDateString()}
-        </Text>
-      </View>
-      <View className="mt-4 pt-4 border-t border-slate-200 flex-row justify-between items-center">
-        <Text className="text-[11px] text-slate-500">
-          Phone: {item.phone}
-        </Text>
-        {item.nextFollowUpDate && (
-          <Text className="text-[11px] text-amber-600 font-semibold">
-            Follow-up: {new Date(item.nextFollowUpDate).toLocaleDateString()}
-          </Text>
-        )}
-      </View>
+
+        {/* Badges */}
+        <View style={styles.badgeCol}>
+          {/* Meeting Type badge */}
+          <View style={[styles.badge, { backgroundColor: typeStyle.bg, borderColor: typeStyle.text + '30' }]}>
+            <Text style={[styles.badgeText, { color: typeStyle.text }]}>{item.meetingType || 'In-Person'}</Text>
+          </View>
+          {/* Status badge */}
+          <View style={[styles.badge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border, marginTop: 4 }]}>
+            <Text style={[styles.badgeText, { color: statusStyle.text }]}>{item.status || 'Completed'}</Text>
+          </View>
+          <Ionicons
+            name={expanded ? 'chevron-up' : 'chevron-down'}
+            size={14}
+            color="#94a3b8"
+            style={{ marginTop: 6, alignSelf: 'flex-end' }}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {/* ── Expandable Details ── */}
+      {expanded && (
+        <View style={styles.expandedBody}>
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* Notes */}
+          <View style={styles.detailRow}>
+            <Ionicons name="document-text-outline" size={14} color="#64748b" />
+            <Text style={styles.detailLabel}>Notes</Text>
+          </View>
+          <Text style={styles.notesText}>{item.notes}</Text>
+
+          {/* Phone */}
+          <View style={styles.detailRow}>
+            <Ionicons name="call-outline" size={14} color="#64748b" />
+            <Text style={styles.detailValue}>{item.phone}</Text>
+          </View>
+
+          {/* Executive (admin view) */}
+          {isAdmin && item.executive?.name && (
+            <View style={styles.detailRow}>
+              <Ionicons name="person-outline" size={14} color="#64748b" />
+              <Text style={styles.detailValue}>{item.executive.name}</Text>
+            </View>
+          )}
+
+          {/* Online meeting link */}
+          {item.meetingType === 'Online' && item.onlineMeetingLink ? (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(item.onlineMeetingLink)}
+              style={styles.detailRow}
+            >
+              <Ionicons name="link-outline" size={14} color="#2563eb" />
+              <Text style={[styles.detailValue, { color: '#2563eb', textDecorationLine: 'underline' }]} numberOfLines={1}>
+                {item.onlineMeetingLink}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {/* GPS Location */}
+          {item.location?.latitude ? (
+            <TouchableOpacity onPress={openMap} style={styles.locationRow}>
+              <Ionicons name="location" size={14} color="#16a34a" />
+              <Text style={styles.locationText}>
+                {item.location.address
+                  ? item.location.address
+                  : `${item.location.latitude.toFixed(5)}, ${item.location.longitude.toFixed(5)}`}
+              </Text>
+              <View style={styles.mapBtn}>
+                <Text style={styles.mapBtnText}>Open Map</Text>
+              </View>
+            </TouchableOpacity>
+          ) : null}
+
+          {/* Next Follow-up date */}
+          {item.nextFollowUpDate ? (
+            <View style={styles.detailRow}>
+              <Ionicons name="calendar-outline" size={14} color="#f97316" />
+              <Text style={[styles.detailValue, { color: '#f97316' }]}>
+                Follow-up: {fmt(item.nextFollowUpDate)}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Reminder */}
+          {item.reminderAt ? (
+            <View style={styles.detailRow}>
+              <Ionicons name="alarm-outline" size={14} color="#8b5cf6" />
+              <Text style={[styles.detailValue, { color: '#8b5cf6' }]}>
+                Reminder: {fmt(item.reminderAt)}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Photo evidence — expandable */}
+          {(item.photoUrl || item.photo?.contentType) ? (
+            <View style={styles.photoWrap}>
+              <View style={styles.detailRow}>
+                <Ionicons name="image-outline" size={14} color="#0ea5e9" />
+                <Text style={[styles.detailLabel, { color: '#0ea5e9' }]}>Photo Evidence</Text>
+              </View>
+              {item.photoUrl ? (
+                <Image
+                  source={{ uri: item.photoUrl }}
+                  style={styles.proofImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+                  (Photo stored — download via admin panel)
+                </Text>
+              )}
+            </View>
+          ) : null}
+
+          {/* Meeting Follow-up note */}
+          <View style={styles.followUpSection}>
+            <View style={styles.detailRow}>
+              <Ionicons name="chatbubble-ellipses-outline" size={14} color="#0284c7" />
+              <Text style={[styles.detailLabel, { color: '#0284c7' }]}>Meeting Follow-up</Text>
+            </View>
+            {item.meetingFollowUp ? (
+              <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
+            ) : (
+              <Text style={styles.noFollowUp}>No follow-up note yet.</Text>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginBottom: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 14,
+    gap: 10,
+  },
+  iconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  clientName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 2,
+  },
+  companyName: {
+    fontSize: 11,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  dateText: {
+    fontSize: 10,
+    color: '#94a3b8',
+    flexShrink: 1,
+  },
+  badgeCol: {
+    alignItems: 'flex-end',
+  },
+  badge: {
+    borderRadius: 6,
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  expandedBody: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginBottom: 12,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  detailLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  detailValue: {
+    fontSize: 12,
+    color: '#334155',
+    flex: 1,
+  },
+  notesText: {
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 18,
+    marginBottom: 10,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    padding: 8,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f0fdf4',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
+  },
+  locationText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#166534',
+  },
+  mapBtn: {
+    backgroundColor: '#16a34a',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  mapBtnText: {
+    fontSize: 9,
+    color: '#fff',
+    fontWeight: '700',
+  },
+  photoWrap: {
+    marginBottom: 10,
+  },
+  proofImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 10,
+    marginTop: 6,
+    backgroundColor: '#f1f5f9',
+  },
+  followUpSection: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 4,
+  },
+  followUpText: {
+    fontSize: 12,
+    color: '#1e40af',
+    lineHeight: 18,
+  },
+  noFollowUp: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontStyle: 'italic',
+  },
+});
 
 export default MeetingCard;
