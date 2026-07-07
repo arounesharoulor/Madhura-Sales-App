@@ -556,16 +556,19 @@ exports.exportAttendanceLog = async (req, res, next) => {
     ];
     detailSheet.getRow(1).font = { bold: true };
 
-    const recordsWithUser = await Attendance.find().populate('executive', 'name employeeId').sort({ date: -1 });
+    const recordsWithUser = await Attendance.find()
+      .populate('executive', 'name employeeId')
+      .sort({ date: -1 })
+      .lean();
     recordsWithUser.forEach(r => {
       if (!r.executive) return;
       detailSheet.addRow({
-        date: r.date ? r.date.toISOString().split('T')[0] : 'N/A',
+        date: r.date || 'N/A',   // date is already a "YYYY-MM-DD" string
         name: r.executive.name || 'N/A',
         employeeId: r.executive.employeeId || 'N/A',
-        status: r.status,
-        checkIn: r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString() : '-',
-        checkOut: r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString() : '-',
+        status: r.status || 'N/A',
+        checkIn: r.checkInTime ? new Date(r.checkInTime).toLocaleTimeString('en-IN') : '-',
+        checkOut: r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString('en-IN') : '-',
         leaveReason: r.leaveReason || '-',
       });
     });
