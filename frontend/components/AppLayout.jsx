@@ -155,6 +155,9 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
   const [isSidebarOpen, setIsSidebarOpen] = useState(width > 768);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChat, setUnreadChat] = useState(0);
+  const [unreadTasks, setUnreadTasks] = useState(0);
+  const [unreadFollowUps, setUnreadFollowUps] = useState(0);
+  const [unreadMeetings, setUnreadMeetings] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -164,7 +167,6 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
         setUserName(user.name || '');
         setUserInitial(user.name?.charAt(0)?.toUpperCase() || '?');
         setUserRole(user.role || role);
-        // For employees: designation IS their role label; for admins: show designation if set
         setUserDesignation(user.designation || '');
       }
     };
@@ -178,6 +180,9 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
         const res = await api.get('/notifications?isRead=false');
         const data = res.data.data || [];
         setUnreadCount(data.length);
+        setUnreadTasks(data.filter(n => n.type === 'Task').length);
+        setUnreadFollowUps(data.filter(n => n.type === 'FollowUp').length);
+        setUnreadMeetings(data.filter(n => n.type === 'Meeting').length);
       } catch (_) {}
     };
     loadUnread();
@@ -207,6 +212,9 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
           }
         });
         setUnreadCount(prev => prev + 1);
+        if (notif.type === 'Task') setUnreadTasks(prev => prev + 1);
+        if (notif.type === 'FollowUp') setUnreadFollowUps(prev => prev + 1);
+        if (notif.type === 'Meeting') setUnreadMeetings(prev => prev + 1);
       });
 
       // ── Chat message events ── (bump badge when NOT on Chat screen)
@@ -266,8 +274,11 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
   const handleNav = (screen) => {
     if (width <= 768) setIsSidebarOpen(false);
-    if (screen === 'Chat') setUnreadChat(0);
+    if (screen === 'Chat' || screen === 'TeamChat') setUnreadChat(0);
     if (screen === 'Notification') setUnreadCount(0);
+    if (screen === 'TaskAssignment' || screen === 'Task') setUnreadTasks(0);
+    if (screen === 'AdminFollowupManagement' || screen === 'Followup') setUnreadFollowUps(0);
+    if (screen === 'Meeting') setUnreadMeetings(0);
     navigation.navigate(screen);
   };
 
@@ -386,7 +397,10 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                     // Badge count per screen
                     const badge =
                       item.screen === 'Notification' ? unreadCount :
-                      (item.screen === 'Chat' || item.screen === 'TeamChat') ? unreadChat : 0;
+                      (item.screen === 'Chat' || item.screen === 'TeamChat') ? unreadChat :
+                      (item.screen === 'TaskAssignment' || item.screen === 'Task') ? unreadTasks :
+                      (item.screen === 'AdminFollowupManagement' || item.screen === 'Followup') ? unreadFollowUps :
+                      (item.screen === 'Meeting') ? unreadMeetings : 0;
                     return (
                       <TouchableOpacity
                         key={item.screen}

@@ -45,8 +45,34 @@ const meetingSchema = new mongoose.Schema(
         type: String,
       },
     },
+    photoUrl: {
+      type: String, // Cloudinary URL
+    },
     nextFollowUpDate: {
       type: Date,
+    },
+    // New fields
+    meetingType: {
+      type: String,
+      enum: ['In-Person', 'Online'],
+      default: 'In-Person',
+    },
+    scheduledAt: {
+      type: Date, // Scheduled meeting date/time (future meetings)
+    },
+    reminderAt: {
+      type: Date, // When to send reminder notification
+    },
+    meetingFollowUp: {
+      type: String, // Follow-up notes set after meeting
+    },
+    status: {
+      type: String,
+      enum: ['Scheduled', 'Completed', 'Cancelled'],
+      default: 'Completed',
+    },
+    onlineMeetingLink: {
+      type: String, // For online meetings (Zoom, Meet link etc.)
     },
   },
   {
