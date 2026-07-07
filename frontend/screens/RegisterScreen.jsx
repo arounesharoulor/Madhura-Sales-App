@@ -493,6 +493,7 @@ export default function RegisterScreen() {
       contentContainerStyle={[styles.scroll, isWeb && styles.scrollWeb]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      automaticallyAdjustKeyboardInsets={true}
     >
       <View style={styles.formInner}>
 
@@ -545,13 +546,12 @@ export default function RegisterScreen() {
           <View style={styles.webRightPane}>{FormContent}</View>
         </View>
       ) : (
-        Platform.OS === 'ios' ? (
-          <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-            {FormContent}
-          </KeyboardAvoidingView>
-        ) : (
-          <View style={{ flex: 1 }}>{FormContent}</View>
-        )
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+          style={{ flex: 1 }}
+        >
+          {FormContent}
+        </KeyboardAvoidingView>
       )}
 
       {/* Admin Employee ID Modal */}

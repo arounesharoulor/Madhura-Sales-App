@@ -72,7 +72,8 @@ export default function LoginScreen() {
       const payload = role === 'Admin' ? { email, password, role } : { employeeId, password, role };
       const response = await api.post('/auth/login', payload);
       const { token, user } = response.data;
-      const isAdminAccount = user.role === 'Admin';
+      const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+      const isAdminAccount = adminRoles.includes(user.role);
 
       if (role === 'Admin' && !isAdminAccount) {
         setLoading(false);
