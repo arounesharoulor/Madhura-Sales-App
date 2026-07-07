@@ -494,26 +494,33 @@ exports.toggleEarlyCheckoutLock = async (req, res, next) => {
 exports.exportAttendanceLog = async (req, res, next) => {
   try {
     const ExcelJS = require('exceljs');
-    const records = await Attendance.find().populate('executive', 'name employeeId designation');
+    const users = await User.find({ isActive: true }).select('name employeeId designation role address');
+    const records = await Attendance.find();
     
     // Aggregate by employee
     const summary = {};
+    users.forEach(u => {
+      const empId = u._id.toString();
+      summary[empId] = {
+        name: u.name,
+        employeeId: u.employeeId || 'N/A',
+        designation: u.designation || 'N/A',
+        role: u.role || 'N/A',
+        address: u.address || 'N/A',
+        present: 0,
+        leave: 0,
+        earlyCheckout: 0
+      };
+    });
+
     records.forEach(r => {
       if (!r.executive) return;
-      const empId = r.executive._id.toString();
-      if (!summary[empId]) {
-        summary[empId] = {
-          name: r.executive.name,
-          employeeId: r.executive.employeeId || 'N/A',
-          designation: r.executive.designation || 'N/A',
-          present: 0,
-          leave: 0,
-          earlyCheckout: 0
-        };
+      const empId = r.executive.toString();
+      if (summary[empId]) {
+        if (r.status === 'Checked Out' || r.status === 'Checked In') summary[empId].present++;
+        if (r.status === 'On Leave') summary[empId].leave++;
+        if (r.earlyCheckout) summary[empId].earlyCheckout++;
       }
-      if (r.status === 'Checked Out' || r.status === 'Checked In') summary[empId].present++;
-      if (r.status === 'On Leave') summary[empId].leave++;
-      if (r.earlyCheckout) summary[empId].earlyCheckout++;
     });
 
     const workbook = new ExcelJS.Workbook();
@@ -523,6 +530,8 @@ exports.exportAttendanceLog = async (req, res, next) => {
       { header: 'Employee Name', key: 'name', width: 25 },
       { header: 'Employee ID', key: 'employeeId', width: 15 },
       { header: 'Designation', key: 'designation', width: 20 },
+      { header: 'Role', key: 'role', width: 20 },
+      { header: 'Address', key: 'address', width: 30 },
       { header: 'Days Present', key: 'present', width: 15 },
       { header: 'Leaves Taken', key: 'leave', width: 15 },
       { header: 'Early Checkouts', key: 'earlyCheckout', width: 18 },

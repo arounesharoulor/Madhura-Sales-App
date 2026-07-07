@@ -29,8 +29,9 @@ export default function RegisterScreen() {
   const [step, setStep] = useState(1); // 1 or 2
   const [form, setForm] = useState({
     name: '', email: '', phone: '', employeeId: '',
-    designation: '', password: '', confirmPassword: '', role: 'Field Executive',
+    designation: '', customDesignation: '', address: '', password: '', confirmPassword: '', role: 'Field Executive',
   });
+  const [designations, setDesignations] = useState({ admin: [], employee: [] });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -40,6 +41,13 @@ export default function RegisterScreen() {
 
   useEffect(() => {
     (async () => {
+      try {
+        const desigRes = await api.get('/auth/designations');
+        if (desigRes.data?.data) {
+          setDesignations(desigRes.data.data);
+        }
+      } catch (e) { console.error('Failed to fetch designations', e); }
+      
       try {
         const token = await AsyncStorage.getItem('token');
         const userStr = await AsyncStorage.getItem('user');
@@ -77,6 +85,7 @@ export default function RegisterScreen() {
   const validateStep2 = () => {
     const errs = {};
     if (!form.designation.trim()) errs.designation = 'Please select a designation';
+    if (form.designation === 'Other' && !form.customDesignation.trim()) errs.customDesignation = 'Please specify your designation';
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 6) errs.password = 'Minimum 6 characters';
     if (!form.confirmPassword) errs.confirmPassword = 'Please confirm your password';
@@ -98,14 +107,28 @@ export default function RegisterScreen() {
     if (!validateStep2()) return;
     setLoading(true);
     try {
+      let finalDesignation = form.designation === 'Other' ? form.customDesignation.trim() : form.designation.trim();
+      let finalRole = form.role;
+      if (form.role === 'Admin') {
+        if (finalDesignation === 'Super Admin' || finalDesignation === 'Managing Director MD') {
+          finalRole = 'Managing Director MD';
+          finalDesignation = 'Managing Director MD';
+        } else if (['Project Manager', 'Team Lead', 'HR'].includes(finalDesignation)) {
+          finalRole = finalDesignation;
+        }
+      } else {
+        finalRole = 'Field Executive';
+      }
+
       const payload = {
         name: form.name.trim(),
         email: form.email.trim().toLowerCase(),
         phone: form.phone.trim(),
         employeeId: form.employeeId.trim(),
-        designation: form.designation.trim(),
+        designation: finalDesignation,
+        address: form.address.trim(),
         password: form.password,
-        role: (form.role === 'Admin' && ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(form.designation)) ? form.designation : (form.role === 'Employee' ? 'Field Executive' : form.role),
+        role: finalRole,
       };
       const response = await api.post('/auth/register', payload);
       const { user, token } = response.data;
@@ -188,6 +211,23 @@ export default function RegisterScreen() {
         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
       </View>
 
+      {/* Address */}
+      <View style={styles.fieldWrap}>
+        <Text style={styles.label}>Address</Text>
+        <View style={inputStyle('address')}>
+          <Ionicons name="location-outline" size={17} color="#64748b" style={styles.icon} />
+          <TextInput
+            style={styles.input}
+            value={form.address}
+            onChangeText={v => update('address', v)}
+            placeholder="Enter your address"
+            placeholderTextColor="#94a3b8"
+            onFocus={() => setFocusedField('address')}
+            onBlur={() => setFocusedField(null)}
+          />
+        </View>
+      </View>
+
       {/* Email + Phone side by side on wider screens */}
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <View style={[styles.fieldWrap, { flex: 1 }]}>
@@ -264,28 +304,56 @@ export default function RegisterScreen() {
       <View style={styles.fieldWrap}>
         <Text style={styles.label}>{form.role === 'Admin' ? 'Your Title' : 'Designation'}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
-          {(form.role === 'Admin' || ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(form.role)
-            ? ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD', 'Other Admin']
-            : ['BDE', 'BDM', 'Pre Sales', 'Other']
-          ).map(d => (
-            <TouchableOpacity
-              key={d}
-              onPress={() => update('designation', d)}
-              style={{
-                paddingHorizontal: 16, paddingVertical: 10,
-                borderRadius: 14, borderWidth: 1.5,
-                borderColor: form.designation === d ? '#F5A623' : '#e2e8f0',
-                backgroundColor: form.designation === d ? '#1B2B4B' : '#f1f5f9',
-              }}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: form.designation === d ? '#fff' : '#64748b' }}>
-                {d}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {(() => {
+            let options = [];
+            if (form.role === 'Admin' || ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(form.role)) {
+              const defaultAdmins = ['Super Admin', 'Admin', 'Project Manager', 'Team Lead', 'HR'];
+              const customAdmins = (designations.admin || []).filter(d => !defaultAdmins.includes(d) && d !== 'Managing Director MD' && d !== 'Other');
+              options = [...defaultAdmins, ...customAdmins, 'Other'];
+            } else {
+              const defaultEmps = ['BDE', 'BDM', 'Pre Sales'];
+              const customEmps = (designations.employee || []).filter(d => !defaultEmps.includes(d) && d !== 'Other');
+              options = [...defaultEmps, ...customEmps, 'Other'];
+            }
+            return options.map(d => (
+              <TouchableOpacity
+                key={d}
+                onPress={() => update('designation', d)}
+                style={{
+                  paddingHorizontal: 16, paddingVertical: 10,
+                  borderRadius: 14, borderWidth: 1.5,
+                  borderColor: form.designation === d ? '#F5A623' : '#e2e8f0',
+                  backgroundColor: form.designation === d ? '#1B2B4B' : '#f1f5f9',
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '700', color: form.designation === d ? '#fff' : '#64748b' }}>
+                  {d}
+                </Text>
+              </TouchableOpacity>
+            ));
+          })()}
         </View>
         {errors.designation && <Text style={styles.errorText}>{errors.designation}</Text>}
       </View>
+
+      {form.designation === 'Other' && (
+        <View style={styles.fieldWrap}>
+          <Text style={styles.label}>Custom Designation</Text>
+          <View style={inputStyle('customDesignation')}>
+            <Ionicons name="briefcase-outline" size={17} color="#64748b" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              value={form.customDesignation}
+              onChangeText={v => update('customDesignation', v)}
+              placeholder="Type your designation"
+              placeholderTextColor="#94a3b8"
+              onFocus={() => setFocusedField('customDesignation')}
+              onBlur={() => setFocusedField(null)}
+            />
+          </View>
+          {errors.customDesignation && <Text style={styles.errorText}>{errors.customDesignation}</Text>}
+        </View>
+      )}
 
       {/* Password */}
       <View style={styles.fieldWrap}>

@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema(
     designation: {
       type: String,
     },
+    address: {
+      type: String,
+      default: '',
+    },
     profilePicture: {
       type: String,
       default: '',

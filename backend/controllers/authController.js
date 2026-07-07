@@ -12,12 +12,31 @@ const generateToken = (id) => {
 // Hash a token for safe storage in DB
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
+// @desc    Get all unique designations
+// @route   GET /api/auth/designations
+// @access  Public
+exports.getDesignations = async (req, res, next) => {
+  try {
+    const adminDesignations = await User.distinct('designation', { role: { $in: ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'] } });
+    const employeeDesignations = await User.distinct('designation', { role: 'Field Executive' });
+    res.status(200).json({
+      success: true,
+      data: {
+        admin: adminDesignations.filter(Boolean),
+        employee: employeeDesignations.filter(Boolean),
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Register a new user (self-registration as Field Executive)
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, phone, role, employeeId, designation } = req.body;
+    const { name, email, password, phone, role, employeeId, designation, address } = req.body;
     const normalizedEmail = email ? email.toString().trim().toLowerCase() : '';
 
     if (!name || !normalizedEmail || !password) {
@@ -74,6 +93,7 @@ exports.register = async (req, res, next) => {
       role: normalizedRole,
       employeeId: employeeId ? employeeId.toString().trim() : '',
       designation: designation ? designation.toString().trim() : '',
+      address: address ? address.toString().trim() : '',
       isActive: true,
     });
 

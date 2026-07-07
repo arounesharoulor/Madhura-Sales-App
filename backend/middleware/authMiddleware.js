@@ -49,10 +49,19 @@ const protect = async (req, res, next) => {
 // Role authorization
 const authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    let allowedRoles = [...roles];
+    if (allowedRoles.includes('Admin')) {
+      allowedRoles.push('Project Manager', 'Team Lead', 'HR', 'Managing Director MD');
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `Role (${req.user ? req.user.role : 'none'}) is not authorized to access this resource`,
+        message: `Role (${req.user.role}) is not authorized to access this resource`,
       });
     }
     next();
