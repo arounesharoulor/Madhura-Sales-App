@@ -151,6 +151,24 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
         </View>
       </TouchableOpacity>
 
+      {/* ── Quick Join Banner (visible without expanding, for admin on scheduled online meetings) ── */}
+      {item.meetingType === 'Online' && item.onlineMeetingLink && item.status === 'Scheduled' && (
+        <TouchableOpacity
+          onPress={() => Linking.openURL(item.onlineMeetingLink)}
+          activeOpacity={0.85}
+          style={styles.joinBanner}
+        >
+          <View style={styles.joinBannerLeft}>
+            <Ionicons name="videocam" size={15} color="#2563eb" />
+            <Text style={styles.joinBannerLabel}>Online Meeting Link</Text>
+          </View>
+          <View style={styles.joinBtn}>
+            <Ionicons name="open-outline" size={12} color="#fff" />
+            <Text style={styles.joinBtnText}>Join</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
       {/* ── Expandable Details ── */}
       {expanded && (
         <View style={styles.expandedBody}>
@@ -178,17 +196,23 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </View>
           )}
 
-          {/* Online meeting link */}
+          {/* Online meeting link — full styled banner */}
           {item.meetingType === 'Online' && item.onlineMeetingLink ? (
-            <TouchableOpacity
-              onPress={() => Linking.openURL(item.onlineMeetingLink)}
-              style={styles.detailRow}
-            >
-              <Ionicons name="link-outline" size={14} color="#2563eb" />
-              <Text style={[styles.detailValue, { color: '#2563eb', textDecorationLine: 'underline' }]} numberOfLines={1}>
-                {item.onlineMeetingLink}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.linkBanner}>
+              <View style={styles.linkBannerTop}>
+                <Ionicons name="videocam-outline" size={14} color="#1d4ed8" />
+                <Text style={styles.linkBannerTitle}>Online Meeting Link</Text>
+              </View>
+              <Text style={styles.linkBannerUrl} numberOfLines={2}>{item.onlineMeetingLink}</Text>
+              <TouchableOpacity
+                onPress={() => Linking.openURL(item.onlineMeetingLink)}
+                style={styles.linkBannerBtn}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="open-outline" size={13} color="#fff" />
+                <Text style={styles.linkBannerBtnText}>Open / Join Meeting</Text>
+              </TouchableOpacity>
+            </View>
           ) : null}
 
           {/* GPS Location */}
@@ -464,6 +488,85 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#94a3b8',
     fontStyle: 'italic',
+  },
+  // Quick join banner (card-level, no expand needed)
+  joinBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#eff6ff',
+    borderTopWidth: 1,
+    borderTopColor: '#bfdbfe',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  joinBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  joinBannerLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#2563eb',
+  },
+  joinBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  joinBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  // Full link banner inside expanded section
+  linkBanner: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  linkBannerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 5,
+  },
+  linkBannerTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1d4ed8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  linkBannerUrl: {
+    fontSize: 11,
+    color: '#3b82f6',
+    textDecorationLine: 'underline',
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  linkBannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    paddingVertical: 8,
+  },
+  linkBannerBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
   },
 });
 
