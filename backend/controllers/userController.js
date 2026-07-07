@@ -100,6 +100,7 @@ exports.updateProfile = async (req, res, next) => {
     user.phone = req.body.phone || user.phone;
     user.employeeId = req.body.employeeId || user.employeeId;
     user.designation = req.body.designation || user.designation;
+    user.address = req.body.address || user.address;
 
     if (req.body.password) {
       user.password = req.body.password;
@@ -123,6 +124,7 @@ exports.updateProfile = async (req, res, next) => {
         phone: updatedUser.phone,
         employeeId: updatedUser.employeeId,
         designation: updatedUser.designation,
+        address: updatedUser.address,
         profilePicture: updatedUser.profilePicture,
       },
     });

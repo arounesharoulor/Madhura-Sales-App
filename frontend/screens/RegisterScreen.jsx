@@ -29,7 +29,8 @@ export default function RegisterScreen() {
   const [step, setStep] = useState(1); // 1 or 2
   const [form, setForm] = useState({
     name: '', email: '', phone: '', employeeId: '',
-    designation: '', customDesignation: '', address: '', password: '', confirmPassword: '', role: 'Field Executive',
+    designation: '', customDesignation: '', password: '', confirmPassword: '', role: 'Field Executive',
+    adminLevel: 'Admin', // Admin or Super Admin
   });
   const [designations, setDesignations] = useState({ admin: [], employee: [] });
   const [errors, setErrors] = useState({});
@@ -110,11 +111,12 @@ export default function RegisterScreen() {
       let finalDesignation = form.designation === 'Other' ? form.customDesignation.trim() : form.designation.trim();
       let finalRole = form.role;
       if (form.role === 'Admin') {
-        if (finalDesignation === 'Super Admin' || finalDesignation === 'Managing Director MD') {
+        if (form.adminLevel === 'Super Admin') {
           finalRole = 'Managing Director MD';
-          finalDesignation = 'Managing Director MD';
         } else if (['Project Manager', 'Team Lead', 'HR'].includes(finalDesignation)) {
           finalRole = finalDesignation;
+        } else {
+          finalRole = 'Admin';
         }
       } else {
         finalRole = 'Field Executive';
@@ -126,7 +128,6 @@ export default function RegisterScreen() {
         phone: form.phone.trim(),
         employeeId: form.employeeId.trim(),
         designation: finalDesignation,
-        address: form.address.trim(),
         password: form.password,
         role: finalRole,
       };
@@ -192,6 +193,34 @@ export default function RegisterScreen() {
         </View>
       </View>
 
+      {/* Admin Level Dropdown */}
+      {form.role === 'Admin' && (
+        <View style={styles.fieldWrap}>
+          <Text style={styles.label}>Admin Level</Text>
+          <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 14, padding: 4, marginTop: 6 }}>
+            {['Admin', 'Super Admin'].map(lvl => {
+              const isActive = form.adminLevel === lvl;
+              return (
+                <TouchableOpacity
+                  key={lvl}
+                  onPress={() => update('adminLevel', lvl)}
+                  activeOpacity={0.8}
+                  style={{
+                    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                    gap: 7, paddingVertical: 10, borderRadius: 11,
+                    backgroundColor: isActive ? '#1B2B4B' : 'transparent',
+                  }}
+                >
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: isActive ? '#fff' : '#64748b' }}>
+                    {lvl}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
       {/* Full Name */}
       <View style={styles.fieldWrap}>
         <Text style={styles.label}>Full Name</Text>
@@ -209,23 +238,6 @@ export default function RegisterScreen() {
           />
         </View>
         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-      </View>
-
-      {/* Address */}
-      <View style={styles.fieldWrap}>
-        <Text style={styles.label}>Address</Text>
-        <View style={inputStyle('address')}>
-          <Ionicons name="location-outline" size={17} color="#64748b" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            value={form.address}
-            onChangeText={v => update('address', v)}
-            placeholder="Enter your address"
-            placeholderTextColor="#94a3b8"
-            onFocus={() => setFocusedField('address')}
-            onBlur={() => setFocusedField(null)}
-          />
-        </View>
       </View>
 
       {/* Email + Phone side by side on wider screens */}
@@ -306,9 +318,9 @@ export default function RegisterScreen() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
           {(() => {
             let options = [];
-            if (form.role === 'Admin' || ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(form.role)) {
-              const defaultAdmins = ['Super Admin', 'Admin', 'Project Manager', 'Team Lead', 'HR'];
-              const customAdmins = (designations.admin || []).filter(d => !defaultAdmins.includes(d) && d !== 'Managing Director MD' && d !== 'Other');
+            if (form.role === 'Admin') {
+              const defaultAdmins = ['Project Manager', 'Team Lead', 'HR', 'Other Admin'];
+              const customAdmins = (designations.admin || []).filter(d => !defaultAdmins.includes(d) && d !== 'Managing Director MD' && d !== 'Super Admin' && d !== 'Admin' && d !== 'Other');
               options = [...defaultAdmins, ...customAdmins, 'Other'];
             } else {
               const defaultEmps = ['BDE', 'BDM', 'Pre Sales'];

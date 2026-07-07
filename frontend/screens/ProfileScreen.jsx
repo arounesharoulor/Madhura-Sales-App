@@ -28,6 +28,7 @@ export default function ProfileScreen({ navigation }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [designation, setDesignation] = useState('');
+  const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [metrics, setMetrics] = useState({ tasks: 0, visits: 0, followUps: 0, onboarded: 0 });
@@ -41,6 +42,7 @@ export default function ProfileScreen({ navigation }) {
         setName(u.name || '');
         setPhone(u.phone || '');
         setDesignation(u.designation || '');
+        setAddress(u.address || '');
       }
       // Load performance metrics
       try {
@@ -65,7 +67,7 @@ export default function ProfileScreen({ navigation }) {
     if (!name) { Alert.alert('Error', 'Name is required'); return; }
     setLoading(true);
     try {
-      const res = await api.put('/users/profile', { name, phone, designation });
+      const res = await api.put('/users/profile', { name, phone, designation, address });
       const updated = res.data.data;
       await AsyncStorage.setItem('user', JSON.stringify(updated));
       setUser(updated);
@@ -149,6 +151,7 @@ export default function ProfileScreen({ navigation }) {
           <InfoRow icon="call-outline" label="Mobile Number" value={user?.phone} />
           <InfoRow icon="mail-outline" label="Email Address" value={user?.email} />
           <InfoRow icon="briefcase-outline" label="Role / Designation" value={user?.designation || user?.role} />
+          <InfoRow icon="location-outline" label="Address" value={user?.address} />
           <InfoRow icon="people-outline" label="Department" value={user?.department || 'Sales'} />
         </View>
 
@@ -161,6 +164,8 @@ export default function ProfileScreen({ navigation }) {
             <CustomInput label="Mobile Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="10-digit mobile number" />
             <View style={{ height: 12 }} />
             <CustomInput label="Designation" value={designation} onChangeText={setDesignation} placeholder="E.g. Sales Executive" />
+            <View style={{ height: 12 }} />
+            <CustomInput label="Address" value={address} onChangeText={setAddress} placeholder="Your address" />
             <View style={{ height: 16 }} />
             <CustomButton title="Save Changes" loading={loading} onPress={handleSave} />
           </View>
