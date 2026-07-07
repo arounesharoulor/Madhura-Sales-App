@@ -134,7 +134,8 @@ export default function TaskAssignmentScreen({ navigation }) {
 
       setEmployees(enrichedEmployees);
       setAttendanceMap(attendanceByExec);
-      setAvailableEmployees(enrichedEmployees.filter(emp => emp.todayAttendance?.status === 'Checked In'));
+      // Show all employees — admin can assign to anyone
+      setAvailableEmployees(enrichedEmployees);
 
       if (selectedEmployee) {
         const selId = selectedEmployee._id?.toString() || selectedEmployee.id?.toString();
@@ -407,14 +408,14 @@ export default function TaskAssignmentScreen({ navigation }) {
             <View style={styles.card}>
               <Text style={styles.cardLabel}>SELECT EMPLOYEE</Text>
               <Text style={styles.cardSubLabel}>
-                {availableEmployees.length} available field executive{availableEmployees.length !== 1 ? 's' : ''}
+                {employees.length} field executive{employees.length !== 1 ? 's' : ''} · {availableEmployees.filter(e => e.todayAttendanceStatus === 'Checked In').length} checked in today
               </Text>
 
               {availableEmployees.length === 0 ? (
                 <View style={styles.emptyEmp}>
                   <Ionicons name="people-outline" size={40} color="#cbd5e1" />
-                  <Text style={styles.emptyEmpText}>No executives have checked in today.</Text>
-                  <Text style={styles.emptyEmpSub}>Only checked-in employees can receive new tasks.</Text>
+                  <Text style={styles.emptyEmpText}>No field executives found.</Text>
+                  <Text style={styles.emptyEmpSub}>Add employees from the HR / Admin panel.</Text>
                 </View>
               ) : (
                 availableEmployees.map((emp) => {

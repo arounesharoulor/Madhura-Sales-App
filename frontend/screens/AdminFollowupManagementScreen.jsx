@@ -152,7 +152,7 @@ function AssignModal({ visible, followUp, employees, onClose, onSaved }) {
           {employees.length === 0 ? (
             <View style={styles.noEmpWrap}>
               <Ionicons name="people-outline" size={28} color="#cbd5e1" />
-              <Text style={styles.noEmpText}>No checked-in employees available</Text>
+              <Text style={styles.noEmpText}>No field executives found</Text>
             </View>
           ) : (
             <ScrollView style={{ maxHeight: 240 }} showsVerticalScrollIndicator={false}>
@@ -172,6 +172,11 @@ function AssignModal({ visible, followUp, employees, onClose, onSaved }) {
                     <View style={styles.empInfo}>
                       <Text style={[styles.empName, isSelected && { color: '#0284c7' }]}>{emp.name}</Text>
                       <Text style={styles.empSub}>{emp.designation || emp.email}</Text>
+                      {emp.isCheckedIn ? (
+                        <Text style={{ fontSize: 9, color: '#059669', fontWeight: '700', marginTop: 2 }}>✓ Checked In</Text>
+                      ) : (
+                        <Text style={{ fontSize: 9, color: '#94a3b8', fontWeight: '600', marginTop: 2 }}>Not Checked In</Text>
+                      )}
                     </View>
                     {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                   </TouchableOpacity>
@@ -341,7 +346,8 @@ export default function AdminFollowupManagementScreen({ navigation }) {
     return acc;
   }, {});
 
-  const availableEmployees = employees.filter(e => e.isCheckedIn);
+  // All employees shown — admin can assign to anyone; isCheckedIn badge shows availability
+  const availableEmployees = employees;
 
   return (
     <AppLayout currentScreen="AdminFollowupManagement" role="Admin" scrollable={false}>
@@ -476,13 +482,13 @@ export default function AdminFollowupManagementScreen({ navigation }) {
             <View style={styles.cardBox}>
               <Text style={styles.cardLabel}>ASSIGN TO EMPLOYEE</Text>
               
-              {availableEmployees.length === 0 ? (
+              {employees.length === 0 ? (
                 <View style={styles.emptyEmp}>
                   <Ionicons name="people-outline" size={40} color="#cbd5e1" />
-                  <Text style={styles.emptyEmpText}>No executives have checked in today.</Text>
+                  <Text style={styles.emptyEmpText}>No field executives found.</Text>
                 </View>
               ) : (
-                availableEmployees.map((emp) => {
+                employees.map((emp) => {
                   const isSelected = selectedEmployee?._id === emp._id;
                   return (
                     <TouchableOpacity
@@ -499,9 +505,15 @@ export default function AdminFollowupManagementScreen({ navigation }) {
                       <View style={styles.empInfo}>
                         <Text style={[styles.empName, isSelected && styles.empNameSelected]}>{emp.name}</Text>
                         <Text style={styles.empSub2}>{emp.designation || emp.email}</Text>
-                        <View style={styles.statusBadgeActive}>
-                          <Text style={styles.statusTextActive}>Active Today</Text>
-                        </View>
+                        {emp.isCheckedIn ? (
+                          <View style={styles.statusBadgeActive}>
+                            <Text style={styles.statusTextActive}>✓ Checked In Today</Text>
+                          </View>
+                        ) : (
+                          <View style={[styles.statusBadgeActive, { backgroundColor: '#f1f5f9', borderColor: '#e2e8f0' }]}>
+                            <Text style={[styles.statusTextActive, { color: '#94a3b8' }]}>Not Checked In</Text>
+                          </View>
+                        )}
                       </View>
                       <View style={styles.empRight}>
                         {isSelected && (
@@ -684,7 +696,7 @@ export default function AdminFollowupManagementScreen({ navigation }) {
       <AssignModal
         visible={showModal}
         followUp={selectedFollowUp}
-        employees={availableEmployees}
+        employees={employees}
         onClose={() => setShowModal(false)}
         onSaved={fetchData}
       />
