@@ -59,7 +59,8 @@ const adminNavSections = [
       { title: 'Field Staff Mgmt',  screen: 'UserManagement',           icon: 'people-outline',    iconActive: 'people' },
       { title: 'Task Assignments',  screen: 'TaskAssignment',           icon: 'clipboard-outline', iconActive: 'clipboard' },
       { title: 'Client Onboarding', screen: 'ClientOnboarding',         icon: 'briefcase-outline', iconActive: 'briefcase' },
-      { title: 'Follow-up Mgmt',   screen: 'AdminFollowupManagement',  icon: 'alarm-outline',     iconActive: 'alarm' },
+      { title: 'Log Client Visit',  screen: 'Meeting',                  icon: 'location-outline',  iconActive: 'location' },
+      { title: 'Follow-up Mgmt',    screen: 'AdminFollowupManagement',  icon: 'alarm-outline',     iconActive: 'alarm' },
     ],
   },
   {
@@ -225,8 +226,18 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
   };
 
   const isDesktop = width > 768;
-  const navSections = role === 'Admin' ? adminNavSections : employeeNavSections;
-
+  const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+  const isAdmin = adminRoles.includes(role);
+  
+  let navSections = isAdmin ? JSON.parse(JSON.stringify(adminNavSections)) : JSON.parse(JSON.stringify(employeeNavSections));
+  
+  if (role === 'HR') {
+    navSections[0].items = navSections[0].items.filter(i => ['ClientOnboarding', 'Meeting'].includes(i.screen));
+    navSections[1].items = navSections[1].items.filter(i => ['AdminAttendance', 'Profile'].includes(i.screen));
+  } else if (role === 'Project Manager' || role === 'Team Lead') {
+    navSections[0].items = navSections[0].items.filter(i => !['ClientOnboarding'].includes(i.screen));
+    navSections[1].items = navSections[1].items.filter(i => !['AdminAttendance'].includes(i.screen));
+  }
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView 
@@ -307,7 +318,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.userPortalLabel}>
-                    {userRole === 'Admin' ? 'ADMIN PORTAL' : (userDesignation ? userDesignation.toUpperCase() : 'EMPLOYEE PORTAL')}
+                    {isAdmin ? 'ADMIN PORTAL' : (userDesignation ? userDesignation.toUpperCase() : 'EMPLOYEE PORTAL')}
                   </Text>
                   <Text style={styles.userName} numberOfLines={1}>{userName}</Text>
                 </View>
@@ -384,7 +395,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
             ]}>
               {currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate(userRole === 'Admin' ? 'AdminDashboard' : 'Dashboard')}
+                  onPress={() => navigation.navigate(isAdmin ? 'AdminDashboard' : 'Dashboard')}
                   style={styles.globalBackBtn}
                   activeOpacity={0.7}
                 >

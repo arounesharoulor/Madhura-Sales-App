@@ -105,7 +105,7 @@ export default function RegisterScreen() {
         employeeId: form.employeeId.trim(),
         designation: form.designation.trim(),
         password: form.password,
-        role: form.role === 'Employee' ? 'Field Executive' : form.role,
+        role: (form.role === 'Admin' && ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(form.designation)) ? form.designation : (form.role === 'Employee' ? 'Field Executive' : form.role),
       };
       const response = await api.post('/auth/register', payload);
       const { user, token } = response.data;
@@ -264,8 +264,8 @@ export default function RegisterScreen() {
       <View style={styles.fieldWrap}>
         <Text style={styles.label}>{form.role === 'Admin' ? 'Your Title' : 'Designation'}</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
-          {(form.role === 'Admin'
-            ? ['Branch Manager', 'Sales Manager', 'Director', 'Other']
+          {(form.role === 'Admin' || ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(form.role)
+            ? ['Project Manager', 'Team Lead', 'HR', 'Managing Director MD', 'Other Admin']
             : ['BDE', 'BDM', 'Pre Sales', 'Other']
           ).map(d => (
             <TouchableOpacity

@@ -10,6 +10,7 @@ import MeetingCard from '../components/MeetingCard';
 import api from '../api/api';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { Picker } from '@react-native-picker/picker';
 
 export default function MeetingScreen({ navigation }) {
   const [meetings, setMeetings] = useState([]);
@@ -18,11 +19,13 @@ export default function MeetingScreen({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Form Fields
+  const [selectedClientId, setSelectedClientId] = useState('');
   const [clientName, setClientName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [nextFollowUpDate, setNextFollowUpDate] = useState('');
+  const [clients, setClients] = useState([]);
   const [imageUri, setImageUri] = useState(null);
 
   // GPS Coords
@@ -47,8 +50,18 @@ export default function MeetingScreen({ navigation }) {
     }
   };
 
+  const fetchClients = async () => {
+    try {
+      const res = await api.get('/onboarding');
+      setClients(res.data.data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     fetchMeetings();
+    fetchClients();
     getGPSCoords();
   }, []);
 
@@ -114,7 +127,7 @@ export default function MeetingScreen({ navigation }) {
       formData.append('notes', notes);
       formData.append('latitude', locationCoords.latitude.toString());
       formData.append('longitude', locationCoords.longitude.toString());
-      if (nextFollowUpDate) {
+      if (nextFollowUpDate && !isNaN(new Date(nextFollowUpDate).getTime())) {
         formData.append('nextFollowUpDate', nextFollowUpDate);
       }
 
@@ -178,6 +191,56 @@ export default function MeetingScreen({ navigation }) {
                     <Text className="text-rose-600 text-xs font-bold underline">Retry Bind</Text>
                   </TouchableOpacity>
                 )}
+              </View>
+
+              <View>
+                <Text className="text-xs font-bold text-slate-700 mb-1 ml-1 uppercase tracking-wider">Select Client (Optional)</Text>
+                <View className="bg-white border border-slate-300 rounded-2xl h-[52px] justify-center overflow-hidden mb-4 shadow-sm">
+                  {Platform.OS === 'web' ? (
+                    <select
+                      value={selectedClientId}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        setSelectedClientId(id);
+                        const c = clients.find(x => x._id === id);
+                        if (c) {
+                          setClientName(c.ownerName || c.contactPerson || '');
+                          setCompanyName(c.businessName || '');
+                          setPhone(c.phone || '');
+                        } else {
+                          setClientName(''); setCompanyName(''); setPhone('');
+                        }
+                      }}
+                      style={{ width: '100%', height: '100%', border: 'none', outline: 'none', background: 'transparent', paddingLeft: 14, fontSize: 14, color: selectedClientId ? '#0f172a' : '#94a3b8' }}
+                    >
+                      <option value="">Select an Onboarded Client...</option>
+                      {clients.map(c => (
+                        <option key={c._id} value={c._id}>{c.businessName} ({c.ownerName})</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Picker
+                      selectedValue={selectedClientId}
+                      onValueChange={(id) => {
+                        setSelectedClientId(id);
+                        const c = clients.find(x => x._id === id);
+                        if (c) {
+                          setClientName(c.ownerName || c.contactPerson || '');
+                          setCompanyName(c.businessName || '');
+                          setPhone(c.phone || '');
+                        } else {
+                          setClientName(''); setCompanyName(''); setPhone('');
+                        }
+                      }}
+                      style={{ height: 50, width: '100%', color: selectedClientId ? '#0f172a' : '#94a3b8' }}
+                    >
+                      <Picker.Item label="Select an Onboarded Client..." value="" color="#94a3b8" />
+                      {clients.map(c => (
+                        <Picker.Item key={c._id} label={`${c.businessName} (${c.ownerName})`} value={c._id} />
+                      ))}
+                    </Picker>
+                  )}
+                </View>
               </View>
 
               <CustomInput label="Client Name *" value={clientName} onChangeText={setClientName} placeholder="E.g. John Doe" />

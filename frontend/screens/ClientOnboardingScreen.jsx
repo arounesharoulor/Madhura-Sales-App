@@ -284,7 +284,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   };
 
   const handleSubmit = async () => {
-    if (!businessName || !businessType || !ownerName || !phone || !address || !city || !selectedState || !pincode) {
+    if (!businessName || !businessType || !ownerName || !phone || !altPhone || !email || !address || !city || !selectedState || !pincode) {
       Alert.alert('Missing Fields', 'Please fill all required fields marked with *');
       return;
     }
@@ -515,8 +515,8 @@ export default function ClientOnboardingScreen({ navigation }) {
               <Field label="Owner Name" required value={ownerName} onChangeText={setOwnerName} placeholder="E.g. Rajesh Sharma" />
               <Field label="Contact Person Name" value={contactPerson} onChangeText={setContactPerson} placeholder="E.g. Anita (Accountant)" />
               <Field label="Mobile Number" required value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="E.g. 9876543210" />
-              <Field label="Alternate Mobile" value={altPhone} onChangeText={setAltPhone} keyboardType="phone-pad" placeholder="E.g. 9123456789" />
-              <Field label="Email Address" value={email} onChangeText={setEmail} keyboardType="email-address" placeholder="E.g. sharma@traders.com" />
+              <Field label="Alternate Mobile" required value={altPhone} onChangeText={setAltPhone} keyboardType="phone-pad" placeholder="E.g. 9123456789" />
+              <Field label="Email Address" required value={email} onChangeText={setEmail} keyboardType="email-address" placeholder="E.g. sharma@traders.com" />
             </SectionCard>
 
             {/* SECTION 3: Address */}

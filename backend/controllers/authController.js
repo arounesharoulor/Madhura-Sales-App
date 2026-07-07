@@ -37,7 +37,7 @@ exports.register = async (req, res, next) => {
       normalizedRole = 'Admin';
     }
     // Allow self-registration for Admin and Field Executive (app treats Admin as elevated role).
-    if (!['Field Executive', 'Admin'].includes(normalizedRole)) {
+    if (!['Field Executive', 'Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(normalizedRole)) {
       normalizedRole = 'Field Executive';
     }
 
@@ -48,10 +48,11 @@ exports.register = async (req, res, next) => {
 
     const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
-    if (normalizedRole === 'Admin') {
+    const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+    if (adminRoles.includes(normalizedRole)) {
       const existingUser = await User.findOne({
         email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' },
-        role: 'Admin'
+        role: { $in: adminRoles }
       });
       if (existingUser) {
         res.status(400);
@@ -125,13 +126,14 @@ exports.login = async (req, res, next) => {
   try {
     const { email, employeeId, password, role } = req.body;
 
+    const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
     let user;
-    if (role === 'Admin') {
+    if (adminRoles.includes(role)) {
       if (!email || !password) {
         res.status(400);
         throw new Error('Please provide email and password');
       }
-      user = await User.findOne({ email, role: 'Admin' }).select('+password');
+      user = await User.findOne({ email, role: { $in: adminRoles } }).select('+password');
     } else {
       if (!employeeId || !password) {
         res.status(400);
