@@ -52,8 +52,8 @@ export const playNotificationSound = async (type = 'notification') => {
 // ──────────────────────────────────────────────────────────────────
 
 // ── Screen access definitions per role ──────────────────────────────
-// HR: Only Attendance, Leave management, Client Onboarding, Excel export (via AdminAttendance)
-const HR_ALLOWED = ['AdminAttendance', 'ClientOnboarding', 'Profile'];
+// HR: Only Attendance, Leave management, Client Onboarding, Excel export (via AdminAttendance), and Dashboard
+const HR_ALLOWED = ['AdminDashboard', 'AdminAttendance', 'ClientOnboarding', 'Profile', 'Meeting', 'Chat'];
 
 // Admin (Project Manager / Team Lead / plain Admin): Everything EXCEPT Attendance & Leave
 const ADMIN_BLOCKED = ['AdminAttendance'];
@@ -123,10 +123,11 @@ function buildNavSections(role) {
       {
         title: 'HR Management',
         items: [
-          { title: 'Attendance Log',    screen: 'AdminAttendance', icon: 'time-outline',     iconActive: 'time' },
+          { title: 'Dashboard',         screen: 'AdminDashboard',   icon: 'grid-outline',      iconActive: 'grid' },
+          { title: 'Attendance Log',    screen: 'AdminAttendance',  icon: 'time-outline',      iconActive: 'time' },
           { title: 'Client Onboarding', screen: 'ClientOnboarding', icon: 'briefcase-outline', iconActive: 'briefcase' },
           { title: 'Log Client Visit',  screen: 'Meeting',          icon: 'location-outline',  iconActive: 'location' },
-          { title: 'Profile',           screen: 'Profile',           icon: 'person-outline',    iconActive: 'person' },
+          { title: 'Profile',           screen: 'Profile',          icon: 'person-outline',    iconActive: 'person' },
         ],
       },
     ];

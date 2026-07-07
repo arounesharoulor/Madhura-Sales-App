@@ -742,11 +742,25 @@ export default function AdminAttendanceScreen() {
       </Modal>
 
       {/* ── Summary View Modal ── */}
-      <Modal visible={showSummaryModal} transparent animationType="slide" onRequestClose={() => setShowSummaryModal(false)}>
-        <View style={[styles.modalOverlay, { justifyContent: 'center', padding: 16 }]}>
-          <View style={{ backgroundColor: '#fff', borderRadius: 20, flex: 0, maxHeight: '85%', overflow: 'hidden' }}>
+      <Modal visible={showSummaryModal} transparent animationType="fade" onRequestClose={() => setShowSummaryModal(false)}>
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+        }}>
+          <View style={{
+            backgroundColor: '#fff',
+            borderRadius: 20,
+            width: '100%',
+            maxWidth: 600,
+            height: Platform.OS === 'web' ? '80vh' : '80%',
+            overflow: 'hidden',
+            flexDirection: 'column',
+          }}>
             {/* Modal Header */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', flexShrink: 0 }}>
               <View>
                 <Text style={{ fontSize: 18, fontWeight: '800', color: '#0f172a' }}>Team Attendance Summary</Text>
                 <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Live data · {summaryData.length} employees</Text>
@@ -756,47 +770,52 @@ export default function AdminAttendanceScreen() {
               </TouchableOpacity>
             </View>
 
-            {loadingSummary ? (
-              <ActivityIndicator color="#0284c7" size="large" style={{ margin: 40 }} />
-            ) : summaryData.length === 0 ? (
-              <View style={{ padding: 40, alignItems: 'center' }}>
-                <Ionicons name="people-outline" size={48} color="#e2e8f0" />
-                <Text style={{ color: '#94a3b8', marginTop: 12, fontSize: 14 }}>No employee data found.</Text>
-              </View>
-            ) : (
-              <ScrollView style={{ flex: 1 }}>
-                {/* Column Header */}
-                <View style={{ flexDirection: 'row', backgroundColor: '#f8fafc', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' }}>
-                  <Text style={{ flex: 2, fontSize: 11, fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Name</Text>
-                  <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Role</Text>
-                  <Text style={{ width: 60, fontSize: 11, fontWeight: '700', color: '#22c55e', textAlign: 'center', textTransform: 'uppercase' }}>Present</Text>
-                  <Text style={{ width: 50, fontSize: 11, fontWeight: '700', color: '#8b5cf6', textAlign: 'center', textTransform: 'uppercase' }}>Leave</Text>
-                  <Text style={{ width: 50, fontSize: 11, fontWeight: '700', color: '#f59e0b', textAlign: 'center', textTransform: 'uppercase' }}>Early</Text>
-                </View>
+            {/* Column Header */}
+            <View style={{ flexDirection: 'row', backgroundColor: '#f8fafc', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', flexShrink: 0 }}>
+              <Text style={{ flex: 2, fontSize: 11, fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Name / ID</Text>
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Role</Text>
+              <Text style={{ width: 65, fontSize: 11, fontWeight: '700', color: '#22c55e', textAlign: 'center', textTransform: 'uppercase' }}>Present</Text>
+              <Text style={{ width: 55, fontSize: 11, fontWeight: '700', color: '#8b5cf6', textAlign: 'center', textTransform: 'uppercase' }}>Leave</Text>
+              <Text style={{ width: 55, fontSize: 11, fontWeight: '700', color: '#f59e0b', textAlign: 'center', textTransform: 'uppercase' }}>Early</Text>
+            </View>
 
-                {summaryData.map((s, idx) => (
-                  <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', backgroundColor: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                    <View style={{ flex: 2 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a' }} numberOfLines={1}>{s.name}</Text>
-                      <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }} numberOfLines={1}>{s.employeeId !== 'N/A' ? `ID: ${s.employeeId}` : s.address !== 'N/A' ? s.address : ''}</Text>
+            {/* Content */}
+            <View style={{ flex: 1 }}>
+              {loadingSummary ? (
+                <ActivityIndicator color="#0284c7" size="large" style={{ margin: 40 }} />
+              ) : summaryData.length === 0 ? (
+                <View style={{ flex: 1, padding: 40, alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name="people-outline" size={48} color="#e2e8f0" />
+                  <Text style={{ color: '#94a3b8', marginTop: 12, fontSize: 14 }}>No employee data found.</Text>
+                </View>
+              ) : (
+                <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={true}>
+                  {summaryData.map((s, idx) => (
+                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', backgroundColor: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                      <View style={{ flex: 2 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a' }} numberOfLines={1}>{s.name}</Text>
+                        <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }} numberOfLines={1}>
+                          {s.employeeId !== 'N/A' ? `ID: ${s.employeeId}` : s.address !== 'N/A' ? s.address : s.role}
+                        </Text>
+                      </View>
+                      <Text style={{ flex: 1, fontSize: 11, color: '#64748b', fontWeight: '600' }} numberOfLines={1}>{s.designation !== 'N/A' ? s.designation : s.role}</Text>
+                      <View style={{ width: 65, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#22c55e' }}>{s.present}</Text>
+                      </View>
+                      <View style={{ width: 55, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#8b5cf6' }}>{s.leave}</Text>
+                      </View>
+                      <View style={{ width: 55, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#f59e0b' }}>{s.earlyCheckout}</Text>
+                      </View>
                     </View>
-                    <Text style={{ flex: 1, fontSize: 11, color: '#64748b', fontWeight: '600' }} numberOfLines={1}>{s.designation !== 'N/A' ? s.designation : s.role}</Text>
-                    <View style={{ width: 60, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#22c55e' }}>{s.present}</Text>
-                    </View>
-                    <View style={{ width: 50, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#8b5cf6' }}>{s.leave}</Text>
-                    </View>
-                    <View style={{ width: 50, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#f59e0b' }}>{s.earlyCheckout}</Text>
-                    </View>
-                  </View>
-                ))}
-              </ScrollView>
-            )}
+                  ))}
+                </ScrollView>
+              )}
+            </View>
 
             {/* Download button at bottom */}
-            <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+            <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: '#f1f5f9', flexShrink: 0 }}>
               <TouchableOpacity
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#16a34a', borderRadius: 14, paddingVertical: 12 }}
                 onPress={() => { setShowSummaryModal(false); handleExportLog(); }}
