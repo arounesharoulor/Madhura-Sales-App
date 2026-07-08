@@ -132,12 +132,14 @@ server.listen(PORT, '0.0.0.0', async () => {
 
     await seedAdminUser();
 
-    // Start overdue task & attendance checking interval (runs every 15 seconds)
+    // Start overdue task, attendance checking, and meeting/followup reminders interval (runs every 15 seconds)
     const { checkOverdueTasks } = require('./utils/taskChecker');
     const { checkPendingAttendances } = require('./utils/attendanceChecker');
+    const { checkReminders } = require('./utils/reminderChecker');
     setInterval(() => {
       checkOverdueTasks(io);
       checkPendingAttendances(io);
+      checkReminders(io);
     }, 15000);
 
     // Weekly Friday reminder at 9:00 AM

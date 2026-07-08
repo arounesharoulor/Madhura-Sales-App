@@ -52,6 +52,15 @@ const LOCATION_DATA = {
 };
 const STATES = Object.keys(LOCATION_DATA);
 
+const AREA_DATA = {
+  "Chennai": ["T. Nagar", "Anna Nagar", "Adyar", "Velachery", "Mylapore", "Tambaram", "Guindy", "Koyambedu", "K.K. Nagar", "Thiruvanmiyur"],
+  "Coimbatore": ["Gandhipuram", "RS Puram", "Peelamedu", "Ukkadam", "Saravanampatti", "Saibaba Colony", "Vadavalli"],
+  "Madurai": ["Anna Nagar", "KK Nagar", "Simmakkal", "Goripalayam", "Tallakulam", "K.Pudur"],
+  "Bangalore": ["Koramangala", "Indiranagar", "Jayanagar", "Whitefield", "Marathahalli", "Malleswaram", "HSR Layout"],
+  "Mumbai": ["Andheri", "Bandra", "Borivali", "Dadar", "Goregaon", "Juhu", "Kandivali", "Malad", "Colaba"],
+  "Delhi": ["Connaught Place", "Karol Bagh", "Dwarka", "Vasant Kunj", "Hauz Khas", "Rajouri Garden", "Saket"],
+};
+
 // Reusable field label
 function FieldLabel({ text, required }) {
   return (
@@ -248,6 +257,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [selectedState, setSelectedState] = useState('');
+  const [area, setArea] = useState('');
   const [pincode, setPincode] = useState('');
   const [landmark, setLandmark] = useState('');
   const [panNumber, setPanNumber] = useState('');
@@ -272,12 +282,12 @@ export default function ClientOnboardingScreen({ navigation }) {
     load();
   }, []);
 
-  // Fetch Pincode automatically based on Address
+  // Fetch Pincode automatically based on Area and City
   useEffect(() => {
     const fetchPincode = async () => {
-      if (address && address.length > 5) {
+      if (area && city) {
         try {
-          const result = await Location.geocodeAsync(address);
+          const result = await Location.geocodeAsync(`${area}, ${city}, ${selectedState}, India`);
           if (result.length > 0) {
             const { latitude, longitude } = result[0];
             const reverse = await Location.reverseGeocodeAsync({ latitude, longitude });
@@ -290,9 +300,9 @@ export default function ClientOnboardingScreen({ navigation }) {
         }
       }
     };
-    const timeoutId = setTimeout(fetchPincode, 2000);
+    const timeoutId = setTimeout(fetchPincode, 1500);
     return () => clearTimeout(timeoutId);
-  }, [address]);
+  }, [area, city, selectedState]);
 
   const fetchClients = async () => {
     try {
@@ -327,7 +337,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const resetForm = () => {
     setBusinessName(''); setBusinessType(''); setGstNumber('');
     setOwnerName(''); setContactPerson(''); setPhone(''); setAltPhone(''); setEmail('');
-    setAddress(''); setCity(''); setSelectedState(''); setPincode(''); setLandmark('');
+    setAddress(''); setCity(''); setSelectedState(''); setArea(''); setPincode(''); setLandmark('');
     setPanNumber(''); setYearsInBusiness(''); setLeadSource(''); setExpectedVolume('');
     setInterestedProducts(''); setNotes('');
     setFollowUpDate(''); setNextMeetingDate(''); setCoords(null);
@@ -344,7 +354,7 @@ export default function ClientOnboardingScreen({ navigation }) {
       const payload = {
         businessName, businessType, gstNumber,
         ownerName, phone, email,
-        address, city, state: selectedState, pincode,
+        address: area ? `${address}, ${area}` : address, city, state: selectedState, pincode,
         latitude: coords?.latitude,
         longitude: coords?.longitude,
         notes,
@@ -382,6 +392,7 @@ export default function ClientOnboardingScreen({ navigation }) {
     setAddress(client.location?.address || '');
     setCity(client.location?.city || '');
     setSelectedState(client.location?.state || '');
+    setArea(''); // Could parse area from address if needed
     setPincode(client.location?.pincode || '');
     setLandmark(client.landmark || '');
     setPanNumber(client.panNumber || '');
@@ -572,10 +583,15 @@ export default function ClientOnboardingScreen({ navigation }) {
 
             {/* SECTION 3: Address */}
             <SectionCard title="Address Information" icon="location-outline">
-              <Field label="Full Address" required value={address} onChangeText={setAddress} placeholder="Street, Building, Area" multiline />
-              <SelectField label="State" required value={selectedState} onChange={(v) => { setSelectedState(v); setCity(''); }} options={STATES} />
-              <SelectField label="City" required value={city} onChange={setCity} options={selectedState ? LOCATION_DATA[selectedState] || [] : []} />
-              <Field label="Pincode" required value={pincode} onChangeText={setPincode} keyboardType="numeric" placeholder="E.g. 400001" />
+              <Field label="Building / Street Address" required value={address} onChangeText={setAddress} placeholder="Flat, Building, Street" multiline />
+              <SelectField label="State" required value={selectedState} onChange={(v) => { setSelectedState(v); setCity(''); setArea(''); }} options={STATES} />
+              <SelectField label="City" required value={city} onChange={(v) => { setCity(v); setArea(''); }} options={selectedState ? LOCATION_DATA[selectedState] || [] : []} />
+              {city && AREA_DATA[city] ? (
+                <SelectField label="Area" required value={area} onChange={setArea} options={AREA_DATA[city]} />
+              ) : (
+                <Field label="Area" value={area} onChangeText={setArea} placeholder="E.g. T. Nagar" />
+              )}
+              <Field label="Pincode" required value={pincode} onChangeText={setPincode} keyboardType="numeric" placeholder="E.g. 400001 (Auto-fetches based on Area)" />
               <Field label="Landmark" value={landmark} onChangeText={setLandmark} placeholder="E.g. Near Railway Station" />
             </SectionCard>
 

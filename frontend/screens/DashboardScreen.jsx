@@ -195,7 +195,7 @@ export default function DashboardScreen({ navigation }) {
           </View>
 
           {/* ── Clients slim banner ── */}
-          <TouchableOpacity onPress={() => navigation.navigate('Onboarding')} style={{
+          <TouchableOpacity onPress={() => navigation.navigate('ClientOnboarding')} style={{
             backgroundColor: '#0f172a', borderRadius: 16,
             paddingVertical: 12, paddingHorizontal: 16,
             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,

@@ -26,6 +26,10 @@ const followUpSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    reminderSent: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: ['Pending', 'Called', 'Visited', 'Completed', 'Cancelled', 'Call Not Picked Up', 'Client Busy', 'Other'],

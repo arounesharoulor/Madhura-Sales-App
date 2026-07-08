@@ -63,6 +63,10 @@ const meetingSchema = new mongoose.Schema(
     reminderAt: {
       type: Date, // When to send reminder notification
     },
+    reminderSent: {
+      type: Boolean,
+      default: false,
+    },
     meetingFollowUp: {
       type: String, // Follow-up notes set after meeting
     },
