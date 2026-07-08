@@ -10,24 +10,25 @@ const AddressText = ({ latitude, longitude }) => {
 
   useEffect(() => {
     let isMounted = true;
+    const fallbackCoords = latitude && longitude ? `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)}` : 'Not available yet';
+    
     if (latitude && longitude) {
       Location.reverseGeocodeAsync({ latitude, longitude })
         .then(result => {
           if (isMounted && result.length > 0) {
             const place = result[0];
             const addrParts = [place.name, place.street, place.subregion || place.district, place.city, place.region].filter(Boolean);
-            // Deduplicate parts like "Koramangala, Koramangala"
             const uniqueParts = [...new Set(addrParts)];
-            setAddress(uniqueParts.join(', ') || 'Address not found');
+            setAddress(uniqueParts.join(', ') || fallbackCoords);
           } else if (isMounted) {
-            setAddress('Address not found');
+            setAddress(fallbackCoords);
           }
         })
         .catch(() => {
-          if (isMounted) setAddress('Unable to fetch address');
+          if (isMounted) setAddress(fallbackCoords);
         });
     } else {
-      setAddress('Not available yet');
+      setAddress(fallbackCoords);
     }
     return () => { isMounted = false; };
   }, [latitude, longitude]);
