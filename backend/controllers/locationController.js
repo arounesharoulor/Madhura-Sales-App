@@ -83,7 +83,7 @@ exports.getLatestLocations = async (req, res, next) => {
       userQuery.manager = req.user.id;
     }
 
-    const executives = await User.find(userQuery).select('name email phone employeeId designation');
+    const executives = await User.find(userQuery).select('name email phone employeeId designation isLiveLocationShared');
     const execIds = executives.map(e => e._id);
 
     // Get latest location for each
@@ -103,6 +103,7 @@ exports.getLatestLocations = async (req, res, next) => {
             executivePhone: executiveInfo.phone,
             employeeId: executiveInfo.employeeId,
             designation: executiveInfo.designation,
+            isLiveLocationShared: executiveInfo.isLiveLocationShared,
           };
         }
         return {
@@ -112,6 +113,7 @@ exports.getLatestLocations = async (req, res, next) => {
           executivePhone: executiveInfo.phone,
           employeeId: executiveInfo.employeeId,
           designation: executiveInfo.designation,
+          isLiveLocationShared: executiveInfo.isLiveLocationShared,
           latitude: null,
           longitude: null,
           timestamp: null,

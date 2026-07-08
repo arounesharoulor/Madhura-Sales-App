@@ -272,6 +272,47 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
     return () => api.interceptors.response.eject(interceptor);
   }, [navigation]);
 
+  // Periodic location check and live sharing for employees
+  useEffect(() => {
+    const adminRoles = ['Admin', 'HR', 'Managing Director MD', 'Project Manager', 'Team Lead'];
+    if (!userRole || adminRoles.includes(userRole)) return;
+
+    const checkAndShareLocation = async () => {
+      try {
+        const storedVal = await AsyncStorage.getItem('@isLiveLocationShared');
+        const isShared = storedVal === null ? true : JSON.parse(storedVal);
+
+        const { status } = await Location.getForegroundPermissionsAsync();
+        const enabled = await Location.hasServicesEnabledAsync();
+        
+        if (status !== 'granted' || !enabled || !isShared) {
+          playNotificationSound('notification');
+          Alert.alert(
+            'Location Sharing Disabled',
+            'Live location tracking must remain ON during working hours. Please enable GPS and turn ON Live Location Sharing in your Attendance screen.',
+            [{ text: 'OK' }]
+          );
+        } else {
+          // Send location to the backend
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          await api.post('/locations', {
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude
+          });
+        }
+      } catch (error) {
+        // ignore errors silently
+      }
+    };
+
+    const initialCheck = setTimeout(checkAndShareLocation, 5000); // 5s startup delay
+    const interval = setInterval(checkAndShareLocation, 30000); // repeat every 30s
+    return () => {
+      clearTimeout(initialCheck);
+      clearInterval(interval);
+    };
+  }, [userRole]);
+
   const handleNav = (screen) => {
     if (width <= 768) setIsSidebarOpen(false);
     if (screen === 'Chat' || screen === 'TeamChat') setUnreadChat(0);

@@ -12,6 +12,7 @@ import {
   Modal,
   Platform,
   KeyboardAvoidingView,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -69,6 +70,7 @@ export default function AttendanceScreen() {
   const [earlyCheckoutReason, setEarlyCheckoutReason] = useState('');
   const [showEarlyModal, setShowEarlyModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLiveLocationShared, setIsLiveLocationShared] = useState(true);
 
   // Redirect Admins / Managers to the admin attendance screen on mount
   useEffect(() => {
@@ -80,7 +82,40 @@ export default function AttendanceScreen() {
         router.replace('/AdminAttendance');
       }
     });
+    
+    AsyncStorage.getItem('@isLiveLocationShared').then(v => {
+      if (v !== null) setIsLiveLocationShared(JSON.parse(v));
+    });
   }, []);
+
+  const toggleLiveLocation = async (newVal) => {
+    setIsLiveLocationShared(newVal);
+    await AsyncStorage.setItem('@isLiveLocationShared', JSON.stringify(newVal));
+
+    try {
+      await api.put('/users/profile', { isLiveLocationShared: newVal });
+    } catch (e) {
+      console.log('Failed to update live location status on server');
+    }
+
+    if (!newVal) {
+      try {
+        const stored = await AsyncStorage.getItem('user');
+        const user = stored ? JSON.parse(stored) : { name: 'An employee' };
+        
+        const { latitude, longitude } = await getCurrentLocation();
+        const locStr = latitude && longitude ? `Lat: ${Number(latitude).toFixed(4)}, Lng: ${Number(longitude).toFixed(4)}` : 'Location unavailable';
+        
+        await api.post('/notifications/admin', {
+          title: '🚫 Live Location Disabled',
+          message: `${user.name} has turned off their live location tracking.\nLast known location: ${locStr}`,
+          type: 'Warning',
+        });
+      } catch (err) {
+        // ignore
+      }
+    }
+  };
 
   // Tabs & Leave state
   const [activeTab, setActiveTab] = useState('Attendance');
@@ -455,6 +490,20 @@ export default function AttendanceScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+
+        {/* Live Location Toggle */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 }}>
+          <View>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0f172a' }}>Live Location Sharing</Text>
+            <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{isLiveLocationShared ? 'Your location is visible to Admin' : 'Location tracking is disabled'}</Text>
+          </View>
+          <Switch 
+            value={isLiveLocationShared} 
+            onValueChange={toggleLiveLocation} 
+            trackColor={{ false: '#cbd5e1', true: '#6ee7b7' }}
+            thumbColor={isLiveLocationShared ? '#059669' : '#f8fafc'}
+          />
+        </View>
 
         {/* Status Card */}
         <View style={[styles.statusCard, { borderLeftColor: statusColor }]}>

@@ -102,6 +102,10 @@ exports.updateProfile = async (req, res, next) => {
     user.designation = req.body.designation || user.designation;
     user.address = req.body.address || user.address;
 
+    if (req.body.isLiveLocationShared !== undefined) {
+      user.isLiveLocationShared = req.body.isLiveLocationShared;
+    }
+
     if (req.body.password) {
       user.password = req.body.password;
     }

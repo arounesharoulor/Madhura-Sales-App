@@ -3,6 +3,37 @@ import { View, Text, FlatList, TouchableOpacity, Alert, Linking } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
+import * as Location from 'expo-location';
+
+const AddressText = ({ latitude, longitude }) => {
+  const [address, setAddress] = useState('Fetching address...');
+
+  useEffect(() => {
+    let isMounted = true;
+    if (latitude && longitude) {
+      Location.reverseGeocodeAsync({ latitude, longitude })
+        .then(result => {
+          if (isMounted && result.length > 0) {
+            const place = result[0];
+            const addrParts = [place.name, place.street, place.subregion || place.district, place.city, place.region].filter(Boolean);
+            // Deduplicate parts like "Koramangala, Koramangala"
+            const uniqueParts = [...new Set(addrParts)];
+            setAddress(uniqueParts.join(', ') || 'Address not found');
+          } else if (isMounted) {
+            setAddress('Address not found');
+          }
+        })
+        .catch(() => {
+          if (isMounted) setAddress('Unable to fetch address');
+        });
+    } else {
+      setAddress('Not available yet');
+    }
+    return () => { isMounted = false; };
+  }, [latitude, longitude]);
+
+  return <Text style={{ color: '#334155', fontSize: 14, fontWeight: '500', marginTop: 2 }}>{address}</Text>;
+};
 
 export default function LiveLocationScreen({ navigation }) {
   const [locations, setLocations] = useState([]);
@@ -61,36 +92,46 @@ export default function LiveLocationScreen({ navigation }) {
               <Text style={{ color: '#94a3b8', fontSize: 14 }}>No live locations found yet.</Text>
             </View>
           )}
-          renderItem={({ item }) => (
-            <View style={{ marginBottom: 14, padding: 16, borderRadius: 18, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0', elevation: 2 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: '#0f172a', fontWeight: '800', fontSize: 15 }}>{item.executiveName || 'Unknown Executive'}</Text>
-                  <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>{item.executiveEmail || 'No email available'}</Text>
+          renderItem={({ item }) => {
+            const isDisabled = item.isLiveLocationShared === false;
+            return (
+              <View style={{ marginBottom: 14, padding: 16, borderRadius: 18, backgroundColor: isDisabled ? '#fff1f2' : '#fff', borderWidth: 1, borderColor: isDisabled ? '#fecaca' : '#e2e8f0', elevation: 2 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: '#0f172a', fontWeight: '800', fontSize: 15 }}>{item.executiveName || 'Unknown Executive'}</Text>
+                    <Text style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>{item.executiveEmail || 'No email available'}</Text>
+                    {isDisabled && (
+                      <Text style={{ color: '#e11d48', fontSize: 12, fontWeight: '700', marginTop: 4 }}>🚫 Location Disabled by Employee</Text>
+                    )}
+                  </View>
+                  <View style={{ borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: isDisabled ? '#fee2e2' : '#e0f2fe', borderWidth: 1, borderColor: isDisabled ? '#fca5a5' : '#bae6fd' }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', textTransform: 'uppercase', color: isDisabled ? '#ef4444' : '#0284c7' }}>{isDisabled ? 'Disabled' : (item.latitude && item.longitude ? 'Online' : 'No Signal')}</Text>
+                  </View>
                 </View>
-                <View style={{ borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#e0f2fe', borderWidth: 1, borderColor: '#bae6fd' }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', textTransform: 'uppercase', color: '#0284c7' }}>{item.latitude && item.longitude ? 'Online' : 'No Signal'}</Text>
-                </View>
-              </View>
 
-              <View style={{ marginBottom: 8 }}>
-                <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>Coordinates</Text>
-                <Text style={{ color: '#334155', fontSize: 14, fontWeight: '500', marginTop: 2 }}>{item.latitude ? `${item.latitude.toFixed(5)}, ${item.longitude.toFixed(5)}` : 'Not available yet'}</Text>
-              </View>
+                {!isDisabled && (
+                  <>
+                    <View style={{ marginBottom: 8 }}>
+                      <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>Current Location</Text>
+                      <AddressText latitude={item.latitude} longitude={item.longitude} />
+                    </View>
 
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>Last updated</Text>
-                <Text style={{ color: '#334155', fontSize: 14, fontWeight: '500', marginTop: 2 }}>{item.timestamp ? new Date(item.timestamp).toLocaleString() : 'No timestamp'}</Text>
-              </View>
+                    <View style={{ marginBottom: 12 }}>
+                      <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' }}>Last updated</Text>
+                      <Text style={{ color: '#334155', fontSize: 14, fontWeight: '500', marginTop: 2 }}>{item.timestamp ? new Date(item.timestamp).toLocaleString() : 'No timestamp'}</Text>
+                    </View>
 
-              <TouchableOpacity
-                onPress={() => openInMap(item.latitude, item.longitude)}
-                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12, backgroundColor: '#0ea5e9' }}
-              >
-                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>Open in Google Maps</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+                    <TouchableOpacity
+                      onPress={() => openInMap(item.latitude, item.longitude)}
+                      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12, backgroundColor: '#0ea5e9' }}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>Open in Google Maps</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            );
+          }}
         />
       </View>
     </AppLayout>

@@ -13,13 +13,42 @@ import api from '../api/api';
 const BUSINESS_TYPES = ['Retailer', 'Distributor', 'Wholesaler', 'Dealer', 'Corporate', 'Other'];
 
 const LOCATION_DATA = {
-  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane"],
-  "Karnataka": ["Bangalore", "Mysore", "Hubli", "Mangalore"],
-  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Trichy"],
-  "Delhi": ["New Delhi", "North Delhi", "South Delhi"],
-  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot"],
-  "Telangana": ["Hyderabad", "Warangal", "Nizamabad"],
-  "Kerala": ["Kochi", "Thiruvananthapuram", "Kozhikode"],
+  "Andaman and Nicobar Islands": ["Port Blair"],
+  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Tirupati", "Rajahmundry", "Kakinada"],
+  "Arunachal Pradesh": ["Itanagar", "Tawang", "Ziro", "Pasighat"],
+  "Assam": ["Guwahati", "Silchar", "Dibrugarh", "Jorhat", "Nagaon", "Tinsukia"],
+  "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia", "Darbhanga"],
+  "Chandigarh": ["Chandigarh"],
+  "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba", "Durg", "Rajnandgaon"],
+  "Dadra and Nagar Haveli and Daman and Diu": ["Daman", "Diu", "Silvassa"],
+  "Delhi": ["New Delhi", "North Delhi", "South Delhi", "Central Delhi", "East Delhi", "West Delhi"],
+  "Goa": ["Panaji", "Margao", "Vasco da Gama", "Mapusa", "Ponda"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Gandhinagar"],
+  "Haryana": ["Faridabad", "Gurugram", "Panipat", "Ambala", "Rohtak", "Hisar", "Karnal"],
+  "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala", "Solan", "Mandi", "Palampur"],
+  "Jammu and Kashmir": ["Srinagar", "Jammu", "Anantnag", "Baramulla", "Kathua"],
+  "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Deoghar", "Hazaribagh"],
+  "Karnataka": ["Bangalore", "Mysore", "Hubli", "Mangalore", "Belagavi", "Gulbarga", "Davanagere"],
+  "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha"],
+  "Ladakh": ["Leh", "Kargil"],
+  "Lakshadweep": ["Kavaratti", "Minicoy", "Agatti"],
+  "Madhya Pradesh": ["Bhopal", "Indore", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Rewa"],
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Aurangabad", "Solapur", "Amravati"],
+  "Manipur": ["Imphal", "Churachandpur", "Thoubal"],
+  "Meghalaya": ["Shillong", "Tura", "Jowai"],
+  "Mizoram": ["Aizawl", "Lunglei", "Champhai"],
+  "Nagaland": ["Kohima", "Dimapur", "Mokokchung"],
+  "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Puri", "Berhampur", "Sambalpur"],
+  "Puducherry": ["Puducherry", "Auroville", "Karaikal", "Mahe", "Yanam"],
+  "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Hoshiarpur"],
+  "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer", "Bikaner", "Bhilwara"],
+  "Sikkim": ["Gangtok", "Namchi", "Gyalshing"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Trichy", "Salem", "Tirunelveli", "Tiruppur", "Vellore"],
+  "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Ramagundam"],
+  "Tripura": ["Agartala", "Dharmanagar", "Udaipur"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Noida", "Prayagraj", "Meerut", "Bareilly", "Aligarh"],
+  "Uttarakhand": ["Dehradun", "Haridwar", "Roorkee", "Rishikesh", "Haldwani", "Kashipur"],
+  "West Bengal": ["Kolkata", "Asansol", "Siliguri", "Durgapur", "Bardhaman", "Malda", "Kharagpur"]
 };
 const STATES = Object.keys(LOCATION_DATA);
 
@@ -242,6 +271,28 @@ export default function ClientOnboardingScreen({ navigation }) {
     };
     load();
   }, []);
+
+  // Fetch Pincode automatically based on Address
+  useEffect(() => {
+    const fetchPincode = async () => {
+      if (address && address.length > 5) {
+        try {
+          const result = await Location.geocodeAsync(address);
+          if (result.length > 0) {
+            const { latitude, longitude } = result[0];
+            const reverse = await Location.reverseGeocodeAsync({ latitude, longitude });
+            if (reverse.length > 0 && reverse[0].postalCode) {
+              setPincode(reverse[0].postalCode);
+            }
+          }
+        } catch (e) {
+          // ignore geocoding errors silently
+        }
+      }
+    };
+    const timeoutId = setTimeout(fetchPincode, 2000);
+    return () => clearTimeout(timeoutId);
+  }, [address]);
 
   const fetchClients = async () => {
     try {
@@ -551,9 +602,34 @@ export default function ClientOnboardingScreen({ navigation }) {
                   </Text>
                 </TouchableOpacity>
                 {coords && (
-                  <Text style={{ fontSize: 11, color: '#64748b', textAlign: 'center', marginTop: 8 }}>
-                    {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
-                  </Text>
+                  <View style={{ marginTop: 12 }}>
+                    <Text style={{ fontSize: 11, color: '#64748b', textAlign: 'center', marginBottom: 8 }}>
+                      {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
+                    </Text>
+                    {Platform.OS === 'web' ? (
+                      <iframe
+                        width="100%"
+                        height="200"
+                        style={{ border: 0, borderRadius: 14 }}
+                        loading="lazy"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://www.google.com/maps?q=${coords.latitude},${coords.longitude}&z=14&output=embed`}
+                      ></iframe>
+                    ) : (
+                      <TouchableOpacity 
+                        onPress={() => {
+                          const url = `https://www.google.com/maps/search/?api=1&query=${coords.latitude},${coords.longitude}`;
+                          import('react-native').then(({ Linking }) => {
+                            Linking.openURL(url).catch(() => Alert.alert('Unable to open maps', 'Please open your map app manually.'));
+                          });
+                        }}
+                        style={{ padding: 12, backgroundColor: '#e0f2fe', borderRadius: 12, alignItems: 'center' }}
+                      >
+                        <Text style={{ color: '#0284c7', fontSize: 13, fontWeight: '700' }}>View on Google Maps</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 )}
               </View>
             </SectionCard>

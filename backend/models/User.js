@@ -61,6 +61,10 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isLiveLocationShared: {
+      type: Boolean,
+      default: true,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     // Tracks the currently active session — only one device at a time
