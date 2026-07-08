@@ -12,6 +12,22 @@ const AddressText = ({ latitude, longitude }) => {
     let isMounted = true;
     const fallbackCoords = latitude && longitude ? `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)}` : 'Not available yet';
     
+    const fetchOSMAddress = async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const data = await res.json();
+        if (isMounted && data && data.display_name) {
+          // Take first 3-4 parts of the address for readability
+          const parts = data.display_name.split(',').map(p => p.trim()).slice(0, 4).join(', ');
+          setAddress(parts);
+        } else if (isMounted) {
+          setAddress(fallbackCoords);
+        }
+      } catch (err) {
+        if (isMounted) setAddress(fallbackCoords);
+      }
+    };
+
     if (latitude && longitude) {
       Location.reverseGeocodeAsync({ latitude, longitude })
         .then(result => {
@@ -19,13 +35,18 @@ const AddressText = ({ latitude, longitude }) => {
             const place = result[0];
             const addrParts = [place.name, place.street, place.subregion || place.district, place.city, place.region].filter(Boolean);
             const uniqueParts = [...new Set(addrParts)];
-            setAddress(uniqueParts.join(', ') || fallbackCoords);
-          } else if (isMounted) {
-            setAddress(fallbackCoords);
+            const formatted = uniqueParts.join(', ');
+            if (formatted.length > 0) {
+              setAddress(formatted);
+            } else {
+              fetchOSMAddress();
+            }
+          } else {
+            fetchOSMAddress();
           }
         })
         .catch(() => {
-          if (isMounted) setAddress(fallbackCoords);
+          fetchOSMAddress();
         });
     } else {
       setAddress(fallbackCoords);

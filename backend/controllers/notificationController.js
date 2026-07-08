@@ -133,8 +133,9 @@ exports.notifyAdmins = async (req, res, next) => {
   try {
     const { title, message, type } = req.body;
 
-    // Find all admins
-    const admins = await User.find({ role: 'Admin', isActive: true }).select('_id');
+    // Find all admins (including HR, MD, PM, etc.)
+    const adminRoles = ['Admin', 'Manager', 'HR', 'Managing Director MD', 'Project Manager', 'Team Lead'];
+    const admins = await User.find({ role: { $in: adminRoles }, isActive: true }).select('_id');
     const adminIds = admins.map((a) => a._id);
 
     if (adminIds.length === 0) {
