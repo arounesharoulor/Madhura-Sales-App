@@ -16,7 +16,7 @@ router.route('/')
   .post(createFollowUp)
   .get(getFollowUps);
 
-router.put('/:id/assign', authorize('Admin'), assignFollowUp);
+router.put('/:id/assign', authorize('Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'), assignFollowUp);
 router.put('/:id/status', upload.single('attachment'), updateFollowUpStatus);
 router.get('/:id/attachment', getFollowUpAttachment);
 

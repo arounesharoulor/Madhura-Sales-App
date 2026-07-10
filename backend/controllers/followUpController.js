@@ -116,7 +116,8 @@ exports.assignFollowUp = async (req, res, next) => {
     const followUp = await FollowUp.findById(req.params.id);
     if (!followUp) { res.status(404); throw new Error('Follow-up not found'); }
 
-    if (req.user.role !== 'Admin') { res.status(403); throw new Error('Only admins can assign follow-ups'); }
+    const isAdmin = ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(req.user.role);
+    if (!isAdmin) { res.status(403); throw new Error('Only admins can assign follow-ups'); }
 
     if (assignedTo) {
       followUp.assignedTo = assignedTo;
