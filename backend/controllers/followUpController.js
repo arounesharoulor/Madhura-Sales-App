@@ -20,9 +20,11 @@ exports.createFollowUp = async (req, res, next) => {
   try {
     const { clientName, companyName, notes, followUpDate, meeting, priority, assignedTo } = req.body;
 
+    const isAdmin = ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(req.user.role);
+    
     // If Admin is creating, they must provide assignedTo.
     // If Employee is creating, executive is themselves.
-    const executiveId = req.user.role === 'Admin' ? assignedTo : req.user.id;
+    const executiveId = isAdmin ? assignedTo : req.user.id;
 
     if (!executiveId) {
       res.status(400);
@@ -31,9 +33,9 @@ exports.createFollowUp = async (req, res, next) => {
 
     const followUp = await FollowUp.create({
       executive: executiveId,
-      assignedTo: req.user.role === 'Admin' ? assignedTo : null,
-      assignedByAdmin: req.user.role === 'Admin' ? req.user.id : null,
-      assignedAt: req.user.role === 'Admin' ? new Date() : null,
+      assignedTo: isAdmin ? assignedTo : null,
+      assignedByAdmin: isAdmin ? req.user.id : null,
+      assignedAt: isAdmin ? new Date() : null,
       meeting: meeting || undefined,
       clientName,
       companyName,
@@ -43,7 +45,7 @@ exports.createFollowUp = async (req, res, next) => {
     });
 
     // Notify the assigned employee if created by admin
-    if (req.user.role === 'Admin' && assignedTo) {
+    if (isAdmin && assignedTo) {
       try {
         const notif = await Notification.create({
           recipient: assignedTo,

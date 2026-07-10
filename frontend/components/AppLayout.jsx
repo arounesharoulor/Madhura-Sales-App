@@ -66,7 +66,6 @@ const allAdminNavSections = [
       { title: 'Client Onboarding', screen: 'ClientOnboarding',         icon: 'briefcase-outline', iconActive: 'briefcase' },
       { title: 'Log Client Visit',  screen: 'Meeting',                  icon: 'location-outline',  iconActive: 'location' },
       { title: 'Follow-up Mgmt',    screen: 'AdminFollowupManagement',  icon: 'alarm-outline',     iconActive: 'alarm' },
-      { title: 'Work Updates',      screen: 'WorkUpdate',               icon: 'document-text-outline', iconActive: 'document-text' },
     ],
   },
   {
