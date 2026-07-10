@@ -24,9 +24,16 @@ export const playNotificationSound = async (type = 'notification') => {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
+      
+      // Crucial for Web: resume context if it's suspended due to autoplay policies
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+      
       const notes = type === 'chat'
         ? [{ freq: 1046, start: 0, dur: 0.12 }, { freq: 784, start: 0.14, dur: 0.16 }]
         : [{ freq: 880, start: 0, dur: 0.14 }, { freq: 1046, start: 0.16, dur: 0.18 }];
+        
       notes.forEach(({ freq, start, dur }) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();

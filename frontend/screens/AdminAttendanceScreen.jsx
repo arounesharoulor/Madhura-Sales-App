@@ -195,10 +195,16 @@ export default function AdminAttendanceScreen() {
     setActionLoading(record._id);
     try {
       await api.put(`/attendance/${record._id}/approve`);
-      Alert.alert('✅ Approved', `Attendance for ${record.executive?.name} approved successfully.`);
+      const isLeave = record.status === 'Pending Leave' || record.leaveStatus === 'Pending' || record.leaveStatus === 'Held';
+      const actionName = isLeave ? 'Leave' : 'Attendance';
+      Toast.show({
+        type: 'success',
+        text1: `✅ ${actionName} Approved`,
+        text2: `${actionName} for ${record.executive?.name} approved successfully.`,
+      });
       fetchAttendance();
     } catch (e) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not approve.');
+      Toast.show({ type: 'error', text1: 'Error', text2: e?.response?.data?.message || 'Could not approve.' });
     } finally { setActionLoading(null); }
   };
 
@@ -207,10 +213,14 @@ export default function AdminAttendanceScreen() {
     setActionLoading(record._id);
     try {
       await api.put(`/attendance/${record._id}/hold`);
-      Alert.alert('⏸️ Held in Queue', `Request for ${record.executive?.name} moved to queue.`);
+      Toast.show({
+        type: 'info',
+        text1: '⏸️ Held in Queue',
+        text2: `Request for ${record.executive?.name} moved to queue.`,
+      });
       fetchAttendance();
     } catch (e) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not put on hold.');
+      Toast.show({ type: 'error', text1: 'Error', text2: e?.response?.data?.message || 'Could not put on hold.' });
     } finally { setActionLoading(null); }
   };
 
@@ -229,10 +239,16 @@ export default function AdminAttendanceScreen() {
     setRejectModal(false);
     try {
       await api.put(`/attendance/${selectedRecord._id}/reject`, { feedback: reason });
-      Alert.alert('❌ Rejected', `Attendance for ${selectedRecord.executive?.name} rejected.`);
+      const isLeave = selectedRecord.status === 'Pending Leave' || selectedRecord.leaveStatus === 'Pending' || selectedRecord.leaveStatus === 'Held';
+      const actionName = isLeave ? 'Leave' : 'Attendance';
+      Toast.show({
+        type: 'error',
+        text1: `❌ ${actionName} Rejected`,
+        text2: `${actionName} for ${selectedRecord.executive?.name} rejected.`,
+      });
       fetchAttendance();
     } catch (e) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not reject.');
+      Toast.show({ type: 'error', text1: 'Error', text2: e?.response?.data?.message || 'Could not reject.' });
     } finally { setActionLoading(null); }
   };
 

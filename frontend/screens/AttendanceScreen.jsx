@@ -206,7 +206,7 @@ export default function AttendanceScreen() {
       await api.post('/attendance/leave', { leaveType, leaveReason: fullReason, leaveDate });
       Toast.show({
         type: 'success',
-        text1: '🌿 Leave Request Submitted',
+        text1: '☂️ Leave Request Submitted',
         text2: 'Your leave request has been sent to the Admin for approval.',
         visibilityTime: 5000,
       });
