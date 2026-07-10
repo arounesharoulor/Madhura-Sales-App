@@ -453,7 +453,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                       (item.screen === 'Meeting') ? unreadMeetings : 0;
                     return (
                       <TouchableOpacity
-                        key={item.screen}
+                        key={item.title}
                         onPress={() => handleNav(item.screen)}
                         style={[styles.navItem, isActive && styles.navItemActive]}
                         activeOpacity={0.75}

@@ -58,7 +58,12 @@ export default function RegisterScreen() {
         const userStr = await AsyncStorage.getItem('user');
         if (token && userStr) {
           const user = JSON.parse(userStr);
-          router.replace(user.role === 'Admin' ? '/AdminDashboard' : '/Dashboard');
+          const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+          if (adminRoles.includes(user.role)) {
+            router.replace('/AdminDashboard');
+          } else {
+            router.replace('/Dashboard');
+          }
         }
       } catch (_) {}
     })();
