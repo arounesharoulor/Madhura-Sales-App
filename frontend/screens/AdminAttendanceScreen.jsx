@@ -61,6 +61,7 @@ export default function AdminAttendanceScreen() {
   const [actionLoading, setActionLoading] = useState(null); // record id
   const [isExporting, setIsExporting] = useState(false);
   const [userRole, setUserRole] = useState('');
+  const [expandedTimelines, setExpandedTimelines] = useState({});
 
   // Live locations
   const [locations, setLocations] = useState([]);
@@ -437,19 +438,30 @@ export default function AdminAttendanceScreen() {
             
             {/* ── Employee Timeline ── */}
             {item.timeline && item.timeline.length > 0 ? (
-              <View style={[styles.infoBox, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', marginTop: 12 }]}>
-                <Text style={styles.infoLabel}>🕒 Daily Timeline</Text>
-                {item.timeline.map((event, idx) => (
-                  <View key={idx} style={{ flexDirection: 'row', marginTop: 8 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', width: 65, marginTop: 1 }}>
-                      {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                    <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>{event.type}</Text>
-                      <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
-                    </View>
+              <View style={[styles.infoBox, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', marginTop: 12, padding: 0, overflow: 'hidden' }]}>
+                <TouchableOpacity 
+                  onPress={() => setExpandedTimelines(prev => ({ ...prev, [item._id]: !prev[item._id] }))}
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12, backgroundColor: '#f1f5f9' }}
+                >
+                  <Text style={[styles.infoLabel, { marginBottom: 0 }]}>🕒 Daily Timeline ({item.timeline.length})</Text>
+                  <Ionicons name={expandedTimelines[item._id] ? 'chevron-up' : 'chevron-down'} size={18} color="#64748b" />
+                </TouchableOpacity>
+
+                {expandedTimelines[item._id] && (
+                  <View style={{ padding: 12, paddingTop: 4 }}>
+                    {item.timeline.map((event, idx) => (
+                      <View key={idx} style={{ flexDirection: 'row', marginTop: 8 }}>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', width: 65, marginTop: 1 }}>
+                          {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                        <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>{event.type}</Text>
+                          <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
+                        </View>
+                      </View>
+                    ))}
                   </View>
-                ))}
+                )}
               </View>
             ) : null}
 

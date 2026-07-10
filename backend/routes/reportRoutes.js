@@ -5,7 +5,8 @@ const {
   getReports,
   downloadReportExcel,
   sendReportEmail,
-  generateCustomReport
+  generateCustomReport,
+  updateReport
 } = require('../controllers/reportController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -17,6 +18,7 @@ router.route('/')
 
 router.get('/:id/download', downloadReportExcel);
 router.post('/custom-download', generateCustomReport);
-router.post('/:id/send-email', authorize('Admin'), sendReportEmail);
+router.put('/:id', updateReport);
+router.post('/:id/send-email', authorize('Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'), sendReportEmail);
 
 module.exports = router;

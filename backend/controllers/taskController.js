@@ -230,6 +230,17 @@ exports.updateTaskStatus = async (req, res, next) => {
     task.updates.push(newUpdate);
     await task.save();
 
+    // Log to attendance timeline if completed
+    if (status === 'Completed') {
+      const { addTimelineEvent } = require('./attendanceController');
+      await addTimelineEvent(
+        task.assignedTo,
+        'Task Completed',
+        `Finished task: "${task.title}"`,
+        req.user.id
+      );
+    }
+
     // Create a database notification
     const notificationTitle = status === 'Completed' ? 'Task Completed' : 'Task Update';
     const notificationMsg = status === 'Completed'

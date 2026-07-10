@@ -157,6 +157,7 @@ export default function ReportsScreen({ navigation }) {
   const [expandedReportId, setExpandedReportId] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
   const [emailModalReport, setEmailModalReport] = useState(null);
+  const [editingReportId, setEditingReportId] = useState(null);
 
   const [title, setTitle] = useState('');
   const [type, setType] = useState('Weekly');
@@ -249,6 +250,15 @@ export default function ReportsScreen({ navigation }) {
         autoSummary += `- ${new Date(m.meetingDate).toLocaleDateString('en-IN')}: ${m.purpose || 'Meeting'} (Status: ${m.status})\n`;
       });
     }
+
+    const uniqueEmployees = [...new Set([
+      ...clientFollowups.map(f => f.executive?.name || f.executive),
+      ...clientMeetings.map(m => m.executive?.name || m.executive)
+    ])].filter(Boolean);
+
+    if (uniqueEmployees.length > 0) {
+      autoSummary += `\n[Employees Involved]\n- ${uniqueEmployees.join(', ')}\n`;
+    }
     
     if (!manualSummary.trim() || manualSummary.startsWith('Report Summary for')) {
       setManualSummary(autoSummary);
@@ -262,7 +272,7 @@ export default function ReportsScreen({ navigation }) {
     }
     setLoading(true);
     try {
-      await api.post('/reports', { 
+      const payload = { 
         title, type, startDate, endDate,
         clientId: selectedClient ? selectedClient._id : null,
         customClientName: manualClient,
@@ -270,18 +280,43 @@ export default function ReportsScreen({ navigation }) {
         customSummary: manualSummary,
         customNextSteps: manualNextSteps,
         customQuotes: manualQuotes
-      });
-      Alert.alert('Success', 'Report successfully generated!');
+      };
+
+      if (editingReportId) {
+        await api.put(`/reports/${editingReportId}`, payload);
+        Alert.alert('Success', 'Report successfully updated!');
+      } else {
+        await api.post('/reports', payload);
+        Alert.alert('Success', 'Report successfully generated!');
+      }
+
       setTitle(''); setStartDate(''); setEndDate(''); setType('Weekly');
       setManualClient(''); setManualProject(''); setManualSummary(''); setManualNextSteps(''); setManualQuotes('');
       setSelectedClient(null);
+      setEditingReportId(null);
       setShowAddForm(false);
       fetchReports();
     } catch (e) {
-      Alert.alert('Error', 'Failed to generate report.');
+      Alert.alert('Error', 'Failed to save report.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditClick = (report) => {
+    setEditingReportId(report._id);
+    setTitle(report.title || '');
+    setType(report.type || 'Weekly');
+    setStartDate(report.startDate ? new Date(report.startDate).toISOString().split('T')[0] : '');
+    setEndDate(report.endDate ? new Date(report.endDate).toISOString().split('T')[0] : '');
+    setManualClient(report.customClientName || '');
+    setManualProject(report.customProjectName || '');
+    setManualSummary(report.customSummary || '');
+    setManualNextSteps(report.customNextSteps || '');
+    setManualQuotes(report.customQuotes || '');
+    setShowAddForm(true);
+    
+    // Scroll up (assuming manual scroll by user, but UI will open form)
   };
 
   const handleDownload = async (item) => {
@@ -425,9 +460,21 @@ export default function ReportsScreen({ navigation }) {
             <View style={{ backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: '#e2e8f0', padding: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}>
               
               <View style={{ backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: '#0284c7' }}>
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>Automated Report Generation</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>
+                    {editingReportId ? 'Edit Report' : 'Automated Report Generation'}
+                  </Text>
+                  {editingReportId && (
+                    <TouchableOpacity onPress={() => {
+                      setEditingReportId(null);
+                      setTitle(''); setManualClient(''); setManualProject(''); setManualSummary(''); setManualNextSteps(''); setManualQuotes('');
+                    }}>
+                      <Text style={{ fontSize: 11, color: '#ef4444', fontWeight: '700' }}>Cancel Edit</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
                 <Text style={{ fontSize: 12, color: '#64748b', lineHeight: 18 }}>
-                  This tool instantly compiles all executive activities, client meetings, follow-ups, and task completions within the selected date range.
+                  {editingReportId ? 'Update details for this report.' : 'This tool instantly compiles all executive activities, client meetings, follow-ups, and task completions within the selected date range.'}
                 </Text>
               </View>
 
@@ -550,7 +597,11 @@ export default function ReportsScreen({ navigation }) {
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {reports.length} Report{reports.length !== 1 ? 's' : ''}
               </Text>
-              <TouchableOpacity onPress={() => setShowAddForm(true)} style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <TouchableOpacity onPress={() => {
+                setEditingReportId(null);
+                setTitle(''); setManualClient(''); setManualProject(''); setManualSummary(''); setManualNextSteps(''); setManualQuotes('');
+                setShowAddForm(true);
+              }} style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Ionicons name="add" size={16} color="#fff" />
                 <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>Generate</Text>
               </TouchableOpacity>
@@ -617,7 +668,7 @@ export default function ReportsScreen({ navigation }) {
                           </TouchableOpacity>
 
                           {/* Send to Client (Admin only) */}
-                          {role === 'Admin' && (
+                          {['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) && (
                             <TouchableOpacity
                               onPress={(e) => { e.stopPropagation?.(); setEmailModalReport(item); }}
                               style={{ backgroundColor: '#eff6ff', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#bfdbfe' }}
@@ -627,8 +678,19 @@ export default function ReportsScreen({ navigation }) {
                             </TouchableOpacity>
                           )}
 
+                          {/* Edit Report (Admin only) */}
+                          {['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) && (
+                            <TouchableOpacity
+                              onPress={(e) => { e.stopPropagation?.(); handleEditClick(item); }}
+                              style={{ backgroundColor: '#fffbeb', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#fde68a' }}
+                            >
+                              <Ionicons name="create-outline" size={14} color="#d97706" />
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#d97706' }}>Edit</Text>
+                            </TouchableOpacity>
+                          )}
+
                           {/* Report Issue (Admin) */}
-                          {role === 'Admin' && item.generatedBy?._id && (
+                          {['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) && item.generatedBy?._id && (
                             <TouchableOpacity
                               onPress={(e) => { e.stopPropagation?.(); router.push({ pathname: '/Chat', params: { partnerId: item.generatedBy._id, partnerName: item.generatedBy.name } }); }}
                               style={{ backgroundColor: '#fef2f2', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#fecdd3' }}

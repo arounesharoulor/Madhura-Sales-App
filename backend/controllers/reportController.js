@@ -110,6 +110,23 @@ exports.generateReport = async (req, res, next) => {
       customQuotes,
     });
 
+    if (req.user.role === 'Field Executive') {
+      const Notification = require('../models/Notification');
+      const admins = await User.find({ role: { $in: ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'] }, isActive: true }).select('_id');
+      await Promise.all(
+        admins.map(async (admin) => {
+          const notif = await Notification.create({
+            recipient: admin._id,
+            sender: req.user.id,
+            title: 'New Report Submitted',
+            message: `${req.user.name} submitted a new report: ${title}.`,
+            type: 'Task',
+          });
+          if (req.io) req.io.to(admin._id.toString()).emit('notification', notif);
+        })
+      );
+    }
+
     res.status(201).json({ success: true, data: report });
   } catch (error) {
     next(error);
@@ -130,6 +147,36 @@ exports.getReports = async (req, res, next) => {
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, count: reports.length, data: reports });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Update a report (Admin can edit employee reports)
+// @route   PUT /api/reports/:id
+// @access  Private
+exports.updateReport = async (req, res, next) => {
+  try {
+    const { title, type, customClientName, customProjectName, customSummary, customNextSteps, customQuotes } = req.body;
+    
+    let report = await Report.findById(req.params.id);
+    if (!report) { res.status(404); throw new Error('Report not found'); }
+    
+    const isAdmin = ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(req.user.role);
+    if (!isAdmin && report.generatedBy.toString() !== req.user.id) {
+      res.status(403); throw new Error('Not authorized to update this report');
+    }
+
+    if (title) report.title = title;
+    if (type) report.type = type;
+    if (customClientName !== undefined) report.customClientName = customClientName;
+    if (customProjectName !== undefined) report.customProjectName = customProjectName;
+    if (customSummary !== undefined) report.customSummary = customSummary;
+    if (customNextSteps !== undefined) report.customNextSteps = customNextSteps;
+    if (customQuotes !== undefined) report.customQuotes = customQuotes;
+    
+    await report.save();
+    res.status(200).json({ success: true, data: report });
   } catch (error) {
     next(error);
   }

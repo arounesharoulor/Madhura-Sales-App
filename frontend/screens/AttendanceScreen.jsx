@@ -60,6 +60,57 @@ const STATUS_ICONS = {
   None: 'calendar-outline',
 };
 
+// Cross-platform DatePicker
+function CrossPlatformDatePicker({ value, onChange }) {
+  const [showNative, setShowNative] = useState(false);
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 12, paddingHorizontal: 14, minHeight: 48, marginBottom: 12 }}>
+        <Ionicons name="calendar-outline" size={20} color="#0284c7" style={{ marginRight: 10 }} />
+        <input
+          type="date"
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: value ? '#0f172a' : '#94a3b8', fontFamily: 'inherit', cursor: 'pointer' }}
+        />
+      </View>
+    );
+  }
+
+  const DateTimePicker = require('@react-native-community/datetimepicker').default;
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <TouchableOpacity
+        onPress={() => setShowNative(true)}
+        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 12, paddingHorizontal: 14, minHeight: 48 }}
+      >
+        <Ionicons name="calendar-outline" size={20} color="#0284c7" style={{ marginRight: 10 }} />
+        <Text style={{ flex: 1, fontSize: 13, color: value ? '#0f172a' : '#94a3b8' }}>
+          {value ? (() => {
+            try {
+              const d = new Date(value + 'T00:00:00');
+              return isNaN(d.getTime()) ? 'Select Date' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch { return 'Select Date'; }
+          })() : 'Select Date'}
+        </Text>
+        <Ionicons name="chevron-down" size={16} color="#64748b" />
+      </TouchableOpacity>
+      {showNative && (
+        <DateTimePicker
+          value={value ? new Date(value + 'T00:00:00') : new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={(_, selectedDate) => {
+            setShowNative(false);
+            if (selectedDate) onChange(selectedDate.toISOString().split('T')[0]);
+          }}
+        />
+      )}
+    </View>
+  );
+}
+
 export default function AttendanceScreen() {
   const router = useRouter();
   const [todayRecord, setTodayRecord] = useState(null);
@@ -71,6 +122,7 @@ export default function AttendanceScreen() {
   const [showEarlyModal, setShowEarlyModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLiveLocationShared, setIsLiveLocationShared] = useState(true);
+  const [showTimeline, setShowTimeline] = useState(false);
 
   // Redirect Admins / Managers to the admin attendance screen on mount
   useEffect(() => {
@@ -119,6 +171,7 @@ export default function AttendanceScreen() {
 
   // Tabs & Leave state
   const [activeTab, setActiveTab] = useState('Attendance');
+  const [leaveDate, setLeaveDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [leaveType, setLeaveType] = useState('');
   const [leaveCriteria, setLeaveCriteria] = useState('');
   const [leaveReason, setLeaveReason] = useState('');
@@ -150,7 +203,7 @@ export default function AttendanceScreen() {
     setSubmitting(true);
     try {
       const fullReason = `[${leaveCriteria}] ${leaveReason.trim()}`;
-      await api.post('/attendance/leave', { leaveType, leaveReason: fullReason });
+      await api.post('/attendance/leave', { leaveType, leaveReason: fullReason, leaveDate });
       Toast.show({
         type: 'success',
         text1: '🌿 Leave Request Submitted',
@@ -541,19 +594,30 @@ export default function AttendanceScreen() {
           
           {/* Employee Timeline */}
           {todayRecord && todayRecord.timeline && todayRecord.timeline.length > 0 && (
-            <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#e2e8f0' }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569', marginBottom: 12 }}>🕒 Daily Timeline</Text>
-              {todayRecord.timeline.map((event, idx) => (
-                <View key={idx} style={{ flexDirection: 'row', marginBottom: 10 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', width: 60, marginTop: 1 }}>
-                    {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                  <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155' }}>{event.type}</Text>
-                    <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
-                  </View>
+            <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#e2e8f0', overflow: 'hidden' }}>
+              <TouchableOpacity 
+                onPress={() => setShowTimeline(!showTimeline)}
+                style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', padding: 12, borderRadius: 8 }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>🕒 Daily Timeline ({todayRecord.timeline.length})</Text>
+                <Ionicons name={showTimeline ? 'chevron-up' : 'chevron-down'} size={18} color="#64748b" />
+              </TouchableOpacity>
+
+              {showTimeline && (
+                <View style={{ padding: 12 }}>
+                  {todayRecord.timeline.map((event, idx) => (
+                    <View key={idx} style={{ flexDirection: 'row', marginBottom: 10 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', width: 60, marginTop: 1 }}>
+                        {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                      <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155' }}>{event.type}</Text>
+                        <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
+                      </View>
+                    </View>
+                  ))}
                 </View>
-              ))}
+              )}
             </View>
           )}
         </View>
@@ -778,6 +842,9 @@ export default function AttendanceScreen() {
               </Text>
             </View>
           </View>
+
+          <Text style={styles.sectionTitle}>Leave Date *</Text>
+          <CrossPlatformDatePicker value={leaveDate} onChange={setLeaveDate} />
 
           <Text style={styles.sectionTitle}>Leave Type *</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>

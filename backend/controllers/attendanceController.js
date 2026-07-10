@@ -34,6 +34,20 @@ const emitAttendanceUpdate = async (io, payload) => {
   }
 };
 
+// Helper: Add timeline event to today's attendance for an executive
+exports.addTimelineEvent = async (executiveId, type, description, performedBy) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const attendance = await Attendance.findOne({ executive: executiveId, date: today });
+    if (attendance) {
+      attendance.timeline.push({ type, time: new Date(), description, performedBy });
+      await attendance.save();
+    }
+  } catch (err) {
+    console.error('Failed to add timeline event:', err.message);
+  }
+};
+
 // @desc    Check in for today
 // @route   POST /api/attendance/checkin
 // @access  Private/FieldExecutive
@@ -255,27 +269,27 @@ exports.getAllAttendance = async (req, res, next) => {
 // @access  Private/FieldExecutive
 exports.requestLeave = async (req, res, next) => {
   try {
-    const { leaveType, leaveReason } = req.body;
+    const { leaveType, leaveReason, leaveDate } = req.body;
 
     if (!leaveType || !leaveReason) {
       res.status(400);
       throw new Error('Leave type and reason are required');
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const targetDate = leaveDate || new Date().toISOString().split('T')[0];
 
-    const existing = await Attendance.findOne({ executive: req.user.id, date: today });
+    const existing = await Attendance.findOne({ executive: req.user.id, date: targetDate });
     if (existing) {
       return res.status(400).json({
         success: false,
-        message: 'You have already submitted attendance/leave request for today.',
+        message: `You have already submitted an attendance or leave request for ${targetDate}.`,
         data: existing,
       });
     }
 
     const attendance = await Attendance.create({
       executive: req.user.id,
-      date: today,
+      date: targetDate,
       status: 'Pending Leave',
       leaveStatus: 'Pending',
       leaveType,

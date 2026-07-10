@@ -106,42 +106,63 @@ export default function WorkUpdateScreen({ navigation }) {
 
   const handleClientSelect = (client) => {
     setSelectedClient(client);
+
+    let autoNotes = '';
+
     if (!client) {
-      setNotes('');
-      return;
-    }
-    
-    // Auto-fetch followups and meetings for selected client
-    const clientFollowups = allFollowups.filter(f => 
-      f.clientName === client.ownerName || 
-      f.companyName === client.businessName || 
-      f.companyName === client.companyName
-    );
-    
-    const clientMeetings = allMeetings.filter(m => 
-      m.clientName === client.ownerName || 
-      m.companyName === client.businessName || 
-      m.companyName === client.companyName
-    );
-    
-    let autoNotes = `Updates for ${client.businessName || client.companyName}:\n`;
-    
-    if (clientFollowups.length > 0) {
-      autoNotes += `\n[Follow-ups]\n`;
-      clientFollowups.forEach(f => {
-        autoNotes += `- ${new Date(f.followUpDate).toLocaleDateString('en-IN')}: ${f.notes} (Status: ${f.status})\n`;
-      });
-    }
-    
-    if (clientMeetings.length > 0) {
-      autoNotes += `\n[Meetings]\n`;
-      clientMeetings.forEach(m => {
-        autoNotes += `- ${new Date(m.meetingDate).toLocaleDateString('en-IN')}: ${m.purpose || 'Meeting'} (Status: ${m.status})\n`;
-      });
+      // General Update: Fetch today's activities
+      const today = new Date().toDateString();
+      const todaysFollowups = allFollowups.filter(f => new Date(f.followUpDate || f.createdAt).toDateString() === today);
+      const todaysMeetings = allMeetings.filter(m => new Date(m.meetingDate || m.createdAt).toDateString() === today);
+
+      autoNotes = 'General Update for Today:\n';
+      
+      if (todaysFollowups.length > 0) {
+        autoNotes += `\n[Follow-ups]\n`;
+        todaysFollowups.forEach(f => {
+          autoNotes += `- ${f.clientName} (${f.companyName}): ${f.notes} (Status: ${f.status})\n`;
+        });
+      }
+      
+      if (todaysMeetings.length > 0) {
+        autoNotes += `\n[Meetings]\n`;
+        todaysMeetings.forEach(m => {
+          autoNotes += `- ${m.clientName} (${m.companyName}): ${m.purpose || 'Meeting'} (Status: ${m.status})\n`;
+        });
+      }
+    } else {
+      // Client-specific update
+      const clientFollowups = allFollowups.filter(f => 
+        f.clientName === client.ownerName || 
+        f.companyName === client.businessName || 
+        f.companyName === client.companyName
+      );
+      
+      const clientMeetings = allMeetings.filter(m => 
+        m.clientName === client.ownerName || 
+        m.companyName === client.businessName || 
+        m.companyName === client.companyName
+      );
+      
+      autoNotes = `Updates for ${client.businessName || client.companyName}:\n`;
+      
+      if (clientFollowups.length > 0) {
+        autoNotes += `\n[Follow-ups]\n`;
+        clientFollowups.forEach(f => {
+          autoNotes += `- ${new Date(f.followUpDate).toLocaleDateString('en-IN')}: ${f.notes} (Status: ${f.status})\n`;
+        });
+      }
+      
+      if (clientMeetings.length > 0) {
+        autoNotes += `\n[Meetings]\n`;
+        clientMeetings.forEach(m => {
+          autoNotes += `- ${new Date(m.meetingDate).toLocaleDateString('en-IN')}: ${m.purpose || 'Meeting'} (Status: ${m.status})\n`;
+        });
+      }
     }
     
     // Only overwrite if notes are empty or contain auto-generated text
-    if (!notes.trim() || notes.startsWith('Updates for')) {
+    if (!notes.trim() || notes.startsWith('Updates for') || notes.startsWith('General Update')) {
       setNotes(autoNotes);
     }
   };

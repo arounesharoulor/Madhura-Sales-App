@@ -215,6 +215,11 @@ export default function AdminDashboardScreen({ navigation }) {
             <Text className="text-slate-900 font-bold text-xs">Live Team Chat Room</Text>
             <Text className="text-sky-600 font-bold text-xs">GO →</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('AdminAttendance')} className="p-5 bg-white border border-slate-200 rounded-3xl flex-row justify-between items-center shadow-sm">
+            <Text className="text-slate-900 font-bold text-xs">View Attendance Log</Text>
+            <Text className="text-sky-600 font-bold text-xs">GO →</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Task Assigning Form Panel */}

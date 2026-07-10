@@ -64,6 +64,15 @@ exports.createFollowUp = async (req, res, next) => {
     // Real-time: notify all admins so their monitoring tab refreshes
     await emitToAdmins(req.io, 'followup_updated', followUp);
 
+    // Log to attendance timeline
+    const { addTimelineEvent } = require('./attendanceController');
+    await addTimelineEvent(
+      executiveId,
+      'Follow-up Created',
+      `Assigned follow-up for ${clientName} (${companyName})`,
+      req.user.id
+    );
+
     res.status(201).json({ success: true, data: followUp });
   } catch (error) {
     next(error);
@@ -227,6 +236,15 @@ exports.updateFollowUpStatus = async (req, res, next) => {
     }
     // Real-time: notify all admins so monitoring tab refreshes immediately
     await emitToAdmins(req.io, 'followup_updated', { followUpId: followUp._id, status });
+
+    // Log to attendance timeline
+    const { addTimelineEvent } = require('./attendanceController');
+    await addTimelineEvent(
+      followUp.executive,
+      `Follow-up: ${status}`,
+      `Followed up with ${followUp.clientName}. Notes: ${remarks || ''}`,
+      req.user.id
+    );
 
     res.status(200).json({ success: true, data: followUp });
   } catch (error) {
