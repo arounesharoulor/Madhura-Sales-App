@@ -11,7 +11,7 @@ const { sendMail } = require('../utils/mailer');
 // @access  Private
 exports.generateReport = async (req, res, next) => {
   try {
-    const { title, type, startDate, endDate, customClientName, customProjectName, customSummary, customNextSteps, customQuotes } = req.body;
+    const { title, type, startDate, endDate, customClientName, customProjectName, customSummary, customNextSteps, customQuotes, clientId } = req.body;
 
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -25,6 +25,20 @@ exports.generateReport = async (req, res, next) => {
     const taskQueryFilter = { createdAt: { $gte: start, $lte: end } };
     if (req.user.role === 'Field Executive') {
       taskQueryFilter.assignedTo = req.user.id;
+    }
+
+    if (clientId) {
+      const ClientOnboarding = require('../models/ClientOnboarding');
+      const client = await ClientOnboarding.findById(clientId);
+      if (client) {
+        queryFilter.$or = [
+          { clientName: client.ownerName },
+          { clientName: client.clientName },
+          { companyName: client.businessName },
+          { companyName: client.companyName },
+        ];
+        taskQueryFilter.client = clientId;
+      }
     }
 
     const totalTasks = await Task.countDocuments(taskQueryFilter);
@@ -62,6 +76,20 @@ exports.generateReport = async (req, res, next) => {
         date: f.followUpDate,
         status: f.status,
         notes: f.notes,
+      });
+    });
+
+    const tasks = await Task.find(taskQueryFilter).populate('assignedTo', 'name').populate('client');
+    tasks.forEach(t => {
+      activities.push({
+        executiveId: t.assignedTo?._id,
+        executiveName: t.assignedTo?.name || 'Unknown',
+        clientName: t.client?.ownerName || t.client?.clientName,
+        companyName: t.client?.businessName || t.client?.companyName,
+        activityType: 'Task',
+        date: t.completedAt || t.createdAt,
+        status: t.status,
+        notes: t.description,
       });
     });
 

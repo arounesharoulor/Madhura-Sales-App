@@ -50,7 +50,7 @@ exports.createFollowUp = async (req, res, next) => {
           sender: req.user.id,
           title: '📞 New Follow-up Assigned',
           message: `Admin assigned a new follow-up with ${clientName} (${companyName}). Priority: ${followUp.priority}. Date: ${new Date(followUp.followUpDate).toLocaleDateString('en-IN')}.`,
-          type: 'Task',
+          type: 'FollowUp',
         });
         if (req.io) req.io.to(assignedTo.toString()).emit('notification', notif);
       } catch (e) {
@@ -135,7 +135,7 @@ exports.assignFollowUp = async (req, res, next) => {
           sender: req.user.id,
           title: '📞 Follow-up Assigned',
           message: `You have been assigned to follow up with ${followUp.clientName} (${followUp.companyName}). Priority: ${followUp.priority}. Date: ${new Date(followUp.followUpDate).toLocaleDateString('en-IN')}.`,
-          type: 'Task',
+          type: 'FollowUp',
         });
         if (req.io) req.io.to(assignedTo.toString()).emit('notification', notif);
       } catch (e) {

@@ -18,7 +18,9 @@ export default function WorkUpdateScreen({ navigation }) {
   const [selectedClient, setSelectedClient] = useState(null);
   const [notes, setNotes] = useState('');
   const [hoursWorked, setHoursWorked] = useState('');
-  const [meetingsCount, setMeetingsCount] = useState('');
+  
+  const [allFollowups, setAllFollowups] = useState([]);
+  const [allMeetings, setAllMeetings] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -40,12 +42,27 @@ export default function WorkUpdateScreen({ navigation }) {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [updatesRes, clientsRes] = await Promise.all([
+      const [updatesRes, clientsRes, attRes, followupsRes, meetingsRes] = await Promise.all([
         api.get('/workupdates'),
-        api.get('/onboarding')
+        api.get('/onboarding'),
+        api.get('/attendance/today').catch(() => ({ data: { data: null } })),
+        api.get('/followups').catch(() => ({ data: { data: [] } })),
+        api.get('/meetings').catch(() => ({ data: { data: [] } }))
       ]);
       setUpdates(updatesRes.data.data || []);
       setClients(clientsRes.data.data || []);
+      
+      const followUpsData = followupsRes.data.data || [];
+      const meetingsData = meetingsRes.data.data || [];
+      setAllFollowups(followUpsData);
+      setAllMeetings(meetingsData);
+
+      const todayAtt = attRes.data.data;
+      if (todayAtt && todayAtt.checkInTime) {
+        const diffMs = new Date() - new Date(todayAtt.checkInTime);
+        const diffHrs = Math.max(1, Math.round(diffMs / (1000 * 60 * 60)));
+        setHoursWorked(diffHrs.toString());
+      }
     } catch (e) {
       console.error(e);
       Alert.alert('Error', 'Failed to retrieve data');
@@ -68,7 +85,6 @@ export default function WorkUpdateScreen({ navigation }) {
     const payload = {
       notes,
       hoursWorked: Number(hoursWorked),
-      meetingsCount: meetingsCount ? Number(meetingsCount) : 0,
       client: selectedClient ? selectedClient._id : null
     };
 
@@ -78,7 +94,6 @@ export default function WorkUpdateScreen({ navigation }) {
       Alert.alert('Success', 'Daily report submitted successfully');
       setNotes('');
       setHoursWorked('');
-      setMeetingsCount('');
       setSelectedClient(null);
       fetchData();
       setActiveTab('history');
@@ -86,6 +101,48 @@ export default function WorkUpdateScreen({ navigation }) {
       Alert.alert('Error', 'Failed to submit report.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleClientSelect = (client) => {
+    setSelectedClient(client);
+    if (!client) {
+      setNotes('');
+      return;
+    }
+    
+    // Auto-fetch followups and meetings for selected client
+    const clientFollowups = allFollowups.filter(f => 
+      f.clientName === client.ownerName || 
+      f.companyName === client.businessName || 
+      f.companyName === client.companyName
+    );
+    
+    const clientMeetings = allMeetings.filter(m => 
+      m.clientName === client.ownerName || 
+      m.companyName === client.businessName || 
+      m.companyName === client.companyName
+    );
+    
+    let autoNotes = `Updates for ${client.businessName || client.companyName}:\n`;
+    
+    if (clientFollowups.length > 0) {
+      autoNotes += `\n[Follow-ups]\n`;
+      clientFollowups.forEach(f => {
+        autoNotes += `- ${new Date(f.followUpDate).toLocaleDateString('en-IN')}: ${f.notes} (Status: ${f.status})\n`;
+      });
+    }
+    
+    if (clientMeetings.length > 0) {
+      autoNotes += `\n[Meetings]\n`;
+      clientMeetings.forEach(m => {
+        autoNotes += `- ${new Date(m.meetingDate).toLocaleDateString('en-IN')}: ${m.purpose || 'Meeting'} (Status: ${m.status})\n`;
+      });
+    }
+    
+    // Only overwrite if notes are empty or contain auto-generated text
+    if (!notes.trim() || notes.startsWith('Updates for')) {
+      setNotes(autoNotes);
     }
   };
 
@@ -144,7 +201,7 @@ export default function WorkUpdateScreen({ navigation }) {
                 <View style={{ borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, overflow: 'hidden', marginBottom: 20 }}>
                   <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
                     <TouchableOpacity
-                      onPress={() => setSelectedClient(null)}
+                      onPress={() => handleClientSelect(null)}
                       style={[styles.clientRow, !selectedClient && styles.clientRowSelected]}
                     >
                       <Text style={{ fontSize: 14, fontWeight: '700', color: !selectedClient ? '#0284c7' : '#0f172a' }}>General Update (No Client)</Text>
@@ -155,7 +212,7 @@ export default function WorkUpdateScreen({ navigation }) {
                       return (
                         <TouchableOpacity
                           key={client._id}
-                          onPress={() => setSelectedClient(client)}
+                          onPress={() => handleClientSelect(client)}
                           style={[styles.clientRow, isSelected && styles.clientRowSelected]}
                         >
                           <View>
@@ -186,20 +243,6 @@ export default function WorkUpdateScreen({ navigation }) {
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.label}>Visits Conducted Today</Text>
-                <View style={styles.inputWrap}>
-                  <TextInput
-                    style={styles.input}
-                    value={meetingsCount}
-                    onChangeText={setMeetingsCount}
-                    keyboardType="numeric"
-                    placeholder="E.g. 5"
-                    placeholderTextColor="#94a3b8"
-                  />
-                </View>
-              </View>
-
-              <View style={styles.fieldGroup}>
                 <Text style={styles.label}>Activity Notes / Summary *</Text>
                 <View style={[styles.inputWrap, styles.textAreaWrap]}>
                   <TextInput
@@ -207,7 +250,7 @@ export default function WorkUpdateScreen({ navigation }) {
                     value={notes}
                     onChangeText={setNotes}
                     multiline
-                    numberOfLines={4}
+                    numberOfLines={8}
                     placeholder="Describe daily tasks completed, customer responses, and general notes..."
                     placeholderTextColor="#94a3b8"
                   />
@@ -280,10 +323,6 @@ export default function WorkUpdateScreen({ navigation }) {
                         <View style={styles.statBox}>
                           <Ionicons name="time-outline" size={14} color="#64748b" />
                           <Text style={styles.statText}>{item.hoursWorked} hrs</Text>
-                        </View>
-                        <View style={styles.statBox}>
-                          <Ionicons name="location-outline" size={14} color="#64748b" />
-                          <Text style={styles.statText}>{item.meetingsCount || 0} visits</Text>
                         </View>
                       </View>
 

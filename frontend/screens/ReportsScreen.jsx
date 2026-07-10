@@ -164,12 +164,17 @@ export default function ReportsScreen({ navigation }) {
   const [endDate, setEndDate] = useState('');
   
   const [reportMode, setReportMode] = useState('Automated');
+  const [selectedClient, setSelectedClient] = useState(null);
   const [manualClient, setManualClient] = useState('');
   const [manualProject, setManualProject] = useState('');
   const [manualSummary, setManualSummary] = useState('');
   const [manualNextSteps, setManualNextSteps] = useState('');
   const [manualQuotes, setManualQuotes] = useState('');
   
+  const [clients, setClients] = useState([]);
+  const [allFollowups, setAllFollowups] = useState([]);
+  const [allMeetings, setAllMeetings] = useState([]);
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -179,17 +184,76 @@ export default function ReportsScreen({ navigation }) {
   const fetchReports = async () => {
     try {
       setRefreshing(true);
-      const res = await api.get('/reports');
+      const [res, clientsRes, followupsRes, meetingsRes] = await Promise.all([
+        api.get('/reports'),
+        api.get('/onboarding').catch(() => ({ data: { data: [] } })),
+        api.get('/followups').catch(() => ({ data: { data: [] } })),
+        api.get('/meetings').catch(() => ({ data: { data: [] } }))
+      ]);
       setReports(res.data.data);
+      setClients(clientsRes.data.data || []);
+      setAllFollowups(followupsRes.data.data || []);
+      setAllMeetings(meetingsRes.data.data || []);
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to retrieve generated reports.');
+      Alert.alert('Error', 'Failed to retrieve data.');
     } finally {
       setRefreshing(false);
     }
   };
 
   useEffect(() => { fetchReports(); }, []);
+
+  const handleClientSelect = (client) => {
+    setSelectedClient(client);
+    if (!client) {
+      setManualClient('');
+      setManualSummary('');
+      return;
+    }
+    
+    setManualClient(client.businessName || client.companyName);
+    
+    // Auto-set dates from client onboarding to today
+    if (client.createdAt) {
+      setStartDate(new Date(client.createdAt).toISOString().split('T')[0]);
+    } else {
+      setStartDate(new Date().toISOString().split('T')[0]);
+    }
+    setEndDate(new Date().toISOString().split('T')[0]);
+
+    const clientFollowups = allFollowups.filter(f => 
+      f.clientName === client.ownerName || 
+      f.companyName === client.businessName || 
+      f.companyName === client.companyName
+    );
+    
+    const clientMeetings = allMeetings.filter(m => 
+      m.clientName === client.ownerName || 
+      m.companyName === client.businessName || 
+      m.companyName === client.companyName
+    );
+    
+    let autoSummary = `Report Summary for ${client.businessName || client.companyName}:\n`;
+    
+    if (clientFollowups.length > 0) {
+      autoSummary += `\n[Follow-ups]\n`;
+      clientFollowups.forEach(f => {
+        autoSummary += `- ${new Date(f.followUpDate).toLocaleDateString('en-IN')}: ${f.notes} (Status: ${f.status})\n`;
+      });
+    }
+    
+    if (clientMeetings.length > 0) {
+      autoSummary += `\n[Meetings]\n`;
+      clientMeetings.forEach(m => {
+        autoSummary += `- ${new Date(m.meetingDate).toLocaleDateString('en-IN')}: ${m.purpose || 'Meeting'} (Status: ${m.status})\n`;
+      });
+    }
+    
+    if (!manualSummary.trim() || manualSummary.startsWith('Report Summary for')) {
+      setManualSummary(autoSummary);
+    }
+  };
 
   const handleGenerateReport = async () => {
     if (!title || !startDate || !endDate) {
@@ -200,6 +264,7 @@ export default function ReportsScreen({ navigation }) {
     try {
       await api.post('/reports', { 
         title, type, startDate, endDate,
+        clientId: selectedClient ? selectedClient._id : null,
         customClientName: manualClient,
         customProjectName: manualProject,
         customSummary: manualSummary,
@@ -209,6 +274,7 @@ export default function ReportsScreen({ navigation }) {
       Alert.alert('Success', 'Report successfully generated!');
       setTitle(''); setStartDate(''); setEndDate(''); setType('Weekly');
       setManualClient(''); setManualProject(''); setManualSummary(''); setManualNextSteps(''); setManualQuotes('');
+      setSelectedClient(null);
       setShowAddForm(false);
       fetchReports();
     } catch (e) {
@@ -340,6 +406,7 @@ export default function ReportsScreen({ navigation }) {
       Alert.alert('Success', 'Custom report generated and downloaded!');
       setShowAddForm(false);
       setManualClient(''); setManualProject(''); setManualSummary(''); setManualNextSteps(''); setManualQuotes('');
+      setSelectedClient(null);
     } catch (e) {
       console.error(e);
       Alert.alert('Error', 'Failed to generate manual report.');
@@ -391,7 +458,40 @@ export default function ReportsScreen({ navigation }) {
               </View>
               
               <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 12, marginTop: 8 }}>Additional Manual Details (Optional)</Text>
-              <CustomInput label="Client Name" value={manualClient} onChangeText={setManualClient} placeholder="If report is for a specific client" />
+              
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 8 }}>Select Client</Text>
+              {clients.length === 0 ? (
+                <Text style={{ fontSize: 12, color: '#e11d48', marginTop: 4, marginBottom: 16 }}>No onboarded clients available.</Text>
+              ) : (
+                <View style={{ borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, overflow: 'hidden', marginBottom: 20 }}>
+                  <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                    <TouchableOpacity
+                      onPress={() => handleClientSelect(null)}
+                      style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', backgroundColor: !selectedClient ? '#eff6ff' : '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                    >
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: !selectedClient ? '#0284c7' : '#0f172a' }}>General Report (No Client)</Text>
+                      {!selectedClient && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
+                    </TouchableOpacity>
+                    {clients.map(client => {
+                      const isSelected = selectedClient?._id === client._id;
+                      return (
+                        <TouchableOpacity
+                          key={client._id}
+                          onPress={() => handleClientSelect(client)}
+                          style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', backgroundColor: isSelected ? '#eff6ff' : '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                        >
+                          <View>
+                            <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
+                            <Text style={{ fontSize: 12, color: '#64748b' }}>{client.ownerName || client.clientName}</Text>
+                          </View>
+                          {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+
               <CustomInput label="Project Name" value={manualProject} onChangeText={setManualProject} placeholder="E.g. Project Apollo" />
               
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6, marginTop: 4 }}>Executive Summary</Text>
