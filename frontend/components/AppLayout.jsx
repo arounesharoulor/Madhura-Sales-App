@@ -60,30 +60,67 @@ const ADMIN_BLOCKED = ['AdminAttendance'];
 
 // Super Admin (Managing Director MD): All screens — no filter applied
 
-// ── All possible admin nav sections (full set) ───────────────────────
-const allAdminNavSections = [
+// ── Role-Based Nav Sections ───────────────────────────────
+const hrNavSections = [
+  {
+    title: 'HR Management',
+    items: [
+      { title: 'Dashboard',           screen: 'AdminDashboard',    icon: 'grid-outline',       iconActive: 'grid' },
+      { title: 'Attendance',          screen: 'AdminAttendance',   icon: 'time-outline',       iconActive: 'time' },
+      { title: 'Leave',               screen: 'Dashboard',         icon: 'calendar-outline',   iconActive: 'calendar' }, // Stub
+      { title: 'Employee Onboarding', screen: 'UserManagement',    icon: 'person-add-outline', iconActive: 'person-add' },
+      { title: 'Client Onboarding',   screen: 'ClientOnboarding',  icon: 'briefcase-outline',  iconActive: 'briefcase' },
+      { title: 'Employee Documents',  screen: 'Dashboard',         icon: 'folder-outline',     iconActive: 'folder' }, // Stub
+    ],
+  },
+];
+
+const pmNavSections = [
   {
     title: 'Operations',
     items: [
-      { title: 'Dashboard',         screen: 'AdminDashboard',           icon: 'grid-outline',      iconActive: 'grid' },
-      { title: 'Field Staff Mgmt',  screen: 'UserManagement',           icon: 'people-outline',    iconActive: 'people' },
-      { title: 'Task Assignments',  screen: 'TaskAssignment',           icon: 'clipboard-outline', iconActive: 'clipboard' },
-      { title: 'Client Onboarding', screen: 'ClientOnboarding',         icon: 'briefcase-outline', iconActive: 'briefcase' },
-      { title: 'Log Client Visit',  screen: 'Meeting',                  icon: 'location-outline',  iconActive: 'location' },
-      { title: 'Follow-up Mgmt',    screen: 'AdminFollowupManagement',  icon: 'alarm-outline',     iconActive: 'alarm' },
+      { title: 'Dashboard',           screen: 'AdminDashboard',          icon: 'grid-outline',      iconActive: 'grid' },
+      { title: 'Employee Monitoring', screen: 'EmployeeMonitoring',      icon: 'eye-outline',       iconActive: 'eye' },
+      { title: 'Tasks',               screen: 'TaskAssignment',          icon: 'clipboard-outline', iconActive: 'clipboard' },
+      { title: 'Meetings',            screen: 'Meeting',                 icon: 'location-outline',  iconActive: 'location' },
+      { title: 'Follow-up',           screen: 'AdminFollowupManagement', icon: 'alarm-outline',     iconActive: 'alarm' },
+      { title: 'Reports',             screen: 'Reports',                 icon: 'bar-chart-outline', iconActive: 'bar-chart' },
+      { title: 'Live Location',       screen: 'LiveLocation',            icon: 'map-outline',       iconActive: 'map' },
+    ],
+  },
+];
+
+const superAdminNavSections = [
+  {
+    title: 'Main',
+    items: [
+      { title: 'Dashboard',           screen: 'AdminDashboard',       icon: 'grid-outline',       iconActive: 'grid' },
+      { title: 'Employee Monitoring', screen: 'EmployeeMonitoring',   icon: 'eye-outline',        iconActive: 'eye' },
+      { title: 'Employees',           screen: 'UserManagement',       icon: 'people-outline',     iconActive: 'people' },
+      { title: 'Attendance',          screen: 'AdminAttendance',      icon: 'time-outline',       iconActive: 'time' },
+      { title: 'Leave',               screen: 'Dashboard',            icon: 'calendar-outline',   iconActive: 'calendar' }, // Stub
     ],
   },
   {
-    title: 'Tracking',
+    title: 'Operations & Tracking',
     items: [
-      { title: 'Live Map & GPS',  screen: 'LiveLocation',    icon: 'map-outline',           iconActive: 'map' },
-      { title: 'Attendance Log',  screen: 'AdminAttendance', icon: 'time-outline',          iconActive: 'time' },
-      { title: 'Work Updates',    screen: 'WorkUpdate',      icon: 'document-text-outline', iconActive: 'document-text' },
-      { title: 'Reports',         screen: 'Reports',         icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
-      { title: 'Team Chat',       screen: 'Chat',            icon: 'chatbubbles-outline',   iconActive: 'chatbubbles' },
-      { title: 'Profile',         screen: 'Profile',         icon: 'person-outline',        iconActive: 'person' },
+      { title: 'Client Onboarding',   screen: 'ClientOnboarding',     icon: 'briefcase-outline',  iconActive: 'briefcase' },
+      { title: 'Tasks',               screen: 'TaskAssignment',       icon: 'clipboard-outline',  iconActive: 'clipboard' },
+      { title: 'Meetings',            screen: 'Meeting',              icon: 'location-outline',   iconActive: 'location' },
+      { title: 'Live Location',       screen: 'LiveLocation',         icon: 'map-outline',        iconActive: 'map' },
+      { title: 'Reports',             screen: 'Reports',              icon: 'bar-chart-outline',  iconActive: 'bar-chart' },
     ],
   },
+  {
+    title: 'System',
+    items: [
+      { title: 'Analytics',           screen: 'Dashboard',            icon: 'pie-chart-outline',  iconActive: 'pie-chart' }, // Stub
+      { title: 'Notifications',       screen: 'Notification',         icon: 'notifications-outline', iconActive: 'notifications' },
+      { title: 'Audit Logs',          screen: 'Dashboard',            icon: 'list-outline',       iconActive: 'list' }, // Stub
+      { title: 'Role Management',     screen: 'Dashboard',            icon: 'key-outline',        iconActive: 'key' }, // Stub
+      { title: 'Settings',            screen: 'Profile',              icon: 'settings-outline',   iconActive: 'settings' },
+    ],
+  }
 ];
 
 const employeeNavSections = [
@@ -110,39 +147,11 @@ const employeeNavSections = [
 ];
 
 function buildNavSections(role) {
-  // Employee
-  if (!['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(role)) {
-    return JSON.parse(JSON.stringify(employeeNavSections));
-  }
-
-  const base = JSON.parse(JSON.stringify(allAdminNavSections));
-
-  // HR — whitelist only
-  if (role === 'HR') {
-    return [
-      {
-        title: 'HR Management',
-        items: [
-          { title: 'Dashboard',         screen: 'AdminDashboard',   icon: 'grid-outline',      iconActive: 'grid' },
-          { title: 'Attendance Log',    screen: 'AdminAttendance',  icon: 'time-outline',      iconActive: 'time' },
-          { title: 'Client Onboarding', screen: 'ClientOnboarding', icon: 'briefcase-outline', iconActive: 'briefcase' },
-          { title: 'Log Client Visit',  screen: 'Meeting',          icon: 'location-outline',  iconActive: 'location' },
-          { title: 'Profile',           screen: 'Profile',          icon: 'person-outline',    iconActive: 'person' },
-        ],
-      },
-    ];
-  }
-
-  // Super Admin (MD) — full access, no filtering
-  if (role === 'Managing Director MD') {
-    return base;
-  }
-
-  // Admin / Project Manager / Team Lead — block attendance screens
-  base.forEach(section => {
-    section.items = section.items.filter(i => !ADMIN_BLOCKED.includes(i.screen));
-  });
-  return base;
+  if (role === 'Managing Director MD') return superAdminNavSections;
+  if (role === 'HR') return hrNavSections;
+  if (role === 'Project Manager' || role === 'Admin' || role === 'Team Lead') return pmNavSections;
+  
+  return employeeNavSections;
 }
 
 export default function AppLayout({ children, currentScreen, scrollable = true, role = 'Admin' }) {
