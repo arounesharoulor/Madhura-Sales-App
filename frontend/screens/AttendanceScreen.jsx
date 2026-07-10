@@ -538,6 +538,24 @@ export default function AttendanceScreen() {
               </View>
             </View>
           )}
+          
+          {/* Employee Timeline */}
+          {todayRecord && todayRecord.timeline && todayRecord.timeline.length > 0 && (
+            <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#e2e8f0' }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569', marginBottom: 12 }}>🕒 Daily Timeline</Text>
+              {todayRecord.timeline.map((event, idx) => (
+                <View key={idx} style={{ flexDirection: 'row', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', width: 60, marginTop: 1 }}>
+                    {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                  <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155' }}>{event.type}</Text>
+                    <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Pending Check-In */}

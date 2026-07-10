@@ -69,6 +69,12 @@ exports.checkIn = async (req, res, next) => {
       },
       status: 'Pending Check-In',
       checkInStatus: 'Pending',
+      timeline: [{
+        type: 'Check-in',
+        time: new Date(),
+        description: `Requested check-in. Plan: ${workPlan.trim()}`,
+        performedBy: req.user.id
+      }]
     });
 
     const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
@@ -163,6 +169,14 @@ exports.checkOut = async (req, res, next) => {
     };
     attendance.status = 'Pending Check-Out';
     attendance.checkOutStatus = 'Pending';
+    
+    attendance.timeline.push({
+      type: 'Check-out',
+      time: new Date(),
+      description: `Requested check-out. Summary: ${workSummary.trim()}${isEarly ? ' (Early Checkout)' : ''}`,
+      performedBy: req.user.id
+    });
+    
     await attendance.save();
 
     const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
@@ -266,6 +280,12 @@ exports.requestLeave = async (req, res, next) => {
       leaveStatus: 'Pending',
       leaveType,
       leaveReason,
+      timeline: [{
+        type: 'Leave Request',
+        time: new Date(),
+        description: `Requested ${leaveType} leave. Reason: ${leaveReason}`,
+        performedBy: req.user.id
+      }]
     });
 
     await notifyAdmins(

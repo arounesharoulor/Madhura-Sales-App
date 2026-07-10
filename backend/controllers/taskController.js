@@ -1,6 +1,7 @@
 const Task = require('../models/Task');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const Attendance = require('../models/Attendance');
 
 // Helper: broadcast a socket event to every connected Admin
 async function emitToAdmins(io, event, payload) {
@@ -37,6 +38,22 @@ exports.createTask = async (req, res, next) => {
       message: `You have been assigned a new task: "${title}". Due: ${new Date(dueDate).toLocaleDateString()}`,
       type: 'Task',
     });
+
+    // Automatically push to today's attendance timeline
+    const todayStr = new Date().toISOString().split('T')[0];
+    await Attendance.findOneAndUpdate(
+      { executive: assignedTo, date: todayStr },
+      {
+        $push: {
+          timeline: {
+            type: 'Task Assigned',
+            time: new Date(),
+            description: `Assigned new task: "${title}"`,
+            performedBy: req.user.id
+          }
+        }
+      }
+    );
 
     // Emit live Socket.io event if socket server is attached
     if (req.io) {

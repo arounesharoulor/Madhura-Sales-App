@@ -75,6 +75,14 @@ const attendanceSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    timeline: [
+      {
+        type: { type: String, required: true }, // "Task Assigned", "Check-in", "Check-out", "Meeting Logged", etc.
+        time: { type: Date, default: Date.now },
+        description: { type: String, required: true },
+        performedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      }
+    ],
   },
   { timestamps: true }
 );

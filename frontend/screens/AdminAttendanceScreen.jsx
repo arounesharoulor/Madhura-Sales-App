@@ -60,6 +60,7 @@ export default function AdminAttendanceScreen() {
   const [customReason, setCustomReason] = useState('');
   const [actionLoading, setActionLoading] = useState(null); // record id
   const [isExporting, setIsExporting] = useState(false);
+  const [userRole, setUserRole] = useState('');
 
   // Live locations
   const [locations, setLocations] = useState([]);
@@ -86,7 +87,12 @@ export default function AdminAttendanceScreen() {
     }
   }, [searchDate]);
 
-  useEffect(() => { fetchAttendance(); }, []);
+  useEffect(() => {
+    fetchAttendance();
+    AsyncStorage.getItem('user').then(v => {
+      if (v) setUserRole(JSON.parse(v).role || '');
+    });
+  }, []);
   useEffect(() => {
     fetchAttendance();
   }, [searchDate]);
@@ -324,8 +330,8 @@ export default function AdminAttendanceScreen() {
               </View>
             ) : null}
 
-            {/* Leave buttons: Approve + Reject only */}
-            {isActionable ? (
+            {/* Leave buttons: Approve + Reject only for HR & Super Admin */}
+            {isActionable && (userRole === 'HR' || userRole === 'Super Admin' || userRole === 'Managing Director MD') ? (
               <View style={[styles.actionRow, { marginTop: 12 }]}>
                 <TouchableOpacity
                   style={[styles.actionBtn, styles.approveBtn]}
@@ -427,6 +433,24 @@ export default function AdminAttendanceScreen() {
                   {Number(item.checkInLocation.latitude).toFixed(4)}, {Number(item.checkInLocation.longitude).toFixed(4)} · View Map →
                 </Text>
               </TouchableOpacity>
+            ) : null}
+            
+            {/* ── Employee Timeline ── */}
+            {item.timeline && item.timeline.length > 0 ? (
+              <View style={[styles.infoBox, { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', marginTop: 12 }]}>
+                <Text style={styles.infoLabel}>🕒 Daily Timeline</Text>
+                {item.timeline.map((event, idx) => (
+                  <View key={idx} style={{ flexDirection: 'row', marginTop: 8 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', width: 65, marginTop: 1 }}>
+                      {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                    <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>{event.type}</Text>
+                      <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
             ) : null}
 
             {/* Attendance buttons: Approve + Keep in Queue + Reject */}
