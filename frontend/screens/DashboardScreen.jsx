@@ -41,7 +41,19 @@ export default function DashboardScreen({ navigation }) {
     try {
       setLoading(true);
       const stored = await AsyncStorage.getItem('user');
-      if (stored) setUser(JSON.parse(stored));
+      if (stored) {
+        const parsedUser = JSON.parse(stored);
+        setUser(parsedUser);
+        const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+        if (adminRoles.includes(parsedUser.role)) {
+          if (navigation && navigation.replace) {
+            navigation.replace('AdminDashboard');
+          } else {
+            navigation.navigate('AdminDashboard');
+          }
+          return;
+        }
+      }
 
       const [tasksRes, meetingsRes, followUpsRes, attendanceRes, onboardingRes] = await Promise.all([
         api.get('/tasks').catch(() => ({ data: { data: [] } })),

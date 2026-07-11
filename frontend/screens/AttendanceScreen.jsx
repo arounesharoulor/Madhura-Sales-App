@@ -196,9 +196,9 @@ export default function AttendanceScreen() {
   }, [activeTab]);
 
   const handleLeaveSubmit = async () => {
-    if (!leaveType) { Alert.alert('Required', 'Please select a leave type.'); return; }
-    if (!leaveCriteria) { Alert.alert('Required', 'Please select a leave criteria option.'); return; }
-    if (!leaveReason.trim()) { Alert.alert('Required', 'Please provide a detailed reason for your leave.'); return; }
+    if (!leaveType) { Toast.show({ type: 'error', text1: 'Required', text2: 'Please select a leave type.' }); return; }
+    if (!leaveCriteria) { Toast.show({ type: 'error', text1: 'Required', text2: 'Please select a leave criteria option.' }); return; }
+    if (!leaveReason.trim()) { Toast.show({ type: 'error', text1: 'Required', text2: 'Please provide a detailed reason for your leave.' }); return; }
 
     setSubmitting(true);
     try {
@@ -215,7 +215,7 @@ export default function AttendanceScreen() {
       setLeaveReason('');
     } catch (e) {
       const msg = e?.response?.data?.message || 'Could not submit leave request.';
-      Alert.alert('Error', msg);
+      Toast.show({ type: 'error', text1: 'Error', text2: msg });
     } finally { setSubmitting(false); }
   };
 
@@ -226,10 +226,10 @@ export default function AttendanceScreen() {
       if (admin) {
         router.push({ pathname: '/Chat', params: { partnerId: admin._id, partnerName: admin.name } });
       } else {
-        Alert.alert('Unavailable', 'No Admin found in the system to chat with.');
+        Toast.show({ type: 'error', text1: 'Unavailable', text2: 'No Admin found in the system to chat with.' });
       }
     } catch (e) {
-      Alert.alert('Error', 'Could not connect to Admin chat.');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not connect to Admin chat.' });
     }
   };
 
@@ -273,7 +273,7 @@ export default function AttendanceScreen() {
 
   const handleCheckIn = async () => {
     if (!workPlan.trim()) {
-      Alert.alert('Required', 'Please describe your work plan for today.');
+      Toast.show({ type: 'error', text1: 'Required', text2: 'Please describe your work plan for today.' });
       return;
     }
     setSubmitting(true);
@@ -294,7 +294,7 @@ export default function AttendanceScreen() {
       fetchToday();
     } catch (err) {
       const msg = err.response?.data?.message || 'Check-in failed. Please try again.';
-      Alert.alert('Check-In Failed', msg);
+      Toast.show({ type: 'error', text1: 'Check-In Failed', text2: msg });
     } finally {
       setSubmitting(false);
     }
@@ -302,7 +302,7 @@ export default function AttendanceScreen() {
 
   const handleCheckOut = async (earlyReason = null) => {
     if (!workSummary.trim()) {
-      Alert.alert('Required', "Please summarize today's work before checking out.");
+      Toast.show({ type: 'error', text1: 'Required', text2: "Please summarize today's work before checking out." });
       return;
     }
 
@@ -363,7 +363,7 @@ export default function AttendanceScreen() {
         } else if (Platform.OS === 'web') {
           window.alert('Check-Out Failed: ' + errMsg);
         } else {
-          Alert.alert('Check-Out Failed', errMsg);
+          Toast.show({ type: 'error', text1: 'Check-Out Failed', text2: errMsg });
         }
       } finally {
         if (retrying) setSubmitting(false);
@@ -395,7 +395,7 @@ export default function AttendanceScreen() {
 
   const handleUrgentLeave = async () => {
     if (!urgentReason.trim()) {
-      Alert.alert('Required', 'Please provide a reason for urgent leave.');
+      Toast.show({ type: 'error', text1: 'Required', text2: 'Please provide a reason for urgent leave.' });
       return;
     }
     setSubmitting(true);
@@ -416,7 +416,7 @@ export default function AttendanceScreen() {
       });
       setUrgentReason('');
     } catch (err) {
-      Alert.alert('Error', 'Failed to send alert. Please try again.');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to send alert. Please try again.' });
     } finally {
       setSubmitting(false);
     }
@@ -476,7 +476,7 @@ export default function AttendanceScreen() {
               <TouchableOpacity
                 onPress={() => {
                   if (!earlyCheckoutReason.trim()) {
-                    Alert.alert('Required', 'Please enter a reason for early checkout.');
+                    Toast.show({ type: 'error', text1: 'Required', text2: 'Please enter a reason for early checkout.' });
                     return;
                   }
                   setShowEarlyModal(false);

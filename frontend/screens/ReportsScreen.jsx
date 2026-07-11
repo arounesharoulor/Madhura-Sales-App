@@ -41,7 +41,7 @@ function CrossPlatformDatePicker({ value, onChange }) {
         <Ionicons name="calendar-outline" size={20} color="#0284c7" style={{ marginRight: 10 }} />
         <Text style={{ flex: 1, fontSize: 14, color: value ? '#0f172a' : '#94a3b8' }}>
           {value ? (() => {
-            try {
+            try { 
               const d = new Date(value + 'T00:00:00');
               return isNaN(d.getTime()) ? 'Select Date' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             } catch { return 'Select Date'; }

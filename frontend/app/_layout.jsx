@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { Appearance } from 'react-native';
 import { useEffect } from 'react';
+import { playNotificationSound } from '../components/AppLayout';
 
 export default function Layout() {
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function Layout() {
           contentStyle: { backgroundColor: '#f8fafc' },
         }}
       />
-      <Toast />
+      <Toast onShow={() => playNotificationSound('notification')} />
     </SafeAreaProvider>
   );
 }

@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 import { useSocketRefresh } from '../hooks/useSocketRefresh';
+import Toast from 'react-native-toast-message';
 
 const REJECT_REASONS_ATTENDANCE = [
   'Location not verified',
@@ -81,7 +82,7 @@ export default function AdminAttendanceScreen() {
       const res = await api.get('/attendance', { params });
       setRecords(res.data.data || []);
     } catch {
-      Alert.alert('Error', 'Could not load attendance records.');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Could not load attendance records.' });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -106,6 +107,8 @@ export default function AdminAttendanceScreen() {
     if (mainTab === 'Location') fetchLiveLocations();
   }, [mainTab]);
 
+  const isFullAdmin = ['HR', 'Managing Director MD', 'Admin'].includes(userRole);
+
   const openSummaryModal = () => {
     setShowSummaryModal(true);
     fetchSummaryData();
@@ -117,7 +120,7 @@ export default function AdminAttendanceScreen() {
       const res = await api.get('/attendance/summary');
       setSummaryData(res.data.data || []);
     } catch {
-      Alert.alert('Error', 'Unable to load summary data.');
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Unable to load summary data.' });
     } finally {
       setLoadingSummary(false);
     }
@@ -128,12 +131,12 @@ export default function AdminAttendanceScreen() {
       setLoadingLocs(true);
       const res = await api.get('/locations/latest');
       setLocations(res.data.data || []);
-    } catch { Alert.alert('Error', 'Unable to load live locations.'); }
+    } catch { Toast.show({ type: 'error', text1: 'Error', text2: 'Unable to load live locations.' }); }
     finally { setLoadingLocs(false); }
   };
 
   const openInMap = (lat, lng) => {
-    if (!lat || !lng) { Alert.alert('No coordinates available'); return; }
+    if (!lat || !lng) { Toast.show({ type: 'error', text1: 'Error', text2: 'No coordinates available' }); return; }
     const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     if (Platform.OS === 'web') window.open(url, '_blank');
     else require('react-native').Linking.openURL(url).catch(() => {});
@@ -234,7 +237,7 @@ export default function AdminAttendanceScreen() {
 
   const handleReject = async () => {
     const reason = selectedReason === 'Other' ? customReason : selectedReason;
-    if (!reason) { Alert.alert('Please select a reason.'); return; }
+    if (!reason) { Toast.show({ type: 'error', text1: 'Required', text2: 'Please select a reason.' }); return; }
     setActionLoading(selectedRecord._id);
     setRejectModal(false);
     try {
@@ -254,11 +257,11 @@ export default function AdminAttendanceScreen() {
 
   const handleToggleLock = async (executiveId, currentLockState) => {
     try {
-      const res = await api.put(`/attendance/user/${executiveId}/lock-early-checkout`, { locked: !currentLockState });
-      Alert.alert(res.data.message || 'Done');
+      const res = await api.put(`/attendance/user/${executiveId}/lock-early-checkout`);
+      Toast.show({ type: 'success', text1: 'Success', text2: res.data.message || 'Done' });
       fetchAttendance();
     } catch (e) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not update lock status.');
+      Toast.show({ type: 'error', text1: 'Error', text2: e?.response?.data?.message || 'Could not update lock status.' });
     }
   };
 
@@ -536,48 +539,72 @@ export default function AdminAttendanceScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Team Attendance</Text>
-            <Text style={styles.subtitle}>{queue.length} pending approval{queue.length !== 1 ? 's' : ''}</Text>
+            {isFullAdmin && (
+              <Text style={styles.subtitle}>{queue.length} pending approval{queue.length !== 1 ? 's' : ''}</Text>
+            )}
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity style={styles.exportBtn} onPress={openSummaryModal} activeOpacity={0.8}>
               <Ionicons name="eye-outline" size={16} color="#0284c7" />
               <Text style={[styles.exportBtnText, { color: '#0284c7' }]}>View</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.exportBtn, isExporting && { opacity: 0.7 }]} onPress={handleExportLog} disabled={isExporting}>
-              {isExporting ? (
-                <ActivityIndicator size="small" color="#16a34a" />
-              ) : (
-                <Ionicons name="download-outline" size={16} color="#16a34a" />
-              )}
-              <Text style={styles.exportBtnText}>{isExporting ? 'Exporting...' : 'Excel'}</Text>
-            </TouchableOpacity>
+            {isFullAdmin && (
+              <TouchableOpacity style={[styles.exportBtn, isExporting && { opacity: 0.7 }]} onPress={handleExportLog} disabled={isExporting}>
+                {isExporting ? (
+                  <ActivityIndicator size="small" color="#16a34a" />
+                ) : (
+                  <Ionicons name="download-outline" size={16} color="#16a34a" />
+                )}
+                <Text style={styles.exportBtnText}>{isExporting ? 'Exporting...' : 'Excel'}</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchAttendance(true)}>
               <Ionicons name="refresh" size={18} color="#0284c7" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Main Tabs */}
-        <View style={styles.tabs}>
-          {[
-            { key: 'Queue',    label: `Pending (${queue.length})`, icon: 'time-outline' },
-            { key: 'Held',     label: `Held (${held.length})`,     icon: 'pause-circle-outline' },
-            { key: 'History',  label: 'History',                   icon: 'list-outline' },
-            { key: 'Location', label: 'Live GPS',                  icon: 'location-outline' },
-          ].map((t) => (
-            <TouchableOpacity
-              key={t.key}
-              style={[styles.tab, mainTab === t.key && styles.tabActive]}
-              onPress={() => setMainTab(t.key)}
+        {/* Non-Admin View (Project Managers, Team Leads) */}
+        {!isFullAdmin && (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <Ionicons name="people-outline" size={64} color="#bae6fd" style={{ marginBottom: 16 }} />
+            <Text style={{ fontSize: 18, color: '#334155', fontWeight: 'bold', marginBottom: 8 }}>Team Attendance Overview</Text>
+            <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 24 }}>
+              Click the View button above or below to see a live summary of your team's attendance status today.
+            </Text>
+            <TouchableOpacity 
+              style={{ backgroundColor: '#0284c7', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              onPress={openSummaryModal}
             >
-              <Ionicons name={t.icon} size={13} color={mainTab === t.key ? '#0284c7' : '#64748b'} />
-              <Text style={[styles.tabText, mainTab === t.key && styles.tabTextActive]}>{t.label}</Text>
+              <Ionicons name="eye-outline" size={18} color="#fff" />
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>View Live Summary</Text>
             </TouchableOpacity>
-          ))}
-        </View>
+          </View>
+        )}
+
+        {/* Main Tabs (Full Admins Only) */}
+        {isFullAdmin && (
+          <View style={styles.tabs}>
+            {[
+              { key: 'Queue',    label: `Pending (${queue.length})`, icon: 'time-outline' },
+              { key: 'Held',     label: `Held (${held.length})`,     icon: 'pause-circle-outline' },
+              { key: 'History',  label: 'History',                   icon: 'list-outline' },
+              { key: 'Location', label: 'Live GPS',                  icon: 'location-outline' },
+            ].map((t) => (
+              <TouchableOpacity
+                key={t.key}
+                style={[styles.tab, mainTab === t.key && styles.tabActive]}
+                onPress={() => setMainTab(t.key)}
+              >
+                <Ionicons name={t.icon} size={13} color={mainTab === t.key ? '#0284c7' : '#64748b'} />
+                <Text style={[styles.tabText, mainTab === t.key && styles.tabTextActive]}>{t.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* Date Filter (for Queue & History & Held) */}
-        {mainTab !== 'Location' && (
+        {isFullAdmin && mainTab !== 'Location' && (
           <View style={styles.filterRow}>
             {Platform.OS === 'web' ? (
               // Native HTML date picker on web — shows a calendar on click
@@ -620,7 +647,7 @@ export default function AdminAttendanceScreen() {
           </View>
         )}
 
-        {showDatePicker && Platform.OS !== 'web' && (() => {
+        {showDatePicker && isFullAdmin && Platform.OS !== 'web' && (() => {
           const DateTimePicker = require('@react-native-community/datetimepicker').default;
           return (
             <DateTimePicker
@@ -636,9 +663,10 @@ export default function AdminAttendanceScreen() {
         })()}
 
         {/* Content */}
-        {loading ? (
-          <ActivityIndicator color="#0284c7" size="large" style={{ marginTop: 60 }} />
-        ) : mainTab === 'Queue' ? (
+        {isFullAdmin && (
+          loading ? (
+            <ActivityIndicator color="#0284c7" size="large" style={{ marginTop: 60 }} />
+          ) : mainTab === 'Queue' ? (
           queue.length === 0 ? (
             <View style={styles.empty}>
               <Ionicons name="checkmark-done-circle-outline" size={56} color="#a7f3d0" />
@@ -742,6 +770,7 @@ export default function AdminAttendanceScreen() {
               )}
             />
           )
+        )
         )}
       </View>
 
