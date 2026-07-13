@@ -27,6 +27,11 @@ const LocationCard = ({ item, openInMap, router }) => {
           <Text style={styles.cardSub}>
             {item.employeeId ? `#${item.employeeId}  ·  ` : ''}{item.designation || 'Field Executive'}
           </Text>
+          {(item.overdueTasks > 0 || item.overdueFollowUps > 0) && (
+            <Text style={{ fontSize: 11, color: '#dc2626', fontWeight: '700', marginTop: 3 }}>
+              ⚠️ {(item.overdueTasks || 0) + (item.overdueFollowUps || 0)} Overdue Item{((item.overdueTasks || 0) + (item.overdueFollowUps || 0)) > 1 ? 's' : ''}
+            </Text>
+          )}
         </View>
         <TouchableOpacity
           style={styles.chatBtn}
@@ -114,31 +119,55 @@ export default function EmployeeMonitoringScreen() {
     else setLoading(true);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const [res, attRes] = await Promise.all([
+      const [res, attRes, tasksRes, followUpsRes] = await Promise.all([
         api.get('/locations/latest'),
-        api.get(`/attendance?date=${today}`)
+        api.get(`/attendance?date=${today}`),
+        api.get('/tasks'),
+        api.get('/followups')
       ]);
       
       let locData = res.data.data || [];
       const attData = attRes.data.data || [];
+      const tasksData = tasksRes.data.data || [];
+      const followUpsData = followUpsRes.data.data || [];
 
       // Merge and Reverse Geocode
       locData = await Promise.all(locData.map(async (loc) => {
         const att = attData.find(a => (a.executive?._id || a.executive) === loc.executive);
         loc.timeline = att ? (att.timeline || []) : [];
 
+        // Calculate overdue tasks for this executive
+        loc.overdueTasks = tasksData.filter(t => 
+           (t.assignedTo?._id || t.assignedTo) === loc.executive &&
+           t.status !== 'Completed' &&
+           new Date(t.dueDate) < new Date()
+        ).length;
+
+        // Calculate overdue follow-ups
+        loc.overdueFollowUps = followUpsData.filter(f =>
+           (f.executive?._id || f.executive) === loc.executive &&
+           !['Completed', 'Visited', 'Called'].includes(f.status) &&
+           new Date(f.followUpDate) < new Date()
+        ).length;
+
         if (loc.latitude && loc.longitude) {
           try {
-            const geocode = await Location.reverseGeocodeAsync({ latitude: loc.latitude, longitude: loc.longitude });
-            if (geocode && geocode.length > 0) {
-              const place = geocode[0];
-              const addressParts = [];
-              if (place.name && !addressParts.includes(place.name)) addressParts.push(place.name);
-              if (place.street && !addressParts.includes(place.street)) addressParts.push(place.street);
-              if (place.city) addressParts.push(place.city);
-              else if (place.subregion) addressParts.push(place.subregion);
-              
-              loc.address = addressParts.join(', ');
+            if (Platform.OS === 'web') {
+              const nominatimRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.latitude}&lon=${loc.longitude}`);
+              const json = await nominatimRes.json();
+              loc.address = json.display_name;
+            } else {
+              const geocode = await Location.reverseGeocodeAsync({ latitude: loc.latitude, longitude: loc.longitude });
+              if (geocode && geocode.length > 0) {
+                const place = geocode[0];
+                const addressParts = [];
+                if (place.name && !addressParts.includes(place.name)) addressParts.push(place.name);
+                if (place.street && !addressParts.includes(place.street)) addressParts.push(place.street);
+                if (place.city) addressParts.push(place.city);
+                else if (place.subregion) addressParts.push(place.subregion);
+                
+                loc.address = addressParts.join(', ');
+              }
             }
           } catch (e) {
             console.log('Geocoding failed for', loc.executiveName, e);
@@ -168,8 +197,8 @@ export default function EmployeeMonitoringScreen() {
 
   // Analytics computation
   const totalOnline = locations.filter(l => l.latitude).length;
-  const totalOffline = locations.length - totalOnline;
   const totalCheckedIn = locations.filter(l => l.timeline && l.timeline.some(t => t.type === 'Check-in')).length;
+  const totalOverdue = locations.reduce((sum, l) => sum + (l.overdueTasks || 0) + (l.overdueFollowUps || 0), 0);
 
   return (
     <AppLayout currentScreen="EmployeeMonitoring" role="Admin" scrollable={false}>
@@ -190,13 +219,13 @@ export default function EmployeeMonitoringScreen() {
               <Text style={styles.statLabel}>Online Now</Text>
               <Text style={[styles.statValue, { color: '#22c55e' }]}>{totalOnline}</Text>
             </View>
-            <View style={[styles.statBox, { borderBottomColor: '#f43f5e' }]}>
-              <Text style={styles.statLabel}>Offline</Text>
-              <Text style={[styles.statValue, { color: '#f43f5e' }]}>{totalOffline}</Text>
-            </View>
             <View style={[styles.statBox, { borderBottomColor: '#8b5cf6' }]}>
               <Text style={styles.statLabel}>Checked In</Text>
               <Text style={[styles.statValue, { color: '#8b5cf6' }]}>{totalCheckedIn}</Text>
+            </View>
+            <View style={[styles.statBox, { borderBottomColor: '#f97316' }]}>
+              <Text style={styles.statLabel}>Overdue</Text>
+              <Text style={[styles.statValue, { color: '#f97316' }]}>{totalOverdue}</Text>
             </View>
           </View>
         )}

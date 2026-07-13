@@ -239,6 +239,9 @@ export default function MeetingScreen({ navigation }) {
       // Removed expo-notifications scheduling to prevent Expo Go crash
       // Notifications are handled server-side or via custom dev build
 
+      await api.post('/meetings', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
       Toast.show({ type: 'success', text1: '✅ Meeting logged successfully!', visibilityTime: 3000 });
       setForm(INITIAL_FORM);

@@ -92,7 +92,7 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
         <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, paddingBottom: 40 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a' }}>Send Report to Client</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a' }}>Email Report</Text>
             <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color="#64748b" /></TouchableOpacity>
           </View>
 
@@ -105,21 +105,21 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
             </View>
           )}
 
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Client Email *</Text>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Recipient Email *</Text>
           <TextInput
             value={clientEmail}
             onChangeText={setClientEmail}
-            placeholder="client@example.com"
+            placeholder="superadmin@example.com"
             placeholderTextColor="#94a3b8"
             keyboardType="email-address"
             style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 50, fontSize: 14, color: '#0f172a', marginBottom: 12 }}
           />
 
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Client Name</Text>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Recipient Name</Text>
           <TextInput
             value={clientName}
             onChangeText={setClientName}
-            placeholder="E.g. Rajesh Sharma"
+            placeholder="E.g. Super Admin"
             placeholderTextColor="#94a3b8"
             style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 50, fontSize: 14, color: '#0f172a', marginBottom: 12 }}
           />
@@ -236,18 +236,23 @@ export default function ReportsScreen({ navigation }) {
     );
     
     let autoSummary = `Report Summary for ${client.businessName || client.companyName}:\n`;
+    autoSummary += `Overall Activity: ${clientMeetings.length} Meetings, ${clientFollowups.length} Follow-ups.\n`;
     
     if (clientFollowups.length > 0) {
       autoSummary += `\n[Follow-ups]\n`;
       clientFollowups.forEach(f => {
-        autoSummary += `- ${new Date(f.followUpDate).toLocaleDateString('en-IN')}: ${f.notes} (Status: ${f.status})\n`;
+        const execName = f.executive?.name || f.executive || 'Employee';
+        const dateStr = new Date(f.followUpDate || f.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        autoSummary += `- ${execName} (${f.status}) follow-up on ${dateStr}. Notes: ${f.notes || ''}\n`;
       });
     }
     
     if (clientMeetings.length > 0) {
       autoSummary += `\n[Meetings]\n`;
       clientMeetings.forEach(m => {
-        autoSummary += `- ${new Date(m.meetingDate).toLocaleDateString('en-IN')}: ${m.purpose || 'Meeting'} (Status: ${m.status})\n`;
+        const execName = m.executive?.name || m.executive || 'Employee';
+        const dateStr = new Date(m.scheduledAt || m.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        autoSummary += `- ${execName} ${m.status === 'Scheduled' ? 'scheduled' : 'completed'} a meeting on ${dateStr}. Notes: ${m.notes || ''}\n`;
       });
     }
 
@@ -667,7 +672,7 @@ export default function ReportsScreen({ navigation }) {
                             <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a' }}>Excel</Text>
                           </TouchableOpacity>
 
-                          {/* Send to Client (Admin only) */}
+                          {/* Send to Email (Admin/Super Admin) */}
                           {['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) && (
                             <TouchableOpacity
                               onPress={(e) => { e.stopPropagation?.(); setEmailModalReport(item); }}
