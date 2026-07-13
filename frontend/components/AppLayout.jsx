@@ -147,6 +147,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
   const [unreadTasks, setUnreadTasks] = useState(0);
   const [unreadFollowUps, setUnreadFollowUps] = useState(0);
   const [unreadMeetings, setUnreadMeetings] = useState(0);
+  const [unreadAttendance, setUnreadAttendance] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -172,6 +173,10 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
         setUnreadTasks(data.filter(n => n.type === 'Task').length);
         setUnreadFollowUps(data.filter(n => n.type === 'FollowUp').length);
         setUnreadMeetings(data.filter(n => n.type === 'Meeting').length);
+        setUnreadAttendance(data.filter(n => 
+          n.title?.includes('Check-in') || n.title?.includes('Check-out') || 
+          n.title?.includes('Leave') || n.title?.includes('Attendance')
+        ).length);
       } catch (_) {}
     };
     loadUnread();
@@ -203,6 +208,10 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
         if (notif.type === 'Task') setUnreadTasks(prev => prev + 1);
         if (notif.type === 'FollowUp') setUnreadFollowUps(prev => prev + 1);
         if (notif.type === 'Meeting') setUnreadMeetings(prev => prev + 1);
+        if (notif.title?.includes('Check-in') || notif.title?.includes('Check-out') || 
+            notif.title?.includes('Leave') || notif.title?.includes('Attendance')) {
+          setUnreadAttendance(prev => prev + 1);
+        }
       });
 
       // ── Chat message events ── (bump badge when NOT on Chat screen)
@@ -308,6 +317,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
     if (screen === 'TaskAssignment' || screen === 'Task') setUnreadTasks(0);
     if (screen === 'AdminFollowupManagement' || screen === 'Followup') setUnreadFollowUps(0);
     if (screen === 'Meeting') setUnreadMeetings(0);
+    if (screen === 'AdminAttendance' || screen === 'Attendance') setUnreadAttendance(0);
     navigation.navigate(screen);
   };
 
@@ -429,7 +439,8 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
                       (item.screen === 'Chat' || item.screen === 'TeamChat') ? unreadChat :
                       (item.screen === 'TaskAssignment' || item.screen === 'Task') ? unreadTasks :
                       (item.screen === 'AdminFollowupManagement' || item.screen === 'Followup') ? unreadFollowUps :
-                      (item.screen === 'Meeting') ? unreadMeetings : 0;
+                      (item.screen === 'Meeting') ? unreadMeetings : 
+                      (item.screen === 'AdminAttendance' || item.screen === 'Attendance') ? unreadAttendance : 0;
                     return (
                       <TouchableOpacity
                         key={item.screen}

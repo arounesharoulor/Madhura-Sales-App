@@ -236,7 +236,10 @@ export default function MeetingScreen({ navigation }) {
         }
       }
 
-      await api.post('/meetings', fd);
+      // Removed expo-notifications scheduling to prevent Expo Go crash
+      // Notifications are handled server-side or via custom dev build
+
+
       Toast.show({ type: 'success', text1: '✅ Meeting logged successfully!', visibilityTime: 3000 });
       setForm(INITIAL_FORM);
       setImageUri(null);
@@ -454,7 +457,7 @@ export default function MeetingScreen({ navigation }) {
             <View style={s.fieldWrap}>
               <Text style={s.label}>Visit Notes / Comments *</Text>
               <TextInput
-                style={[s.inputRow, { minHeight: 80, paddingTop: 10, alignItems: 'flex-start' }]}
+                style={s.inputArea}
                 value={form.notes}
                 onChangeText={v => upd('notes', v)}
                 placeholder="Discussed product plans, client was interested in..."
@@ -467,7 +470,7 @@ export default function MeetingScreen({ navigation }) {
             <View style={s.fieldWrap}>
               <Text style={s.label}>Meeting Follow-Up (Optional)</Text>
               <TextInput
-                style={[s.inputRow, { minHeight: 60, paddingTop: 10, alignItems: 'flex-start' }]}
+                style={[s.inputArea, { minHeight: 60 }]}
                 value={form.meetingFollowUp}
                 onChangeText={v => upd('meetingFollowUp', v)}
                 placeholder="Next steps after this meeting..."
@@ -602,6 +605,7 @@ const s = StyleSheet.create({
   fieldWrap: { marginBottom: 14 },
   label: { fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 14, height: 48 },
+  inputArea: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, minHeight: 100, textAlignVertical: 'top', color: '#0f172a', fontSize: 13 },
   inputText: { flex: 1, color: '#0f172a', fontSize: 13 },
 
   toggle: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4 },
