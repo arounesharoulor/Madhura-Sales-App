@@ -7,7 +7,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:web": "npm install lightningcss-linux-x64-gnu -O --no-save && npx expo export --platform web",
+    "build:web": "npx expo export --platform web",
     "eas-build-post-install": "npm install lightningcss-linux-x64-gnu -O --no-save"
   },
   "dependencies": {
@@ -43,6 +43,10 @@
     "react-native-web": "^0.21.2",
     "react-native-worklets": "0.8.3",
     "socket.io-client": "^4.7.5"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "1.32.0",
+    "lightningcss-linux-x64-musl": "1.32.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
