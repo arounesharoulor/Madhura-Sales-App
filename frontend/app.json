@@ -27,6 +27,7 @@
       },
       "package": "com.madhura.sales",
       "permissions": [
+        "android.permission.INTERNET",
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
@@ -42,7 +43,6 @@
       "@react-native-community/datetimepicker",
       "expo-image-picker",
       "expo-location",
-      "expo-notifications",
       "expo-document-picker"
     ],
     "experiments": {
