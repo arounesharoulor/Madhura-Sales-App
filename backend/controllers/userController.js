@@ -51,7 +51,7 @@ exports.getUsers = async (req, res, next) => {
       query.role = req.query.role;
     }
 
-    const users = await User.find(query).populate('manager', 'name email');
+    const users = await User.find(query).populate('manager', 'name email').lean();
 
     res.status(200).json({
       success: true,

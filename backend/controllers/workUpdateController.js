@@ -72,7 +72,7 @@ exports.getUpdates = async (req, res, next) => {
       .populate('executive', 'name email role')
       .populate('client', 'businessName ownerName phone location')
       .populate('tasksCompleted', 'title status')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).lean();
 
     res.status(200).json({
       success: true,

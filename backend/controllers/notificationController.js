@@ -14,7 +14,7 @@ exports.getNotifications = async (req, res, next) => {
 
     const notifications = await Notification.find(query)
       .populate('sender', 'name profilePicture')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).lean();
 
     res.status(200).json({
       success: true,

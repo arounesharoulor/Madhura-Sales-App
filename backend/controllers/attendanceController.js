@@ -237,7 +237,7 @@ exports.getTodayAttendance = async (req, res, next) => {
 // @access  Private/FieldExecutive
 exports.getMyAttendance = async (req, res, next) => {
   try {
-    const attendance = await Attendance.find({ executive: req.user.id }).sort({ date: -1 });
+    const attendance = await Attendance.find({ executive: req.user.id }).sort({ date: -1 }).lean();
     res.status(200).json({ success: true, data: attendance || [] });
   } catch (error) {
     next(error);
@@ -256,7 +256,7 @@ exports.getAllAttendance = async (req, res, next) => {
 
     const records = await Attendance.find(query)
       .populate('executive', 'name email phone employeeId designation earlyCheckoutLocked')
-      .sort({ date: -1, checkInTime: -1 });
+      .sort({ date: -1, checkInTime: -1 }).lean();
 
     res.status(200).json({ success: true, count: records.length, data: records });
   } catch (error) {
@@ -529,7 +529,7 @@ exports.exportAttendanceLog = async (req, res, next) => {
   try {
     const ExcelJS = require('exceljs');
     const users = await User.find({ isActive: true }).select('name employeeId designation role address');
-    const records = await Attendance.find();
+    const records = await Attendance.find().lean();
     
     // Aggregate by employee
     const summary = {};
@@ -622,7 +622,7 @@ exports.exportAttendanceLog = async (req, res, next) => {
 exports.getAttendanceSummary = async (req, res, next) => {
   try {
     const users = await User.find({ isActive: true }).select('name employeeId designation role address');
-    const records = await Attendance.find();
+    const records = await Attendance.find().lean();
     
     // Aggregate by employee
     const summary = {};

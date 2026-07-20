@@ -92,7 +92,7 @@ exports.getMessages = async (req, res, next) => {
     const messages = await Message.find(query)
       .populate('sender', 'name profilePicture role')
       .populate('receiver', 'name profilePicture role')
-      .sort({ createdAt: 1 }); // ASC for chronological timeline
+      .sort({ createdAt: 1 }).lean(); // ASC for chronological timeline
 
     res.status(200).json({
       success: true,

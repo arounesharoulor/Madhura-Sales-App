@@ -102,7 +102,7 @@ exports.getTasks = async (req, res, next) => {
       .populate('assignedTo', 'name email role')
       .populate('assignedBy', 'name email role')
       .populate('client', 'businessName ownerName phone location')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).lean();
 
     res.status(200).json({
       success: true,

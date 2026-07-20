@@ -228,7 +228,7 @@ exports.getMeetings = async (req, res, next) => {
 
     const meetings = await Meeting.find(query)
       .populate('executive', 'name email phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).lean();
 
     res.status(200).json({ success: true, count: meetings.length, data: meetings });
   } catch (error) {

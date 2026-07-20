@@ -107,7 +107,7 @@ exports.getFollowUps = async (req, res, next) => {
       .populate('assignedTo', 'name email designation')
       .populate('assignedByAdmin', 'name')
       .populate('meeting')
-      .sort({ priority: 1, followUpDate: 1 }); // High → Medium → Low, then nearest date
+      .sort({ priority: 1, followUpDate: 1 }).lean(); // High → Medium → Low, then nearest date
 
     res.status(200).json({ success: true, count: followUps.length, data: followUps });
   } catch (error) {

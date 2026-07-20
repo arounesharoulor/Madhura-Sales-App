@@ -72,7 +72,7 @@ exports.getTaskReports = async (req, res, next) => {
     const reports = await TaskReport.find(query)
       .populate('task', 'title description')
       .populate('employee', 'name employeeId designation')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).lean();
 
     res.status(200).json({
       success: true,

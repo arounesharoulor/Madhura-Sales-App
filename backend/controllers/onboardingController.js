@@ -85,7 +85,7 @@ exports.getOnboardedClients = async (req, res, next) => {
 
     const onboardings = await ClientOnboarding.find(query)
       .populate('executive', 'name employeeId designation')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).lean();
 
     res.status(200).json({ success: true, count: onboardings.length, data: onboardings });
   } catch (error) {

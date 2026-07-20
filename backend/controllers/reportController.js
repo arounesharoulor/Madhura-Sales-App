@@ -44,10 +44,10 @@ exports.generateReport = async (req, res, next) => {
     const totalTasks = await Task.countDocuments(taskQueryFilter);
     const completedTasks = await Task.countDocuments({ ...taskQueryFilter, status: 'Completed' });
 
-    const meetings = await Meeting.find(queryFilter).populate('executive', 'name');
+    const meetings = await Meeting.find(queryFilter).populate('executive', 'name').lean();
     const totalMeetings = meetings.length;
 
-    const followUps = await FollowUp.find(queryFilter).populate('executive', 'name');
+    const followUps = await FollowUp.find(queryFilter).populate('executive', 'name').lean();
     const totalFollowUps = followUps.length;
 
     const totalExecutivesActive = await User.countDocuments({ role: 'Field Executive', isActive: true });
@@ -79,7 +79,7 @@ exports.generateReport = async (req, res, next) => {
       });
     });
 
-    const tasks = await Task.find(taskQueryFilter).populate('assignedTo', 'name').populate('client');
+    const tasks = await Task.find(taskQueryFilter).populate('assignedTo', 'name').populate('client').lean();
     tasks.forEach(t => {
       activities.push({
         executiveId: t.assignedTo?._id,
@@ -144,7 +144,7 @@ exports.getReports = async (req, res, next) => {
     }
     const reports = await Report.find(query)
       .populate('generatedBy', 'name role')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 }).lean();
 
     res.status(200).json({ success: true, count: reports.length, data: reports });
   } catch (error) {

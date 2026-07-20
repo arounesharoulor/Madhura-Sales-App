@@ -58,7 +58,7 @@ exports.getLocationHistory = async (req, res, next) => {
       query.timestamp = { $gte: yesterday };
     }
 
-    const history = await Location.find(query).sort({ timestamp: 1 });
+    const history = await Location.find(query).sort({ timestamp: 1 }).lean();
 
     res.status(200).json({
       success: true,
