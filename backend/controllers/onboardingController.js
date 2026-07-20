@@ -131,6 +131,7 @@ exports.updateClient = async (req, res, next) => {
       ownerName, phone, email,
       address, city, state, pincode, latitude, longitude,
       notes, followUpDate,
+      projectName, services, softwareDetails
     } = req.body;
 
     onboarding.businessName = businessName || onboarding.businessName;
@@ -140,6 +141,9 @@ exports.updateClient = async (req, res, next) => {
     onboarding.phone = phone || onboarding.phone;
     onboarding.email = email !== undefined ? email : onboarding.email;
     onboarding.notes = notes !== undefined ? notes : onboarding.notes;
+    onboarding.projectName = projectName !== undefined ? projectName : onboarding.projectName;
+    onboarding.services = services !== undefined ? services : onboarding.services;
+    onboarding.softwareDetails = softwareDetails !== undefined ? softwareDetails : onboarding.softwareDetails;
     if (followUpDate) onboarding.followUpDate = new Date(followUpDate);
 
     if (address || city || state || pincode || latitude || longitude) {

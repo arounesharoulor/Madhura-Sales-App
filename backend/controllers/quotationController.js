@@ -11,3 +11,10 @@ exports.createQuotation = async (req, res, next) => {
     res.status(201).json({ success: true, data: quotation });
   } catch (error) { next(error); }
 };
+exports.updateQuotation = async (req, res, next) => {
+  try {
+    const quotation = await Quotation.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!quotation) return res.status(404).json({ success: false, message: 'Quotation not found' });
+    res.status(200).json({ success: true, data: quotation });
+  } catch (error) { next(error); }
+};
