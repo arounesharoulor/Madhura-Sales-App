@@ -36,6 +36,10 @@ export default function ProjectScreen({ navigation }) {
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <Text style={{ fontSize: 24, fontWeight: '900', color: '#0f172a' }}>Projects</Text>
+          <TouchableOpacity style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Ionicons name="add" size={16} color="#fff" />
+            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>New Project</Text>
+          </TouchableOpacity>
         </View>
 
         {loading ? (
