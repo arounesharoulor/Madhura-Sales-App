@@ -501,7 +501,7 @@ export default function RegisterScreen() {
         <View style={styles.header}>
           <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Madhura Sales Portal</Text>
+          <Text style={styles.subtitle}>Join Madhura CRM Portal</Text>
         </View>
 
         {/* Form Card */}

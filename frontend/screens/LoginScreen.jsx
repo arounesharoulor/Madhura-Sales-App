@@ -128,7 +128,7 @@ export default function LoginScreen() {
         {/* Logo / Brand Header */}
         <View style={styles.header}>
           <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
-          <Text style={styles.brandName}>Madhura Sales</Text>
+          <Text style={styles.brandName}>Madhura CRM</Text>
           <Text style={styles.brandTagline}>
             Field Staff Management Platform
           </Text>
@@ -282,7 +282,7 @@ export default function LoginScreen() {
 
         {/* Footer */}
         <Text style={styles.footer}>
-          Madhura Sales · Field Management System
+          Madhura CRM · Field Management System
         </Text>
       </View>
     </ScrollView>

@@ -57,7 +57,7 @@ export default function SplashScreen() {
           <View style={styles.logoWrap}>
             <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
           </View>
-          <Text style={styles.appName}>Madhura Sales</Text>
+          <Text style={styles.appName}>Madhura CRM</Text>
           <Text style={styles.tagline}>Field Staff Management</Text>
 
           <View style={styles.dotsRow}>

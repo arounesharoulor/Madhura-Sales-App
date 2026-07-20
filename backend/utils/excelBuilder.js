@@ -7,7 +7,7 @@ const ExcelJS = require('exceljs');
  */
 const buildReportExcel = async (report) => {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Madhura Sales App';
+  workbook.creator = 'Madhura CRM App';
   workbook.created = new Date();
 
   // ── Sheet 1: Summary ────────────────────────────────────

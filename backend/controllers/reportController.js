@@ -228,7 +228,7 @@ exports.sendReportEmail = async (req, res, next) => {
     const emailHtml = `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
         <div style="background:#0284c7;padding:24px;border-radius:12px 12px 0 0">
-          <h2 style="color:#fff;margin:0">Madhura Sales — Activity Report</h2>
+          <h2 style="color:#fff;margin:0">Madhura CRM — Activity Report</h2>
         </div>
         <div style="background:#f8fafc;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
           <p>Dear <strong>${clientName || 'Client'}</strong>,</p>
@@ -240,14 +240,14 @@ exports.sendReportEmail = async (req, res, next) => {
             <tr><td style="padding:10px 14px;font-weight:600">Follow-Ups</td><td style="padding:10px 14px">${report.summary?.totalFollowUps || 0}</td></tr>
           </table>
           <p style="color:#64748b;font-size:12px">The detailed Excel report is attached to this email.</p>
-          <p style="color:#64748b;font-size:12px">— Madhura Sales Team</p>
+          <p style="color:#64748b;font-size:12px">— Madhura CRM Team</p>
         </div>
       </div>
     `;
 
     await sendMail({
       to: clientEmail,
-      subject: `[Madhura Sales] ${report.title} – Activity Report`,
+      subject: `[Madhura CRM] ${report.title} – Activity Report`,
       html: emailHtml,
       attachments: [{ filename, content: buffer, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }],
     });
@@ -266,7 +266,7 @@ exports.generateCustomReport = async (req, res, next) => {
     const { clientName, projectName, summary, nextSteps, quotes } = req.body;
     const ExcelJS = require('exceljs');
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = req.user.name || 'Madhura Sales App';
+    workbook.creator = req.user.name || 'Madhura CRM App';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet('Custom Client Report');
@@ -344,11 +344,11 @@ exports.sendWeeklyFridayReminder = async () => {
         </div>
         <div style="background:#f8fafc;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e2e8f0">
           <p>This is your automated Friday reminder.</p>
-          <p>Please log in to the <strong>Madhura Sales App</strong> to generate and send weekly activity reports to your clients.</p>
+          <p>Please log in to the <strong>Madhura CRM App</strong> to generate and send weekly activity reports to your clients.</p>
           <p style="background:#eff6ff;padding:14px;border-radius:8px;border-left:4px solid #0284c7">
             📅 Week: <strong>${startDate.toLocaleDateString('en-IN')} – ${endDate.toLocaleDateString('en-IN')}</strong>
           </p>
-          <p style="color:#64748b;font-size:12px">— Madhura Sales Automated System</p>
+          <p style="color:#64748b;font-size:12px">— Madhura CRM Automated System</p>
         </div>
       </div>
     `;
@@ -357,7 +357,7 @@ exports.sendWeeklyFridayReminder = async () => {
       try {
         await sendMail({
           to: admin.email,
-          subject: '📊 [Madhura Sales] Weekly Report Reminder – Friday',
+          subject: '📊 [Madhura CRM] Weekly Report Reminder – Friday',
           html: emailHtml,
         });
       } catch (e) {

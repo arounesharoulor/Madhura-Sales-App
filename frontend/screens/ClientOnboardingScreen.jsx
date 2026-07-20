@@ -11,6 +11,7 @@ import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 
 const BUSINESS_TYPES = ['Retailer', 'Distributor', 'Wholesaler', 'Dealer', 'Corporate', 'Other'];
+const SERVICE_OPTIONS = ['Website', 'Mobile App', 'Software', 'Digital Marketing', 'Poster Designing', 'Other'];
 
 const LOCATION_DATA = {
   "Andaman and Nicobar Islands": ["Port Blair"],
@@ -132,6 +133,32 @@ function PillSelector({ options, value, onSelect }) {
           </Text>
         </TouchableOpacity>
       ))}
+    </View>
+  );
+}
+
+// Multi Pill selector
+function MultiPillSelector({ options, selectedValues, onToggle }) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+      {options.map((opt) => {
+        const isSelected = selectedValues.includes(opt);
+        return (
+          <TouchableOpacity
+            key={opt}
+            onPress={() => onToggle(opt)}
+            style={{
+              paddingHorizontal: 14, paddingVertical: 8, borderRadius: 30, borderWidth: 1.5,
+              backgroundColor: isSelected ? '#0284c7' : '#f8fafc',
+              borderColor: isSelected ? '#0284c7' : '#e2e8f0',
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '700', color: isSelected ? '#fff' : '#64748b' }}>
+              {opt}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -268,6 +295,17 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [notes, setNotes] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
   const [nextMeetingDate, setNextMeetingDate] = useState('');
+  const [projectName, setProjectName] = useState('');
+  const [services, setServices] = useState([]);
+  const [softwareDetails, setSoftwareDetails] = useState('');
+
+  const handleToggleService = (service) => {
+    if (services.includes(service)) {
+      setServices(services.filter(s => s !== service));
+    } else {
+      setServices([...services, service]);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -341,6 +379,7 @@ export default function ClientOnboardingScreen({ navigation }) {
     setPanNumber(''); setYearsInBusiness(''); setLeadSource(''); setExpectedVolume('');
     setInterestedProducts(''); setNotes('');
     setFollowUpDate(''); setNextMeetingDate(''); setCoords(null);
+    setProjectName(''); setServices([]); setSoftwareDetails('');
     setEditId(null);
   };
 
@@ -359,6 +398,9 @@ export default function ClientOnboardingScreen({ navigation }) {
         longitude: coords?.longitude,
         notes,
         followUpDate,
+        projectName,
+        services,
+        softwareDetails
       };
 
       if (editId) {
@@ -401,6 +443,9 @@ export default function ClientOnboardingScreen({ navigation }) {
     setExpectedVolume(client.expectedVolume || '');
     setInterestedProducts(client.interestedProducts || '');
     setNotes(client.notes || '');
+    setProjectName(client.projectName || '');
+    setServices(client.services || []);
+    setSoftwareDetails(client.softwareDetails || '');
     setFollowUpDate(client.followUpDate ? new Date(client.followUpDate).toISOString().slice(0, 16) : '');
     
     if (client.location?.latitude && client.location?.longitude) {
@@ -657,7 +702,20 @@ export default function ClientOnboardingScreen({ navigation }) {
               <Field label="Interested Products / Services" value={interestedProducts} onChangeText={setInterestedProducts} placeholder="E.g. Fertilizers, Seeds" multiline />
             </SectionCard>
 
-            {/* SECTION 6: Remarks & Follow-up */}
+            {/* SECTION 6: Project & Requirements */}
+            <SectionCard title="Project & Requirements" icon="laptop-outline">
+              <Field label="Project Name" value={projectName} onChangeText={setProjectName} placeholder="E.g. E-Commerce App Development" />
+              <FieldLabel text="Services Required" />
+              <MultiPillSelector options={SERVICE_OPTIONS} selectedValues={services} onToggle={handleToggleService} />
+              
+              {(services.includes('Software') || services.includes('Other')) && (
+                <View style={{ marginTop: 12 }}>
+                  <Field label="Specify Software/Other Details" value={softwareDetails} onChangeText={setSoftwareDetails} placeholder="Type the custom requirement manually..." multiline />
+                </View>
+              )}
+            </SectionCard>
+
+            {/* SECTION 7: Remarks & Follow-up */}
             <SectionCard title="Remarks & Follow-up" icon="document-text-outline">
               <Field label="Notes / Remarks" value={notes} onChangeText={setNotes} placeholder="Initial discussion summary, requirements..." multiline />
               <DateField label="Follow-up Date & Time" value={followUpDate} onChange={setFollowUpDate} mode="datetime" />

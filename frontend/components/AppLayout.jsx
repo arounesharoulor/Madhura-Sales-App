@@ -52,6 +52,8 @@ const allAdminNavSections = [
       { title: 'Field Staff Mgmt',  screen: 'UserManagement',           icon: 'people-outline',    iconActive: 'people' },
       { title: 'Task Assignments',  screen: 'TaskAssignment',           icon: 'clipboard-outline', iconActive: 'clipboard' },
       { title: 'Client Onboarding', screen: 'ClientOnboarding',         icon: 'briefcase-outline', iconActive: 'briefcase' },
+      { title: 'Projects',          screen: 'Project',                  icon: 'laptop-outline',    iconActive: 'laptop' },
+      { title: 'Quotations',        screen: 'Quotation',                icon: 'document-text-outline', iconActive: 'document-text' },
       { title: 'Log Client Visit',  screen: 'Meeting',                  icon: 'location-outline',  iconActive: 'location' },
       { title: 'Follow-up Mgmt',    screen: 'AdminFollowupManagement',  icon: 'alarm-outline',     iconActive: 'alarm' },
     ],
@@ -78,6 +80,8 @@ const employeeNavSections = [
       { title: 'Log Client Visit', screen: 'Meeting',         icon: 'location-outline',      iconActive: 'location' },
       { title: 'Work Update',      screen: 'WorkUpdate',      icon: 'document-text-outline', iconActive: 'document-text' },
       { title: 'Client Onboarding',screen: 'ClientOnboarding',icon: 'briefcase-outline',     iconActive: 'briefcase' },
+      { title: 'Projects',         screen: 'Project',         icon: 'laptop-outline',        iconActive: 'laptop' },
+      { title: 'Quotations',       screen: 'Quotation',       icon: 'document-text-outline', iconActive: 'document-text' },
     ],
   },
   {

@@ -44,6 +44,8 @@ const reportRoutes = require('./routes/reportRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const taskReportRoutes = require('./routes/taskReportRoutes');
 const onboardingRoutes = require('./routes/onboardingRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const quotationRoutes = require('./routes/quotationRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -59,11 +61,13 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/task-reports', taskReportRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/quotations', quotationRoutes);
 
 app.get('/', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected';
   res.json({
-    message: 'Welcome to Madhura Sales API',
+    message: 'Welcome to Madhura CRM API',
     database: dbStatus,
     version: '1.0.0',
   });

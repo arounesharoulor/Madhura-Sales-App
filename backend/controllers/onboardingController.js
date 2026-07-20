@@ -11,6 +11,7 @@ exports.onboardClient = async (req, res, next) => {
       ownerName, phone, email,
       address, city, state, pincode, latitude, longitude,
       notes, followUpDate,
+      projectName, services, softwareDetails
     } = req.body;
 
     if (!businessName || !businessType || !ownerName || !phone || !address || !city || !state || !pincode) {
@@ -36,6 +37,9 @@ exports.onboardClient = async (req, res, next) => {
       },
       notes: notes || '',
       followUpDate: followUpDate ? new Date(followUpDate) : null,
+      projectName,
+      services,
+      softwareDetails,
     });
 
     if (followUpDate) {
@@ -51,6 +55,19 @@ exports.onboardClient = async (req, res, next) => {
         });
       } catch (err) {
         console.error('Failed to create followup:', err);
+      }
+    }
+
+    if (projectName) {
+      try {
+        await require('../models/Project').create({
+          name: projectName,
+          client: onboarding._id,
+          services: services || [],
+          softwareDetails: softwareDetails || ''
+        });
+      } catch (err) {
+        console.error('Failed to create project:', err);
       }
     }
 
