@@ -12,6 +12,7 @@ const projectSchema = new mongoose.Schema({
   category: { type: String }, // Project Category / Type
   services: [{ type: String }],
   description: { type: String }, // Project Description
+  clientRequirement: { type: String }, // Client Requirements
   softwareDetails: { type: String },
   
   priority: { type: String, enum: ['Low', 'Medium', 'High', 'Urgent'], default: 'Medium' },

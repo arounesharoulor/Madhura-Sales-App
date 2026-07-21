@@ -18,6 +18,9 @@ const meetingSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please add meeting notes'],
     },
+    clientRequirement: {
+      type: String, // Additional field for client requirements
+    },
     location: {
       latitude: {
         type: Number,

@@ -19,6 +19,7 @@ const clientOnboardingSchema = new mongoose.Schema(
     },
     shopPhotoUrl: { type: String, default: '' },
     notes: { type: String, default: '' },
+    clientRequirement: { type: String, default: '' },
     followUpDate: { type: Date },
     onboardingDate: { type: Date, default: Date.now },
   },

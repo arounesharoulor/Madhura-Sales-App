@@ -294,6 +294,7 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [expectedVolume, setExpectedVolume] = useState('');
   const [interestedProducts, setInterestedProducts] = useState('');
   const [notes, setNotes] = useState('');
+  const [clientRequirement, setClientRequirement] = useState('');
   const [followUpDate, setFollowUpDate] = useState('');
   const [nextMeetingDate, setNextMeetingDate] = useState('');
   const [projectName, setProjectName] = useState('');
@@ -310,7 +311,14 @@ export default function ClientOnboardingScreen({ navigation }) {
         setOwnerName(lead.clientName || '');
         setPhone(lead.phone || '');
         setEmail(lead.email || '');
-        setNotes(lead.notes || '');
+        
+        let initialNotes = lead.notes || '';
+        if (lead.meetingFollowUp) {
+          initialNotes = initialNotes ? `${initialNotes}\n\nFollow-up: ${lead.meetingFollowUp}` : lead.meetingFollowUp;
+        }
+        setNotes(initialNotes);
+        setClientRequirement(lead.clientRequirement || '');
+        
         if (lead.serviceInterested) {
           setServices([lead.serviceInterested]);
         }
@@ -419,6 +427,7 @@ export default function ClientOnboardingScreen({ navigation }) {
         latitude: coords?.latitude,
         longitude: coords?.longitude,
         notes,
+        clientRequirement,
         followUpDate,
         projectName,
         services,
@@ -445,6 +454,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                   clientName: ownerName,
                   companyName: businessName,
                   notes: notes,
+                  clientRequirement: clientRequirement,
                   projectName: projectName,
                   services: services,
                   softwareDetails: softwareDetails
@@ -653,6 +663,11 @@ export default function ClientOnboardingScreen({ navigation }) {
         ) : (
           // ── FORM VIEW ──
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
+            {/* MEETING CONTEXT */}
+            <SectionCard title="Meeting Context" icon="chatbubbles-outline">
+              <Field label="Client Requirements" value={clientRequirement} onChangeText={setClientRequirement} placeholder="Client needs / requirements..." multiline />
+              <Field label="Meeting Notes / Additional Context" value={notes} onChangeText={setNotes} placeholder="Discussed product plans..." multiline />
+            </SectionCard>
 
             {/* SECTION 1: Business Details */}
             <SectionCard title="Business Details" icon="briefcase-outline">

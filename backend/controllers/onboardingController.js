@@ -10,7 +10,7 @@ exports.onboardClient = async (req, res, next) => {
       businessName, businessType, gstNumber,
       ownerName, phone, email,
       address, city, state, pincode, latitude, longitude,
-      notes, followUpDate,
+      notes, followUpDate, clientRequirement,
       projectName, services, softwareDetails
     } = req.body;
 
@@ -36,6 +36,7 @@ exports.onboardClient = async (req, res, next) => {
         longitude: longitude ? Number(longitude) : null,
       },
       notes: notes || '',
+      clientRequirement: clientRequirement || '',
       followUpDate: followUpDate ? new Date(followUpDate) : null,
       projectName,
       services,
@@ -64,6 +65,7 @@ exports.onboardClient = async (req, res, next) => {
           name: projectName,
           client: onboarding._id,
           services: services || [],
+          clientRequirement: clientRequirement || '',
           softwareDetails: softwareDetails || ''
         });
       } catch (err) {
@@ -130,7 +132,7 @@ exports.updateClient = async (req, res, next) => {
       businessName, businessType, gstNumber,
       ownerName, phone, email,
       address, city, state, pincode, latitude, longitude,
-      notes, followUpDate,
+      notes, followUpDate, clientRequirement,
       projectName, services, softwareDetails
     } = req.body;
 
@@ -141,6 +143,7 @@ exports.updateClient = async (req, res, next) => {
     onboarding.phone = phone || onboarding.phone;
     onboarding.email = email !== undefined ? email : onboarding.email;
     onboarding.notes = notes !== undefined ? notes : onboarding.notes;
+    onboarding.clientRequirement = clientRequirement !== undefined ? clientRequirement : onboarding.clientRequirement;
     onboarding.projectName = projectName !== undefined ? projectName : onboarding.projectName;
     onboarding.services = services !== undefined ? services : onboarding.services;
     onboarding.softwareDetails = softwareDetails !== undefined ? softwareDetails : onboarding.softwareDetails;

@@ -274,7 +274,9 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
                 {lead.status === 'Meeting' && (
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
-                      Meeting Confirmed ({lead.meetingType}) - Next: Log Visit
+                      {lead.meetingDate 
+                        ? `Scheduled on ${new Date(lead.meetingDate).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` 
+                        : `Meeting Confirmed (${lead.meetingType}) - Next: Log Visit`}
                     </Text>
                     <TouchableOpacity 
                       onPress={() => {

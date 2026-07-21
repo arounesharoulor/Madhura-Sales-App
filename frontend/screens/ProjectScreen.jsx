@@ -197,6 +197,7 @@ export default function ProjectScreen({ navigation }) {
   const [priority, setPriority] = useState('Medium');
   const [startDate, setStartDate] = useState('');
   const [targetCompletionDate, setTargetCompletionDate] = useState('');
+  const [clientRequirement, setClientRequirement] = useState('');
   const [services, setServices] = useState([]);
 
   useEffect(() => {
@@ -218,6 +219,7 @@ export default function ProjectScreen({ navigation }) {
         setPrefilledLead(meeting);
         setName(`${meeting.clientName} - Project`);
         setDescription(meeting.notes || '');
+        setClientRequirement(meeting.clientRequirement || '');
         setClient(meeting.companyName || meeting.clientName || '');
         setActiveTab('projects');
         setShowForm(true);
@@ -231,6 +233,7 @@ export default function ProjectScreen({ navigation }) {
         setPrefilledLead(clientData);
         setName(clientData.projectName || `${clientData.clientName} - Project`);
         setDescription(clientData.notes || '');
+        setClientRequirement(clientData.clientRequirement || '');
         setClient(clientData.companyName || clientData.clientName || '');
         if (clientData.services) setServices(clientData.services);
         if (clientData.softwareDetails) setSoftwareDetails(clientData.softwareDetails);
@@ -265,7 +268,7 @@ export default function ProjectScreen({ navigation }) {
 
   const resetForm = () => {
     setName(''); setProjectCode(''); setClient(''); setCategory('');
-    setDescription(''); setPriority('Medium'); setStartDate('');
+    setDescription(''); setClientRequirement(''); setPriority('Medium'); setStartDate('');
     setTargetCompletionDate(''); setServices([]); setPrefilledLead(null);
   };
 
@@ -277,7 +280,7 @@ export default function ProjectScreen({ navigation }) {
     setSubmitting(true);
     try {
       await api.post('/projects', {
-        name, projectCode, client, category, description, priority, startDate, targetCompletionDate, services
+        name, projectCode, client, category, description, clientRequirement, priority, startDate, targetCompletionDate, services
       });
       Toast.show({ type: 'success', text1: 'Project Added', text2: 'The project was successfully created.' });
       resetForm();
@@ -293,29 +296,51 @@ export default function ProjectScreen({ navigation }) {
   return (
     <AppLayout currentScreen="Project" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: 12 }}>
-          <View style={{ flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 20, padding: 4 }}>
+        <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: 16, marginHorizontal: 2 }}>
           {[
-            { id: 'leads', label: 'Leads' },
-            { id: 'projects', label: 'Projects' },
-            { id: 'tasks', label: 'Tasks' },
-            { id: 'followups', label: 'Follow-ups' },
-            { id: 'quotations', label: 'Quotations' },
-            { id: 'proposals', label: 'Proposals' },
-            { id: 'invoices', label: 'Invoices' }
-          ].map(tab => (
-            <TouchableOpacity 
-              key={tab.id}
-              onPress={() => setActiveTab(tab.id)}
-              style={{ flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 16, backgroundColor: activeTab === tab.id ? '#fff' : 'transparent' }}
-            >
-              <Text style={{ fontSize: 12, fontWeight: activeTab === tab.id ? '800' : '600', color: activeTab === tab.id ? '#0f172a' : '#64748b' }}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+            { id: 'leads', label: 'Leads', icon: 'funnel' },
+            { id: 'projects', label: 'Projects', icon: 'briefcase' },
+            { id: 'tasks', label: 'Tasks', icon: 'checkmark-done' },
+            { id: 'followups', label: 'Follow-ups', icon: 'chatbubbles' }
+          ].map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <TouchableOpacity 
+                key={tab.id}
+                onPress={() => setActiveTab(tab.id)}
+                activeOpacity={0.8}
+                style={{ 
+                  flex: 1, 
+                  paddingVertical: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  borderRadius: 10, 
+                  backgroundColor: isActive ? '#fff' : 'transparent',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: isActive ? 0.05 : 0,
+                  shadowRadius: 2,
+                  elevation: isActive ? 1 : 0,
+                }}
+              >
+                <Ionicons 
+                  name={isActive ? tab.icon : `${tab.icon}-outline`} 
+                  size={14} 
+                  color={isActive ? '#0284c7' : '#64748b'} 
+                />
+                <Text style={{ 
+                  fontSize: 12, 
+                  fontWeight: isActive ? '800' : '600', 
+                  color: isActive ? '#0f172a' : '#64748b' 
+                }}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-        </ScrollView>
 
         {activeTab === 'leads' && <LeadScreen 
           navigation={navigation} 
@@ -340,10 +365,7 @@ export default function ProjectScreen({ navigation }) {
             : <FollowupScreen navigation={navigation} isComponent={true} />
         )}
         
-        {activeTab === 'quotations' && <QuotationScreen navigation={navigation} isComponent={true} />}
-        {activeTab === 'proposals' && <ProposalScreen navigation={navigation} isComponent={true} />}
-        {activeTab === 'invoices' && <InvoiceScreen navigation={navigation} isComponent={true} />}
-        
+
         {activeTab === 'projects' && (
           <>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -386,6 +408,7 @@ export default function ProjectScreen({ navigation }) {
               <DateField label="Target Completion Date" value={targetCompletionDate} onChange={setTargetCompletionDate} />
               
               <Field label="Description" value={description} onChangeText={setDescription} placeholder="Project scope and details..." multiline />
+              <Field label="Client Requirements" value={clientRequirement} onChangeText={setClientRequirement} placeholder="Client needs / requirements..." multiline />
               
               <TouchableOpacity
                 onPress={handleSubmit}

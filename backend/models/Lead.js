@@ -12,6 +12,7 @@ const leadSchema = new mongoose.Schema({
     default: "Lead Taken" 
   },
   meetingType: { type: String, enum: ["In-Person", "Online", ""] },
+  meetingDate: { type: Date },
   notes: { type: String },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }

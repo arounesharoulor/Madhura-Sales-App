@@ -62,6 +62,15 @@ exports.createMeeting = async (req, res, next) => {
 
     const meeting = await Meeting.create(meetingData);
 
+    // Update the associated lead with the meeting date
+    if (meeting.lead && scheduledAt) {
+      try {
+        await Lead.findByIdAndUpdate(meeting.lead, { meetingDate: new Date(scheduledAt) });
+      } catch (err) {
+        console.error('Failed to update lead meeting date:', err.message);
+      }
+    }
+
     // Automatically create a follow-up if date is provided
     if (nextFollowUpDate) {
       await FollowUp.create({
@@ -145,7 +154,7 @@ exports.createMeeting = async (req, res, next) => {
 // @access  Private
 exports.updateMeeting = async (req, res, next) => {
   try {
-    const { meetingFollowUp, status, notes, nextFollowUpDate, reminderAt } = req.body;
+    const { meetingFollowUp, status, notes, nextFollowUpDate, reminderAt, clientRequirement } = req.body;
     const meeting = await Meeting.findById(req.params.id);
     if (!meeting) { res.status(404); throw new Error('Meeting not found'); }
 
@@ -154,6 +163,7 @@ exports.updateMeeting = async (req, res, next) => {
     if (meetingFollowUp !== undefined) meeting.meetingFollowUp = meetingFollowUp;
     if (status) meeting.status = status;
     if (notes) meeting.notes = notes;
+    if (clientRequirement !== undefined) meeting.clientRequirement = clientRequirement;
     if (nextFollowUpDate) meeting.nextFollowUpDate = new Date(nextFollowUpDate);
     if (reminderAt) meeting.reminderAt = new Date(reminderAt);
 

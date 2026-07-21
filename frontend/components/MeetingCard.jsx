@@ -94,6 +94,7 @@ function DateTimePickerField({ label, value, onChange, placeholder }) {
 const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
   const [expanded, setExpanded] = useState(false);
   const [followUpText, setFollowUpText] = useState(item.meetingFollowUp || '');
+  const [clientRequirementText, setClientRequirementText] = useState(item.clientRequirement || '');
   const [nextFollowUpDate, setNextFollowUpDate] = useState('');
   const [reminderAt, setReminderAt] = useState('');
   const [saving, setSaving] = useState(false);
@@ -141,6 +142,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
     try {
       const fd = new FormData();
       if (followUpText) fd.append('meetingFollowUp', followUpText);
+      if (clientRequirementText) fd.append('clientRequirement', clientRequirementText);
       if (nextFollowUpDate) fd.append('nextFollowUpDate', nextFollowUpDate);
       if (reminderAt) fd.append('reminderAt', reminderAt);
       fd.append('status', 'Completed');
@@ -344,20 +346,40 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </View>
             
             {isAdmin ? (
-              item.meetingFollowUp ? (
-                <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
-              ) : (
-                <Text style={styles.noFollowUp}>No follow-up note yet.</Text>
-              )
+              <View>
+                {item.clientRequirement ? (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Client Requirement</Text>
+                    <Text style={styles.followUpText}>{item.clientRequirement}</Text>
+                  </View>
+                ) : null}
+                {item.meetingFollowUp ? (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Follow-Up Note</Text>
+                    <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.noFollowUp}>No follow-up note yet.</Text>
+                )}
+              </View>
             ) : (
               <View>
+                <TextInput
+                  value={clientRequirementText}
+                  onChangeText={setClientRequirementText}
+                  placeholder="Type client requirements here..."
+                  placeholderTextColor="#94a3b8"
+                  multiline
+                  style={{ backgroundColor: '#fff', borderRadius: 8, padding: 10, fontSize: 12, minHeight: 60, marginTop: 6, borderWidth: 1, borderColor: '#e2e8f0', textAlignVertical: 'top' }}
+                />
+
                 <TextInput
                   value={followUpText}
                   onChangeText={setFollowUpText}
                   placeholder="Type follow-up notes or next steps here..."
                   placeholderTextColor="#94a3b8"
                   multiline
-                  style={{ backgroundColor: '#fff', borderRadius: 8, padding: 10, fontSize: 12, minHeight: 60, marginTop: 6, borderWidth: 1, borderColor: '#e2e8f0', textAlignVertical: 'top' }}
+                  style={{ backgroundColor: '#fff', borderRadius: 8, padding: 10, fontSize: 12, minHeight: 60, marginTop: 10, borderWidth: 1, borderColor: '#e2e8f0', textAlignVertical: 'top' }}
                 />
 
                 {/* If there's no photo yet, let them add one during update */}
