@@ -445,6 +445,9 @@ export default function ClientOnboardingScreen({ navigation }) {
                   clientName: ownerName,
                   companyName: businessName,
                   notes: notes,
+                  projectName: projectName,
+                  services: services,
+                  softwareDetails: softwareDetails
                 })
               }
             });

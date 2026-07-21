@@ -145,7 +145,7 @@ exports.createMeeting = async (req, res, next) => {
 // @access  Private
 exports.updateMeeting = async (req, res, next) => {
   try {
-    const { meetingFollowUp, status, notes } = req.body;
+    const { meetingFollowUp, status, notes, nextFollowUpDate, reminderAt } = req.body;
     const meeting = await Meeting.findById(req.params.id);
     if (!meeting) { res.status(404); throw new Error('Meeting not found'); }
 
@@ -154,6 +154,8 @@ exports.updateMeeting = async (req, res, next) => {
     if (meetingFollowUp !== undefined) meeting.meetingFollowUp = meetingFollowUp;
     if (status) meeting.status = status;
     if (notes) meeting.notes = notes;
+    if (nextFollowUpDate) meeting.nextFollowUpDate = new Date(nextFollowUpDate);
+    if (reminderAt) meeting.reminderAt = new Date(reminderAt);
 
     // Handle photo upload if present
     if (req.file) {
@@ -194,6 +196,18 @@ exports.updateMeeting = async (req, res, next) => {
         } else if (meetingFollowUp) {
           notifTitle = 'Meeting Follow-up Added';
           notifMsg = `${req.user.name} added a follow-up note for the meeting with ${meeting.clientName}.`;
+        }
+
+        // Create new FollowUp if nextFollowUpDate is provided during completion
+        if (nextFollowUpDate) {
+           await FollowUp.create({
+             executive: req.user.id,
+             meeting: meeting._id,
+             clientName: meeting.clientName,
+             companyName: meeting.companyName,
+             followUpDate: new Date(nextFollowUpDate),
+             notes: `Follow up on completed meeting: ${meetingFollowUp ? meetingFollowUp.substring(0, 100) : ''}`,
+           });
         }
 
         await Promise.all(

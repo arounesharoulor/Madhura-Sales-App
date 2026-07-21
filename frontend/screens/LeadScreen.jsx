@@ -146,19 +146,16 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
     }
   };
 
-  const updateLeadStatus = async (id, newStatus, meetingType = '') => {
+  const updateLeadStatus = async (lead, newStatus, meetingType = '') => {
     try {
-      await api.put(`/leads/${id}/status`, { status: newStatus, meetingType });
+      await api.put(`/leads/${lead._id}/status`, { status: newStatus, meetingType });
       Toast.show({ type: 'success', text1: 'Lead Updated', text2: `Status changed to ${newStatus}` });
       fetchLeads();
       if (newStatus === 'Meeting') {
-        // Navigate to meeting screen or show a message
-        if (navigation) {
-          Alert.alert('Meeting Scheduled', 'Would you like to go to the Meeting screen?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Go to Meetings', onPress: () => navigation.navigate('Meeting') }
-          ]);
-        }
+        // Automatically go to log client visit (Meeting)
+        import('expo-router').then(({ router }) => {
+          router.push({ pathname: '/Meeting', params: { prefillLead: JSON.stringify(lead) } });
+        });
       }
     } catch (e) {
       Alert.alert('Error', e.response?.data?.message || 'Failed to update status.');
@@ -252,7 +249,7 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
               <View style={styles.actionRow}>
                 {lead.status === 'Lead Taken' && (
                   <TouchableOpacity 
-                    onPress={() => updateLeadStatus(lead._id, 'Lead Taken to the Meeting')}
+                    onPress={() => updateLeadStatus(lead, 'Lead Taken to the Meeting')}
                     style={[styles.actionBtn, { backgroundColor: '#fef9c3', borderColor: '#fde047' }]}
                   >
                     <Text style={[styles.actionBtnText, { color: '#ca8a04' }]}>Move to Meeting Stage</Text>
@@ -261,13 +258,13 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
                 {lead.status === 'Lead Taken to the Meeting' && (
                   <View style={{ flexDirection: 'row', gap: 8, flex: 1 }}>
                     <TouchableOpacity 
-                      onPress={() => updateLeadStatus(lead._id, 'Meeting', 'Online')}
+                      onPress={() => updateLeadStatus(lead, 'Meeting', 'Online')}
                       style={[styles.actionBtn, { flex: 1, backgroundColor: '#dcfce7', borderColor: '#86efac' }]}
                     >
                       <Text style={[styles.actionBtnText, { color: '#16a34a' }]}>Online Meeting</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
-                      onPress={() => updateLeadStatus(lead._id, 'Meeting', 'In-Person')}
+                      onPress={() => updateLeadStatus(lead, 'Meeting', 'In-Person')}
                       style={[styles.actionBtn, { flex: 1, backgroundColor: '#dcfce7', borderColor: '#86efac' }]}
                     >
                       <Text style={[styles.actionBtnText, { color: '#16a34a' }]}>In-Person Meeting</Text>
@@ -315,7 +312,7 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
                     </Text>
                     <TouchableOpacity 
                       onPress={() => {
-                        updateLeadStatus(lead._id, 'Project Onboarded');
+                        updateLeadStatus(lead, 'Project Onboarded');
                         if (onOnboardProject) onOnboardProject(lead);
                       }}
                       style={[styles.actionBtn, { backgroundColor: '#0284c7', borderColor: '#0369a1', paddingHorizontal: 12 }]}

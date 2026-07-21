@@ -464,21 +464,7 @@ export default function MeetingScreen({ navigation }) {
               />
             )}
 
-            {/* Reminder */}
-            <DateTimePickerField
-              label="Set Reminder (Optional)"
-              value={form.reminderAt}
-              onChange={v => upd('reminderAt', v)}
-              placeholder="Select reminder time"
-            />
-
-            {/* Next Follow-up date */}
-            <DateTimePickerField
-              label="Next Follow-Up Date (Optional)"
-              value={form.nextFollowUpDate}
-              onChange={v => upd('nextFollowUpDate', v)}
-              placeholder="Select follow-up date"
-            />
+            {/* Removed Reminder and Follow-Up Date from creation; they are set on completion */}
 
             {/* Notes */}
             <View style={s.fieldWrap}>

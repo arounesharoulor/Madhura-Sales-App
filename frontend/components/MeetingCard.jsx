@@ -30,9 +30,72 @@ function fmt(dateStr) {
   } catch { return dateStr; }
 }
 
+function DateTimePickerField({ label, value, onChange, placeholder }) {
+  const [showPicker, setShowPicker] = useState(false);
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={{ marginBottom: 12 }}>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 46 }}>
+          <Ionicons name="calendar-outline" size={16} color="#64748b" style={{ marginRight: 8 }} />
+          <input
+            type="datetime-local"
+            value={value ? new Date(value).toISOString().slice(0, 16) : ''}
+            onChange={(e) => onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
+            min={new Date().toISOString().slice(0, 16)}
+            style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: '#0f172a' }}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</Text>
+      <TouchableOpacity onPress={() => setShowPicker('date')} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 46 }}>
+        <Ionicons name="calendar-outline" size={16} color="#64748b" style={{ marginRight: 8 }} />
+        <Text style={[{ flex: 1, fontSize: 13 }, value ? { color: '#0f172a' } : { color: '#94a3b8' }]}>{value ? fmt(value) : placeholder}</Text>
+        <Ionicons name="chevron-down" size={14} color="#94a3b8" />
+      </TouchableOpacity>
+      {showPicker && (() => {
+        const DateTimePicker = require('@react-native-community/datetimepicker').default;
+        const current = value ? new Date(value) : new Date();
+        return (
+          <DateTimePicker
+            value={isNaN(current.getTime()) ? new Date() : current}
+            mode={Platform.OS === 'ios' ? 'datetime' : showPicker}
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            minimumDate={new Date()}
+            onChange={(event, selectedDate) => {
+              if (Platform.OS === 'android') {
+                if (event.type === 'set' && selectedDate) {
+                  if (showPicker === 'date') {
+                    onChange(selectedDate.toISOString());
+                    setShowPicker('time');
+                  } else {
+                    setShowPicker(false);
+                    onChange(selectedDate.toISOString());
+                  }
+                } else setShowPicker(false);
+              } else {
+                setShowPicker(false);
+                if (selectedDate) onChange(selectedDate.toISOString());
+              }
+            }}
+          />
+        );
+      })()}
+    </View>
+  );
+}
+
 const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
   const [expanded, setExpanded] = useState(false);
   const [followUpText, setFollowUpText] = useState(item.meetingFollowUp || '');
+  const [nextFollowUpDate, setNextFollowUpDate] = useState('');
+  const [reminderAt, setReminderAt] = useState('');
   const [saving, setSaving] = useState(false);
 
   const [imageUri, setImageUri] = useState(null);
@@ -78,6 +141,8 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
     try {
       const fd = new FormData();
       if (followUpText) fd.append('meetingFollowUp', followUpText);
+      if (nextFollowUpDate) fd.append('nextFollowUpDate', nextFollowUpDate);
+      if (reminderAt) fd.append('reminderAt', reminderAt);
       fd.append('status', 'Completed');
 
       if (imageUri) {
@@ -314,6 +379,11 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                   </View>
                 )}
 
+                <View style={{ marginTop: 12 }}>
+                  <DateTimePickerField label="Next Follow-Up Date" value={nextFollowUpDate} onChange={setNextFollowUpDate} placeholder="Select date & time" />
+                  <DateTimePickerField label="Set Reminder" value={reminderAt} onChange={setReminderAt} placeholder="Select reminder time" />
+                </View>
+
                 <TouchableOpacity 
                   onPress={saveFollowUp} 
                   disabled={saving || (!followUpText && !imageUri && item.status === 'Completed')}
@@ -335,13 +405,13 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             <TouchableOpacity
               onPress={() => {
                 import('expo-router').then(({ router }) => {
-                  router.push({ pathname: '/Project', params: { prefillProjectFromMeeting: JSON.stringify(item) } });
+                  router.push({ pathname: '/ClientOnboarding', params: { prefillClientFromLead: JSON.stringify(item) } });
                 });
               }}
               style={{ backgroundColor: '#10b981', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12, flexDirection: 'row', justifyContent: 'center', gap: 6 }}
             >
-              <Ionicons name="rocket-outline" size={16} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Onboard to Project</Text>
+              <Ionicons name="person-add-outline" size={16} color="#fff" />
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Onboard Client</Text>
             </TouchableOpacity>
           )}
 

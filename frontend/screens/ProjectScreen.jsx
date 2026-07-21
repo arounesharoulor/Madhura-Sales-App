@@ -13,6 +13,9 @@ import TaskAssignmentScreen from './TaskAssignmentScreen';
 import AdminFollowupManagementScreen from './AdminFollowupManagementScreen';
 import TaskScreen from './TaskScreen';
 import FollowupScreen from './FollowupScreen';
+import QuotationScreen from './QuotationScreen';
+import ProposalScreen from './ProposalScreen';
+import InvoiceScreen from './InvoiceScreen';
 
 const SERVICE_OPTIONS = ['Website', 'Mobile App', 'Software', 'Digital Marketing', 'Poster Designing', 'Other'];
 const CATEGORY_OPTIONS = ['Development', 'Marketing', 'Design', 'Consulting', 'Maintenance'];
@@ -226,9 +229,11 @@ export default function ProjectScreen({ navigation }) {
       try {
         const clientData = JSON.parse(params.prefillProjectFromClient);
         setPrefilledLead(clientData);
-        setName(`${clientData.clientName} - Project`);
+        setName(clientData.projectName || `${clientData.clientName} - Project`);
         setDescription(clientData.notes || '');
         setClient(clientData.companyName || clientData.clientName || '');
+        if (clientData.services) setServices(clientData.services);
+        if (clientData.softwareDetails) setSoftwareDetails(clientData.softwareDetails);
         setActiveTab('projects');
         setShowForm(true);
       } catch (e) {
@@ -288,12 +293,16 @@ export default function ProjectScreen({ navigation }) {
   return (
     <AppLayout currentScreen="Project" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 20, padding: 4, marginBottom: 12 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 20, padding: 4 }}>
           {[
             { id: 'leads', label: 'Leads' },
             { id: 'projects', label: 'Projects' },
             { id: 'tasks', label: 'Tasks' },
-            { id: 'followups', label: 'Follow-ups' }
+            { id: 'followups', label: 'Follow-ups' },
+            { id: 'quotations', label: 'Quotations' },
+            { id: 'proposals', label: 'Proposals' },
+            { id: 'invoices', label: 'Invoices' }
           ].map(tab => (
             <TouchableOpacity 
               key={tab.id}
@@ -306,6 +315,7 @@ export default function ProjectScreen({ navigation }) {
             </TouchableOpacity>
           ))}
         </View>
+        </ScrollView>
 
         {activeTab === 'leads' && <LeadScreen 
           navigation={navigation} 
@@ -329,6 +339,10 @@ export default function ProjectScreen({ navigation }) {
             ? <AdminFollowupManagementScreen navigation={navigation} isComponent={true} />
             : <FollowupScreen navigation={navigation} isComponent={true} />
         )}
+        
+        {activeTab === 'quotations' && <QuotationScreen navigation={navigation} isComponent={true} />}
+        {activeTab === 'proposals' && <ProposalScreen navigation={navigation} isComponent={true} />}
+        {activeTab === 'invoices' && <InvoiceScreen navigation={navigation} isComponent={true} />}
         
         {activeTab === 'projects' && (
           <>
