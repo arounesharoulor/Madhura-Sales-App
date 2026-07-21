@@ -314,8 +314,6 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
       }
 
       await api.post('/followups', payload);
-        assignedTo: selectedEmployee._id,
-      });
 
       Toast.show({ type: 'success', text1: '✅ Follow-up Assigned', text2: `Assigned to ${selectedEmployee.name}` });
       

@@ -18,7 +18,7 @@ async function emitToAdmins(io, event, payload) {
 // @access  Private
 exports.createFollowUp = async (req, res, next) => {
   try {
-    const { clientName, companyName, notes, followUpDate, meeting, priority, assignedTo } = req.body;
+    const { clientName, companyName, notes, followUpDate, meeting, priority, assignedTo, client, project } = req.body;
 
     const isAdmin = ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(req.user.role);
     
@@ -37,6 +37,8 @@ exports.createFollowUp = async (req, res, next) => {
       assignedByAdmin: isAdmin ? req.user.id : null,
       assignedAt: isAdmin ? new Date() : null,
       meeting: meeting || undefined,
+      client: client || undefined,
+      project: project || undefined,
       clientName,
       companyName,
       followUpDate: new Date(followUpDate),
