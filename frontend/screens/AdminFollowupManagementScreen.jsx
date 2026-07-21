@@ -199,7 +199,7 @@ function AssignModal({ visible, followUp, employees, onClose, onSaved }) {
   );
 }
 
-export default function AdminFollowupManagementScreen({ navigation }) {
+export default function AdminFollowupManagementScreen({ navigation, isComponent = false }) {
   const [activeTab, setActiveTab] = useState('assign'); // 'assign' | 'history'
   
   const [followUps, setFollowUps] = useState([]);
@@ -349,8 +349,8 @@ export default function AdminFollowupManagementScreen({ navigation }) {
   // All employees shown — admin can assign to anyone; isCheckedIn badge shows availability
   const availableEmployees = employees;
 
-  return (
-    <AppLayout currentScreen="AdminFollowupManagement" role="Admin" scrollable={false}>
+  const content = (
+    <>
       <View style={styles.container}>
 
         {/* Header */}
@@ -693,15 +693,18 @@ export default function AdminFollowupManagementScreen({ navigation }) {
         )}
       </View>
 
-      <AssignModal
+        <AssignModal
         visible={showModal}
         followUp={selectedFollowUp}
         employees={employees}
         onClose={() => setShowModal(false)}
         onSaved={fetchData}
       />
-    </AppLayout>
+    </>
   );
+
+  if (isComponent) return content;
+  return <AppLayout currentScreen="AdminFollowupManagement" role="Admin" scrollable={false}>{content}</AppLayout>;
 }
 
 const styles = StyleSheet.create({

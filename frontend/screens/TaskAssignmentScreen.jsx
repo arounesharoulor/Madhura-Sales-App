@@ -89,7 +89,7 @@ function CrossPlatformDatePicker({ value, onChange }) {
   );
 }
 
-export default function TaskAssignmentScreen({ navigation }) {
+export default function TaskAssignmentScreen({ navigation, isComponent = false }) {
   const [employees, setEmployees] = useState([]);
   const [availableEmployees, setAvailableEmployees] = useState([]);
   const [attendanceMap, setAttendanceMap] = useState({});
@@ -271,19 +271,18 @@ export default function TaskAssignmentScreen({ navigation }) {
   const filteredTasks = taskFilter === 'All' ? tasks : tasks.filter(t => t.status === taskFilter);
 
   if (fetching) {
-    return (
-      <AppLayout currentScreen="TaskAssignment" role="Admin">
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 }}>
-          <ActivityIndicator size="large" color="#0284c7" />
-          <Text style={{ color: '#64748b', marginTop: 16, fontSize: 14 }}>Loading task data...</Text>
-        </View>
-      </AppLayout>
+    const loadingView = (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 }}>
+        <ActivityIndicator size="large" color="#0284c7" />
+        <Text style={{ color: '#64748b', marginTop: 16, fontSize: 14 }}>Loading task data...</Text>
+      </View>
     );
+    if (isComponent) return loadingView;
+    return <AppLayout currentScreen="TaskAssignment" role="Admin">{loadingView}</AppLayout>;
   }
 
-  return (
-    <AppLayout currentScreen="TaskAssignment" role="Admin" scrollable={false}>
-      <View style={styles.container}>
+  const content = (
+    <View style={styles.container}>
 
         {/* Page Header */}
         <View style={styles.pageHeader}>
@@ -646,9 +645,11 @@ export default function TaskAssignmentScreen({ navigation }) {
             />
           </View>
         )}
-      </View>
-    </AppLayout>
+    </View>
   );
+
+  if (isComponent) return content;
+  return <AppLayout currentScreen="TaskAssignment" role="Admin" scrollable={false}>{content}</AppLayout>;
 }
 
 const styles = StyleSheet.create({

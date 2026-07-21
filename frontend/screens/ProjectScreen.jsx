@@ -7,6 +7,10 @@ import api from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
+import LeadScreen from './LeadScreen';
+import TaskAssignmentScreen from './TaskAssignmentScreen';
+import AdminFollowupManagementScreen from './AdminFollowupManagementScreen';
+
 const SERVICE_OPTIONS = ['Website', 'Mobile App', 'Software', 'Digital Marketing', 'Poster Designing', 'Other'];
 const CATEGORY_OPTIONS = ['Development', 'Marketing', 'Design', 'Consulting', 'Maintenance'];
 const PRIORITY_OPTIONS = ['Low', 'Medium', 'High', 'Urgent'];
@@ -172,6 +176,8 @@ export default function ProjectScreen({ navigation }) {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  const [activeTab, setActiveTab] = useState('projects'); // 'leads', 'projects', 'tasks', 'followups'
+  
   // Form State
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -247,8 +253,33 @@ export default function ProjectScreen({ navigation }) {
   return (
     <AppLayout currentScreen="Project" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <Text style={{ fontSize: 24, fontWeight: '900', color: '#0f172a' }}>Projects</Text>
+        <View style={{ flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 20, padding: 4, marginBottom: 12 }}>
+          {[
+            { id: 'leads', label: 'Leads' },
+            { id: 'projects', label: 'Projects' },
+            { id: 'tasks', label: 'Tasks' },
+            { id: 'followups', label: 'Follow-ups' }
+          ].map(tab => (
+            <TouchableOpacity 
+              key={tab.id}
+              onPress={() => setActiveTab(tab.id)}
+              style={{ flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 16, backgroundColor: activeTab === tab.id ? '#fff' : 'transparent' }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: activeTab === tab.id ? '800' : '600', color: activeTab === tab.id ? '#0f172a' : '#64748b' }}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {activeTab === 'leads' && <LeadScreen navigation={navigation} isComponent={true} />}
+        {activeTab === 'tasks' && <TaskAssignmentScreen navigation={navigation} isComponent={true} />}
+        {activeTab === 'followups' && <AdminFollowupManagementScreen navigation={navigation} isComponent={true} />}
+        
+        {activeTab === 'projects' && (
+          <>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 24, fontWeight: '900', color: '#0f172a' }}>Projects</Text>
           {!showForm && (
             <TouchableOpacity 
               onPress={() => setShowForm(true)}
@@ -347,6 +378,8 @@ export default function ProjectScreen({ navigation }) {
               </View>
             ))}
           </ScrollView>
+        )}
+          </>
         )}
       </View>
     </AppLayout>

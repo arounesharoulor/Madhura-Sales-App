@@ -46,6 +46,7 @@ const taskReportRoutes = require('./routes/taskReportRoutes');
 const onboardingRoutes = require('./routes/onboardingRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const quotationRoutes = require('./routes/quotationRoutes');
+const leadRoutes = require('./routes/leadRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -63,6 +64,7 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/quotations', quotationRoutes);
+app.use('/api/leads', leadRoutes);
 
 app.get('/', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected';
