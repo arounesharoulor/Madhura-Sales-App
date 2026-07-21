@@ -23,7 +23,7 @@ const PRIORITY_CONFIG = {
   'Low':    { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' },
 };
 
-export default function TaskScreen({ navigation }) {
+export default function TaskScreen({ navigation, isComponent = false }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
@@ -148,8 +148,7 @@ export default function TaskScreen({ navigation }) {
 
   const isOverdue = (t) => t.dueDate && new Date() > new Date(t.dueDate) && t.status !== 'Completed';
 
-  return (
-    <AppLayout currentScreen="Task" role="Employee" scrollable={false}>
+  const content = (
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <Text style={{ fontSize: 22, fontWeight: '900', color: '#0f172a' }}>My Tasks</Text>
@@ -402,6 +401,8 @@ export default function TaskScreen({ navigation }) {
           />
         )}
       </View>
-    </AppLayout>
   );
+
+  if (isComponent) return content;
+  return <AppLayout currentScreen="Task" role="Employee" scrollable={false}>{content}</AppLayout>;
 }

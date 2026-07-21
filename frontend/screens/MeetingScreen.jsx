@@ -13,6 +13,7 @@ import AppLayout from '../components/AppLayout';
 import MeetingCard from '../components/MeetingCard';
 import api from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams } from 'expo-router';
 
 const GOLD = '#F5A623';
 const NAVY = '#1B2B4B';
@@ -98,7 +99,7 @@ const INITIAL_FORM = {
   clientName: '', companyName: '', phone: '', notes: '',
   meetingType: 'In-Person', status: 'Completed',
   scheduledAt: '', reminderAt: '', nextFollowUpDate: '',
-  meetingFollowUp: '', onlineMeetingLink: '',
+  meetingFollowUp: '', onlineMeetingLink: '', leadId: '',
 };
 
 export default function MeetingScreen({ navigation }) {
@@ -116,6 +117,29 @@ export default function MeetingScreen({ navigation }) {
   const [userRole, setUserRole] = useState('');
 
   const upd = (key, val) => setForm(f => ({ ...f, [key]: val }));
+
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (params?.prefillLead) {
+      try {
+        const lead = JSON.parse(params.prefillLead);
+        setForm(f => ({
+          ...f,
+          clientName: lead.clientName || '',
+          companyName: lead.companyName || '',
+          phone: lead.phone || '',
+          notes: lead.notes || '',
+          meetingType: lead.meetingType || 'In-Person',
+          status: 'Completed',
+          leadId: lead._id || '',
+        }));
+        setShowAddForm(true);
+      } catch (e) {
+        console.error('Failed to parse prefillLead', e);
+      }
+    }
+  }, [params?.prefillLead]);
 
   useEffect(() => {
     AsyncStorage.getItem('user').then(s => {

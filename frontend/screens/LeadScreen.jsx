@@ -84,7 +84,7 @@ function Field({ label, required, value, onChangeText, placeholder, keyboardType
   );
 }
 
-export default function LeadScreen({ navigation }) {
+export default function LeadScreen({ navigation, isComponent, onOnboardProject }) {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -275,8 +275,58 @@ export default function LeadScreen({ navigation }) {
                   </View>
                 )}
                 {lead.status === 'Meeting' && (
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic' }}>
-                    Meeting Confirmed ({lead.meetingType}) - Next: Project Onboarding
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
+                      Meeting Confirmed ({lead.meetingType}) - Next: Log Visit
+                    </Text>
+                    <TouchableOpacity 
+                      onPress={() => {
+                        import('expo-router').then(({ router }) => {
+                          router.push({ pathname: '/Meeting', params: { prefillLead: JSON.stringify(lead) } });
+                        });
+                      }}
+                      style={[styles.actionBtn, { backgroundColor: '#7c3aed', borderColor: '#6d28d9', paddingHorizontal: 12 }]}
+                    >
+                      <Text style={[styles.actionBtnText, { color: '#fff' }]}>Log Client Visit</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {lead.status === 'Meeting Completed' && (
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
+                      Meeting Completed - Next: Client Onboard
+                    </Text>
+                    <TouchableOpacity 
+                      onPress={() => {
+                        import('expo-router').then(({ router }) => {
+                          router.push({ pathname: '/ClientOnboarding', params: { prefillClientFromLead: JSON.stringify(lead) } });
+                        });
+                      }}
+                      style={[styles.actionBtn, { backgroundColor: '#10b981', borderColor: '#059669', paddingHorizontal: 12 }]}
+                    >
+                      <Text style={[styles.actionBtnText, { color: '#fff' }]}>Onboard Client</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {lead.status === 'Client Onboarded' && (
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
+                      Client Onboarded - Next: Create Project
+                    </Text>
+                    <TouchableOpacity 
+                      onPress={() => {
+                        updateLeadStatus(lead._id, 'Project Onboarded');
+                        if (onOnboardProject) onOnboardProject(lead);
+                      }}
+                      style={[styles.actionBtn, { backgroundColor: '#0284c7', borderColor: '#0369a1', paddingHorizontal: 12 }]}
+                    >
+                      <Text style={[styles.actionBtnText, { color: '#fff' }]}>Onboard Project</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {lead.status === 'Project Onboarded' && (
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#0f172a', fontStyle: 'italic' }}>
+                    ✅ Successfully converted into a Project
                   </Text>
                 )}
               </View>

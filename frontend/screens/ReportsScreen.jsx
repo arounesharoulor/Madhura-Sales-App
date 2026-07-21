@@ -175,6 +175,8 @@ export default function ReportsScreen({ navigation }) {
   const [clients, setClients] = useState([]);
   const [allFollowups, setAllFollowups] = useState([]);
   const [allMeetings, setAllMeetings] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
+  const [allTasks, setAllTasks] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -185,16 +187,20 @@ export default function ReportsScreen({ navigation }) {
   const fetchReports = async () => {
     try {
       setRefreshing(true);
-      const [res, clientsRes, followupsRes, meetingsRes] = await Promise.all([
+      const [res, clientsRes, followupsRes, meetingsRes, projectsRes, tasksRes] = await Promise.all([
         api.get('/reports'),
         api.get('/onboarding').catch(() => ({ data: { data: [] } })),
         api.get('/followups').catch(() => ({ data: { data: [] } })),
-        api.get('/meetings').catch(() => ({ data: { data: [] } }))
+        api.get('/meetings').catch(() => ({ data: { data: [] } })),
+        api.get('/projects').catch(() => ({ data: { data: [] } })),
+        api.get('/tasks').catch(() => ({ data: { data: [] } }))
       ]);
       setReports(res.data.data);
       setClients(clientsRes.data.data || []);
       setAllFollowups(followupsRes.data.data || []);
       setAllMeetings(meetingsRes.data.data || []);
+      setAllProjects(projectsRes.data.data || []);
+      setAllTasks(tasksRes.data.data || []);
     } catch (e) {
       console.error(e);
       Alert.alert('Error', 'Failed to retrieve data.');
@@ -256,9 +262,39 @@ export default function ReportsScreen({ navigation }) {
       });
     }
 
+    const clientProjects = allProjects.filter(p => {
+      const pId = p.client?._id || p.client;
+      return pId === client._id;
+    });
+
+    const clientProjectIds = clientProjects.map(p => p._id);
+    
+    const clientTasks = allTasks.filter(t => {
+      const cId = t.client?._id || t.client;
+      const pId = t.project?._id || t.project;
+      return cId === client._id || clientProjectIds.includes(pId);
+    });
+
+    if (clientProjects.length > 0) {
+      autoSummary += `\n[Projects]\n`;
+      clientProjects.forEach(p => {
+        autoSummary += `- ${p.name} (Status: ${p.status}). Start: ${new Date(p.startDate).toLocaleDateString('en-IN')}\n`;
+      });
+    }
+
+    if (clientTasks.length > 0) {
+      autoSummary += `\n[Tasks]\n`;
+      clientTasks.forEach(t => {
+        const execName = t.assignedTo?.name || t.assignedTo || 'Employee';
+        const dateStr = new Date(t.dueDate || t.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        autoSummary += `- ${execName} (${t.status}): ${t.title} (Due: ${dateStr})\n`;
+      });
+    }
+
     const uniqueEmployees = [...new Set([
       ...clientFollowups.map(f => f.executive?.name || f.executive),
-      ...clientMeetings.map(m => m.executive?.name || m.executive)
+      ...clientMeetings.map(m => m.executive?.name || m.executive),
+      ...clientTasks.map(t => t.assignedTo?.name || t.assignedTo)
     ])].filter(Boolean);
 
     if (uniqueEmployees.length > 0) {

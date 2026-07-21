@@ -9,6 +9,7 @@ import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
+import { useLocalSearchParams, router } from 'expo-router';
 
 const BUSINESS_TYPES = ['Retailer', 'Distributor', 'Wholesaler', 'Dealer', 'Corporate', 'Other'];
 const SERVICE_OPTIONS = ['Website', 'Mobile App', 'Software', 'Digital Marketing', 'Poster Designing', 'Other'];
@@ -299,6 +300,27 @@ export default function ClientOnboardingScreen({ navigation }) {
   const [services, setServices] = useState([]);
   const [softwareDetails, setSoftwareDetails] = useState('');
 
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (params?.prefillClientFromLead) {
+      try {
+        const lead = JSON.parse(params.prefillClientFromLead);
+        setBusinessName(lead.companyName || '');
+        setOwnerName(lead.clientName || '');
+        setPhone(lead.phone || '');
+        setEmail(lead.email || '');
+        setNotes(lead.notes || '');
+        if (lead.serviceInterested) {
+          setServices([lead.serviceInterested]);
+        }
+        setShowForm(true);
+      } catch (e) {
+        console.error('Failed to parse prefillClientFromLead', e);
+      }
+    }
+  }, [params?.prefillClientFromLead]);
+
   const handleToggleService = (service) => {
     if (services.includes(service)) {
       setServices(services.filter(s => s !== service));
@@ -409,6 +431,28 @@ export default function ClientOnboardingScreen({ navigation }) {
       } else {
         await api.post('/onboarding', payload);
         Toast.show({ type: 'success', text1: 'Client Onboarded!', text2: `${businessName} added successfully.` });
+        
+        // If we came from a lead, update the lead status to 'Client Onboarded' and route to Project Onboarding
+        if (params?.prefillClientFromLead) {
+          try {
+            const lead = JSON.parse(params.prefillClientFromLead);
+            await api.put(`/leads/${lead._id}`, { status: 'Client Onboarded' });
+            
+            router.push({
+              pathname: '/Project',
+              params: {
+                prefillProjectFromClient: JSON.stringify({
+                  clientName: ownerName,
+                  companyName: businessName,
+                  notes: notes,
+                })
+              }
+            });
+            return; // don't reset form or fetch clients as we are navigating away
+          } catch (e) {
+            console.error('Failed to update lead or route to project:', e);
+          }
+        }
       }
       
       resetForm();

@@ -330,6 +330,21 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
               </View>
             )}
           </View>
+
+          {item.status === 'Completed' && isAdmin && (
+            <TouchableOpacity
+              onPress={() => {
+                import('expo-router').then(({ router }) => {
+                  router.push({ pathname: '/Project', params: { prefillProjectFromMeeting: JSON.stringify(item) } });
+                });
+              }}
+              style={{ backgroundColor: '#10b981', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12, flexDirection: 'row', justifyContent: 'center', gap: 6 }}
+            >
+              <Ionicons name="rocket-outline" size={16} color="#fff" />
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Onboard to Project</Text>
+            </TouchableOpacity>
+          )}
+
         </View>
       )}
     </View>

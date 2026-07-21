@@ -15,6 +15,10 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ClientOnboarding',
     },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+    },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

@@ -212,6 +212,8 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
   // Assign tab form state
   const [clients, setClients] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [notes, setNotes] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
@@ -226,15 +228,17 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
     try {
       setLoading(true);
       const today = new Date().toISOString().split('T')[0];
-      const [fuRes, usersRes, attendRes, clientsRes] = await Promise.all([
+      const [fuRes, usersRes, attendRes, clientsRes, projRes] = await Promise.all([
         api.get('/followups'),
         api.get('/users', { params: { role: 'Field Executive' } }),
         api.get('/attendance', { params: { date: today } }),
         api.get('/onboarding'),
+        api.get('/projects'),
       ]);
 
       setFollowUps(fuRes.data.data || []);
       setClients(clientsRes.data.data || []);
+      setProjects(projRes.data.data || []);
 
       const attendance = attendRes.data.data || [];
       const checkedInIds = new Set(
@@ -285,19 +289,31 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
   }, [fetchData]);
 
   const handleCreateAndAssign = async () => {
-    if (!selectedClient || !dueDate || !selectedEmployee) {
-      Alert.alert('Required', 'Please fill all required fields (Select a Client, Due Date, and Select an Employee).');
+    if ((!selectedClient && !selectedProject) || !dueDate || !selectedEmployee) {
+      Alert.alert('Required', 'Please fill all required fields (Select a Client or Project, Due Date, and Select an Employee).');
       return;
     }
 
     setAssigning(true);
     try {
-      await api.post('/followups', {
-        clientName: selectedClient.ownerName || selectedClient.clientName,
-        companyName: selectedClient.businessName || selectedClient.companyName,
+      const payload = {
         notes: notes.trim(),
         followUpDate: dueDate,
         priority,
+        assignedTo: selectedEmployee._id,
+      };
+
+      if (selectedClient) {
+        payload.client = selectedClient._id;
+        payload.clientName = selectedClient.ownerName || selectedClient.clientName;
+        payload.companyName = selectedClient.businessName || selectedClient.companyName;
+      } else if (selectedProject) {
+        payload.project = selectedProject._id;
+        payload.clientName = selectedProject.clientName || selectedProject.name;
+        payload.companyName = selectedProject.companyName || selectedProject.name;
+      }
+
+      await api.post('/followups', payload);
         assignedTo: selectedEmployee._id,
       });
 
@@ -414,7 +430,10 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                         return (
                           <TouchableOpacity
                             key={client._id}
-                          onPress={() => setSelectedClient(isSelected ? null : client)}
+                            onPress={() => {
+                              setSelectedClient(isSelected ? null : client);
+                              if (!isSelected) setSelectedProject(null);
+                            }}
                             style={{
                               padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
                               backgroundColor: isSelected ? '#eff6ff' : '#fff',
@@ -423,6 +442,40 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                           >
                             <View>
                               <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
+                            </View>
+                            {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Select Project (Or Client)</Text>
+                {projects.length === 0 ? (
+                  <Text style={{ fontSize: 12, color: '#e11d48', marginTop: 4 }}>No projects available.</Text>
+                ) : (
+                  <View style={{ borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, overflow: 'hidden' }}>
+                    <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+                      {projects.map(proj => {
+                        const isSelected = selectedProject?._id === proj._id;
+                        return (
+                          <TouchableOpacity
+                            key={proj._id}
+                            onPress={() => {
+                              setSelectedProject(isSelected ? null : proj);
+                              if (!isSelected) setSelectedClient(null);
+                            }}
+                            style={{
+                              padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
+                              backgroundColor: isSelected ? '#eff6ff' : '#fff',
+                              flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
+                            }}
+                          >
+                            <View>
+                              <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{proj.name} {proj.client?.businessName ? `(${proj.client.businessName})` : ''}</Text>
                             </View>
                             {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                           </TouchableOpacity>

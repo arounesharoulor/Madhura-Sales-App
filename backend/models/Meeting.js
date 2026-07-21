@@ -37,6 +37,10 @@ const meetingSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    lead: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Lead',
+    },
     photo: {
       data: {
         type: Buffer,

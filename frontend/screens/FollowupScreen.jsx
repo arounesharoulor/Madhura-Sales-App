@@ -239,7 +239,7 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
   );
 }
 
-export default function FollowupScreen({ navigation }) {
+export default function FollowupScreen({ navigation, isComponent = false }) {
   const [followUps, setFollowUps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
@@ -303,8 +303,8 @@ export default function FollowupScreen({ navigation }) {
     return new Date(item.followUpDate) < new Date() && new Date(item.followUpDate).toDateString() !== new Date().toDateString();
   };
 
-  return (
-    <AppLayout currentScreen="Followup" role="Employee" scrollable={false}>
+  const content = (
+    <>
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <Text style={{ fontSize: 22, fontWeight: '900', color: '#0f172a' }}>Follow-ups</Text>
@@ -458,8 +458,11 @@ export default function FollowupScreen({ navigation }) {
         onClose={() => setShowModal(false)}
         onSaved={fetchData}
       />
-    </AppLayout>
+    </>
   );
+
+  if (isComponent) return content;
+  return <AppLayout currentScreen="Followup" role="Employee" scrollable={false}>{content}</AppLayout>;
 }
 
 const styles = StyleSheet.create({});

@@ -11,6 +11,14 @@ const followUpSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Meeting',
     },
+    client: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ClientOnboarding',
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+    },
     clientName: {
       type: String,
       required: true,

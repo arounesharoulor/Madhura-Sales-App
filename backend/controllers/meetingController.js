@@ -1,5 +1,6 @@
 const Meeting = require('../models/Meeting');
 const FollowUp = require('../models/FollowUp');
+const Lead = require('../models/Lead');
 const cloudinary = require('../cloudinary');
 const streamifier = require('streamifier');
 
@@ -24,7 +25,7 @@ exports.createMeeting = async (req, res, next) => {
     const {
       clientName, companyName, phone, notes, latitude, longitude, address,
       nextFollowUpDate, meetingType, scheduledAt, reminderAt, meetingFollowUp,
-      onlineMeetingLink, status,
+      onlineMeetingLink, status, leadId
     } = req.body;
 
     const meetingData = {
@@ -45,6 +46,7 @@ exports.createMeeting = async (req, res, next) => {
       meetingFollowUp: meetingFollowUp || '',
       onlineMeetingLink: onlineMeetingLink || '',
       status: status || (scheduledAt ? 'Scheduled' : 'Completed'),
+      lead: leadId || undefined,
     };
 
     // Upload photo to Cloudinary if provided
@@ -181,6 +183,14 @@ exports.updateMeeting = async (req, res, next) => {
         if (status === 'Completed' && oldStatus !== 'Completed') {
           notifTitle = 'Meeting Completed';
           notifMsg = `${req.user.name} completed the scheduled meeting with ${meeting.clientName}.`;
+          
+          if (meeting.lead) {
+            try {
+              await Lead.findByIdAndUpdate(meeting.lead, { status: 'Meeting Completed' });
+            } catch (err) {
+              console.error('Failed to update lead status:', err.message);
+            }
+          }
         } else if (meetingFollowUp) {
           notifTitle = 'Meeting Follow-up Added';
           notifMsg = `${req.user.name} added a follow-up note for the meeting with ${meeting.clientName}.`;

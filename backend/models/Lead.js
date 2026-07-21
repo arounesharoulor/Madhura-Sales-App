@@ -8,7 +8,7 @@ const leadSchema = new mongoose.Schema({
   serviceInterested: { type: String },
   status: { 
     type: String, 
-    enum: ["Lead Taken", "Lead Taken to the Meeting", "Meeting"], 
+    enum: ["Lead Taken", "Lead Taken to the Meeting", "Meeting", "Meeting Completed", "Client Onboarded", "Project Onboarded"], 
     default: "Lead Taken" 
   },
   meetingType: { type: String, enum: ["In-Person", "Online", ""] },

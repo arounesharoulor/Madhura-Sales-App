@@ -6,10 +6,13 @@ import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { useLocalSearchParams } from 'expo-router';
 
 import LeadScreen from './LeadScreen';
 import TaskAssignmentScreen from './TaskAssignmentScreen';
 import AdminFollowupManagementScreen from './AdminFollowupManagementScreen';
+import TaskScreen from './TaskScreen';
+import FollowupScreen from './FollowupScreen';
 
 const SERVICE_OPTIONS = ['Website', 'Mobile App', 'Software', 'Digital Marketing', 'Poster Designing', 'Other'];
 const CATEGORY_OPTIONS = ['Development', 'Marketing', 'Design', 'Consulting', 'Maintenance'];
@@ -177,6 +180,7 @@ export default function ProjectScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   
   const [activeTab, setActiveTab] = useState('projects'); // 'leads', 'projects', 'tasks', 'followups'
+  const [prefilledLead, setPrefilledLead] = useState(null);
   
   // Form State
   const [showForm, setShowForm] = useState(false);
@@ -202,6 +206,37 @@ export default function ProjectScreen({ navigation }) {
     load();
   }, []);
 
+  const params = useLocalSearchParams();
+
+  useEffect(() => {
+    if (params?.prefillProjectFromMeeting) {
+      try {
+        const meeting = JSON.parse(params.prefillProjectFromMeeting);
+        setPrefilledLead(meeting);
+        setName(`${meeting.clientName} - Project`);
+        setDescription(meeting.notes || '');
+        setClient(meeting.companyName || meeting.clientName || '');
+        setActiveTab('projects');
+        setShowForm(true);
+      } catch (e) {
+        console.error('Failed to parse prefillProjectFromMeeting', e);
+      }
+    }
+    if (params?.prefillProjectFromClient) {
+      try {
+        const clientData = JSON.parse(params.prefillProjectFromClient);
+        setPrefilledLead(clientData);
+        setName(`${clientData.clientName} - Project`);
+        setDescription(clientData.notes || '');
+        setClient(clientData.companyName || clientData.clientName || '');
+        setActiveTab('projects');
+        setShowForm(true);
+      } catch (e) {
+        console.error('Failed to parse prefillProjectFromClient', e);
+      }
+    }
+  }, [params?.prefillProjectFromMeeting, params?.prefillProjectFromClient]);
+
   const fetchProjects = async () => {
     try {
       setLoading(true);
@@ -226,7 +261,7 @@ export default function ProjectScreen({ navigation }) {
   const resetForm = () => {
     setName(''); setProjectCode(''); setClient(''); setCategory('');
     setDescription(''); setPriority('Medium'); setStartDate('');
-    setTargetCompletionDate(''); setServices([]);
+    setTargetCompletionDate(''); setServices([]); setPrefilledLead(null);
   };
 
   const handleSubmit = async () => {
@@ -272,9 +307,28 @@ export default function ProjectScreen({ navigation }) {
           ))}
         </View>
 
-        {activeTab === 'leads' && <LeadScreen navigation={navigation} isComponent={true} />}
-        {activeTab === 'tasks' && <TaskAssignmentScreen navigation={navigation} isComponent={true} />}
-        {activeTab === 'followups' && <AdminFollowupManagementScreen navigation={navigation} isComponent={true} />}
+        {activeTab === 'leads' && <LeadScreen 
+          navigation={navigation} 
+          isComponent={true} 
+          onOnboardProject={(lead) => {
+            setPrefilledLead(lead);
+            setName(`${lead.clientName} - Project`);
+            setServices(lead.serviceInterested ? [lead.serviceInterested] : []);
+            setDescription(lead.notes || '');
+            setActiveTab('projects');
+            setShowForm(true);
+          }}
+        />}
+        {activeTab === 'tasks' && (
+          ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) 
+            ? <TaskAssignmentScreen navigation={navigation} isComponent={true} />
+            : <TaskScreen navigation={navigation} isComponent={true} />
+        )}
+        {activeTab === 'followups' && (
+          ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role)
+            ? <AdminFollowupManagementScreen navigation={navigation} isComponent={true} />
+            : <FollowupScreen navigation={navigation} isComponent={true} />
+        )}
         
         {activeTab === 'projects' && (
           <>
@@ -375,6 +429,36 @@ export default function ProjectScreen({ navigation }) {
                    <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700' }}>{proj.progress}% Complete</Text>
                    <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>{new Date(proj.createdAt).toLocaleDateString()}</Text>
                 </View>
+
+                {/* Role Based Document Actions for Admin */}
+                {role === 'Admin' && (
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                    <TouchableOpacity 
+                      style={{ flex: 1, backgroundColor: '#f8fafc', paddingVertical: 8, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' }}
+                      onPress={() => navigation.navigate('Quotation')}
+                    >
+                      <Ionicons name="document-text-outline" size={16} color="#0f172a" style={{ marginBottom: 4 }} />
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#0f172a' }}>Quotation</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={{ flex: 1, backgroundColor: '#f8fafc', paddingVertical: 8, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' }}
+                      onPress={() => navigation.navigate('Proposal')}
+                    >
+                      <Ionicons name="briefcase-outline" size={16} color="#0f172a" style={{ marginBottom: 4 }} />
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#0f172a' }}>Proposal</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      style={{ flex: 1, backgroundColor: '#f8fafc', paddingVertical: 8, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' }}
+                      onPress={() => navigation.navigate('Invoice')}
+                    >
+                      <Ionicons name="receipt-outline" size={16} color="#0f172a" style={{ marginBottom: 4 }} />
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#0f172a' }}>Invoice</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
               </View>
             ))}
           </ScrollView>

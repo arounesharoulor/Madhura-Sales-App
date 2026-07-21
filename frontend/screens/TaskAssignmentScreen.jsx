@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -101,6 +102,10 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState('');
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState('');
   const [activeTab, setActiveTab] = useState('assign'); // 'assign' | 'history'
   const [taskFilter, setTaskFilter] = useState('All');
   const [expandedTaskId, setExpandedTaskId] = useState(null);
@@ -157,8 +162,26 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get('/projects');
+      setProjects(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const res = await api.get('/onboarding');
+      setClients(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
-    Promise.all([fetchAvailableEmployees(), fetchTasks()]).finally(() => setFetching(false));
+    Promise.all([fetchAvailableEmployees(), fetchTasks(), fetchProjects(), fetchClients()]).finally(() => setFetching(false));
   }, []);
 
   useSocketRefresh(() => {
@@ -193,6 +216,8 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
         title: taskTitle.trim(),
         description: taskDesc.trim(),
         assignedTo: selectedEmployee._id,
+        project: selectedProject || undefined,
+        client: selectedClient || undefined,
         dueDate,
         priority: taskPriority,
       });
@@ -206,6 +231,8 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
       setTaskDesc('');
       setTaskPriority('Medium');
       setDueDate('');
+      setSelectedProject('');
+      setSelectedClient('');
       setSelectedEmployee(null);
       fetchTasks();
     } catch (err) {
@@ -221,6 +248,8 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
     setTaskDesc(task.description || '');
     setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
     setTaskPriority(task.priority || 'Medium');
+    setSelectedProject(task.project?._id || task.project || '');
+    setSelectedClient(task.client?._id || task.client || '');
     const empId = task.assignedTo?._id?.toString() || task.assignedTo?.toString();
     const emp = employees.find(e => (e._id?.toString() || e.id?.toString()) === empId);
     setSelectedEmployee(emp || null);
@@ -233,6 +262,8 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
     setTaskDesc('');
     setDueDate('');
     setTaskPriority('Medium');
+    setSelectedProject('');
+    setSelectedClient('');
     setSelectedEmployee(null);
     setEditingTaskId(null);
   };
@@ -249,6 +280,7 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
         title: title.trim(),
         description: desc.trim(),
         assignedTo: selectedEmployee._id,
+        project: selectedProject || undefined,
         dueDate,
         priority: taskPriority,
       });
@@ -346,6 +378,64 @@ export default function TaskAssignmentScreen({ navigation, isComponent = false }
                     placeholder="e.g. Meet client in Chennai"
                     placeholderTextColor="#94a3b8"
                   />
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Select Project (Optional)</Text>
+                <View style={[styles.inputWrap, { paddingHorizontal: 0, paddingVertical: 0 }]}>
+                  {Platform.OS === 'web' ? (
+                    <select
+                      value={selectedProject}
+                      onChange={(e) => setSelectedProject(e.target.value)}
+                      style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '0 12px', fontSize: 14, color: selectedProject ? '#0f172a' : '#94a3b8' }}
+                    >
+                      <option value="">No Project Linked</option>
+                      {projects.map(p => (
+                        <option key={p._id} value={p._id}>{p.name} {p.client?.businessName ? `(${p.client.businessName})` : ''}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Picker
+                      selectedValue={selectedProject}
+                      onValueChange={setSelectedProject}
+                      style={{ flex: 1, height: 48, color: selectedProject ? '#0f172a' : '#94a3b8' }}
+                    >
+                      <Picker.Item label="No Project Linked" value="" color="#94a3b8" />
+                      {projects.map(p => (
+                        <Picker.Item key={p._id} label={`${p.name} ${p.client?.businessName ? `(${p.client.businessName})` : ''}`} value={p._id} />
+                      ))}
+                    </Picker>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>Select Client (Optional)</Text>
+                <View style={[styles.inputWrap, { paddingHorizontal: 0, paddingVertical: 0 }]}>
+                  {Platform.OS === 'web' ? (
+                    <select
+                      value={selectedClient}
+                      onChange={(e) => setSelectedClient(e.target.value)}
+                      style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '0 12px', fontSize: 14, color: selectedClient ? '#0f172a' : '#94a3b8' }}
+                    >
+                      <option value="">No Client Linked</option>
+                      {clients.map(c => (
+                        <option key={c._id} value={c._id}>{c.businessName}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Picker
+                      selectedValue={selectedClient}
+                      onValueChange={setSelectedClient}
+                      style={{ flex: 1, height: 48, color: selectedClient ? '#0f172a' : '#94a3b8' }}
+                    >
+                      <Picker.Item label="No Client Linked" value="" color="#94a3b8" />
+                      {clients.map(c => (
+                        <Picker.Item key={c._id} label={c.businessName} value={c._id} />
+                      ))}
+                    </Picker>
+                  )}
                 </View>
               </View>
 

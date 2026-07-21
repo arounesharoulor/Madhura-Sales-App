@@ -50,12 +50,10 @@ const allAdminNavSections = [
     items: [
       { title: 'Dashboard',         screen: 'AdminDashboard',           icon: 'grid-outline',      iconActive: 'grid' },
       { title: 'Field Staff Mgmt',  screen: 'UserManagement',           icon: 'people-outline',    iconActive: 'people' },
-      { title: 'Task Assignments',  screen: 'TaskAssignment',           icon: 'clipboard-outline', iconActive: 'clipboard' },
       { title: 'Client Onboarding', screen: 'ClientOnboarding',         icon: 'briefcase-outline', iconActive: 'briefcase' },
       { title: 'Projects',          screen: 'Project',                  icon: 'laptop-outline',    iconActive: 'laptop' },
       { title: 'Quotations',        screen: 'Quotation',                icon: 'document-text-outline', iconActive: 'document-text' },
       { title: 'Log Client Visit',  screen: 'Meeting',                  icon: 'location-outline',  iconActive: 'location' },
-      { title: 'Follow-up Mgmt',    screen: 'AdminFollowupManagement',  icon: 'alarm-outline',     iconActive: 'alarm' },
     ],
   },
   {
@@ -87,8 +85,6 @@ const employeeNavSections = [
   {
     title: 'Tracking',
     items: [
-      { title: 'Assigned Tasks',   screen: 'Task',            icon: 'clipboard-outline',     iconActive: 'clipboard' },
-      { title: 'Follow-ups',       screen: 'Followup',        icon: 'alarm-outline',         iconActive: 'alarm' },
       { title: 'Reports',          screen: 'Reports',         icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
       { title: 'Chat',             screen: 'Chat',            icon: 'chatbubbles-outline',   iconActive: 'chatbubbles' },
       { title: 'Profile',          screen: 'Profile',         icon: 'person-outline',        iconActive: 'person' },
