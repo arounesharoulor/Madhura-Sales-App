@@ -201,9 +201,15 @@ export default function LoginScreen() {
                 <TextInput
                   style={styles.input}
                   value={employeeId}
-                  onChangeText={t => { setEmployeeId(t); if(errors.employeeId) setErrors(e => ({ ...e, employeeId: null })); }}
+                  onChangeText={t => { 
+                    setEmployeeId(t); 
+                    if(t.length > 5) {
+                      setErrors(e => ({ ...e, employeeId: 'Employee ID must be exactly 5 digits' }));
+                    } else if(errors.employeeId) {
+                      setErrors(e => ({ ...e, employeeId: null })); 
+                    }
+                  }}
                   keyboardType="numeric"
-                  maxLength={5}
                   placeholder="5-digit ID (e.g. 32629)"
                   placeholderTextColor="#64748b"
                   onFocus={() => setFocusedField('employeeId')}

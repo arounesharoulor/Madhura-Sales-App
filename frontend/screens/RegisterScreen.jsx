@@ -321,11 +321,15 @@ export default function RegisterScreen() {
             <TextInput
               style={styles.input}
               value={form.employeeId}
-              onChangeText={v => update('employeeId', v)}
+              onChangeText={v => {
+                update('employeeId', v);
+                if (v.length > 5) {
+                  setErrors(prev => ({ ...prev, employeeId: 'Employee ID must be exactly 5 digits' }));
+                }
+              }}
               placeholder="5-digit ID (e.g. 32629)"
               placeholderTextColor="#94a3b8"
               keyboardType="numeric"
-              maxLength={5}
               onFocus={() => setFocusedField('employeeId')}
               onBlur={() => setFocusedField(null)}
             />
