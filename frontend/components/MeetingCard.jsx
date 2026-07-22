@@ -97,7 +97,9 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
   const [clientRequirementText, setClientRequirementText] = useState(item.clientRequirement || '');
   const [nextFollowUpDate, setNextFollowUpDate] = useState('');
   const [reminderAt, setReminderAt] = useState('');
+  const [statusSelection, setStatusSelection] = useState(item.status || 'Completed');
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(item.status !== 'Completed' && item.status !== 'Cancelled');
 
   const [imageUri, setImageUri] = useState(null);
 
@@ -145,7 +147,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
       if (clientRequirementText) fd.append('clientRequirement', clientRequirementText);
       if (nextFollowUpDate) fd.append('nextFollowUpDate', nextFollowUpDate);
       if (reminderAt) fd.append('reminderAt', reminderAt);
-      fd.append('status', 'Completed');
+      fd.append('status', statusSelection);
 
       if (imageUri) {
         const filename = imageUri.split('/').pop() || 'photo.jpg';
@@ -345,24 +347,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
               <Text style={[styles.detailLabel, { color: '#0284c7' }]}>Meeting Follow-up</Text>
             </View>
             
-            {isAdmin ? (
-              <View>
-                {item.clientRequirement ? (
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Client Requirement</Text>
-                    <Text style={styles.followUpText}>{item.clientRequirement}</Text>
-                  </View>
-                ) : null}
-                {item.meetingFollowUp ? (
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Follow-Up Note</Text>
-                    <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.noFollowUp}>No follow-up note yet.</Text>
-                )}
-              </View>
-            ) : (
+            {isEditing ? (
               <View>
                 <TextInput
                   value={clientRequirementText}
@@ -406,18 +391,61 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                   <DateTimePickerField label="Set Reminder" value={reminderAt} onChange={setReminderAt} placeholder="Select reminder time" />
                 </View>
 
-                <TouchableOpacity 
-                  onPress={saveFollowUp} 
-                  disabled={saving || (!followUpText && !imageUri && item.status === 'Completed')}
-                  style={{ backgroundColor: '#2563eb', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 10, opacity: saving ? 0.7 : 1 }}
-                >
-                  {saving ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>
-                      {item.status === 'Scheduled' ? 'Complete Meeting & Notify Admins' : 'Update & Notify Admins'}
-                    </Text>
+                <View style={{ marginTop: 12 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 6 }}>Update Meeting Status</Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {['Scheduled', 'Completed', 'Cancelled'].map(s => (
+                      <TouchableOpacity 
+                        key={s} 
+                        onPress={() => setStatusSelection(s)}
+                        style={{ flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: statusSelection === s ? '#0284c7' : '#e2e8f0', backgroundColor: statusSelection === s ? '#e0f2fe' : '#f8fafc' }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: statusSelection === s ? '#0284c7' : '#64748b' }}>{s}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                  <TouchableOpacity 
+                    onPress={saveFollowUp} 
+                    disabled={saving}
+                    style={{ flex: 1, backgroundColor: '#2563eb', padding: 12, borderRadius: 8, alignItems: 'center', opacity: saving ? 0.7 : 1 }}
+                  >
+                    {saving ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>
+                        {statusSelection === 'Completed' ? 'Complete & Notify' : 'Update Details'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                  {(item.status === 'Completed' || item.status === 'Cancelled') && (
+                    <TouchableOpacity onPress={() => setIsEditing(false)} style={{ padding: 12, backgroundColor: '#f1f5f9', borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ color: '#475569', fontWeight: 'bold', fontSize: 13 }}>Cancel</Text>
+                    </TouchableOpacity>
                   )}
+                </View>
+              </View>
+            ) : (
+              <View>
+                {item.clientRequirement ? (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Client Requirement</Text>
+                    <Text style={styles.followUpText}>{item.clientRequirement}</Text>
+                  </View>
+                ) : null}
+                {item.meetingFollowUp ? (
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Follow-Up Note</Text>
+                    <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.noFollowUp}>No follow-up note yet.</Text>
+                )}
+                
+                <TouchableOpacity onPress={() => setIsEditing(true)} style={{ backgroundColor: '#f8fafc', padding: 10, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', marginTop: 8 }}>
+                  <Text style={{ color: '#64748b', fontWeight: 'bold', fontSize: 12 }}>Edit Meeting Details</Text>
                 </TouchableOpacity>
               </View>
             )}

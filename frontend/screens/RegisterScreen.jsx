@@ -499,7 +499,7 @@ export default function RegisterScreen() {
 
         {/* Compact Header */}
         <View style={styles.header}>
-          <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
+          <Image source={require('../assets/madhura.png')} style={styles.logoImage} resizeMode="contain" />
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join Madhura CRM Portal</Text>
         </View>
@@ -529,9 +529,9 @@ export default function RegisterScreen() {
         <View style={styles.webContainer}>
           <View style={styles.webLeftPane}>
             <View style={styles.webLeftContent}>
-              <Image source={require('../assets/logo.png')} style={{ width: 60, height: 60, marginBottom: 20, borderRadius: 14 }} resizeMode="contain" />
+              <Image source={require('../assets/madhura.png')} style={{ width: 100, height: 100, marginBottom: 20, borderRadius: 14 }} resizeMode="contain" />
               <Text style={styles.webLeftTitle}>MADHURA</Text>
-              <Text style={styles.webLeftBrand}>Sales Portal</Text>
+              <Text style={styles.webLeftBrand}>CRM</Text>
               <Text style={styles.webLeftSubtitle}>
                 Become part of the most efficient field workforce.
               </Text>

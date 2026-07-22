@@ -61,7 +61,8 @@ const allAdminNavSections = [
     items: [
       { title: 'Live Map & GPS',    screen: 'LiveLocation',             icon: 'map-outline',           iconActive: 'map' },
       { title: 'Employee Monitoring',screen: 'EmployeeMonitoring',      icon: 'eye-outline',           iconActive: 'eye' },
-      { title: 'Attendance Log',    screen: 'AdminAttendance',          icon: 'time-outline',          iconActive: 'time' },
+      { title: 'Team Attendance',   screen: 'AdminAttendance',          icon: 'people-outline',        iconActive: 'people' },
+      { title: 'My Attendance',     screen: 'Attendance',               icon: 'time-outline',          iconActive: 'time' },
       { title: 'Reports',           screen: 'Reports',                  icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
       { title: 'Team Chat',         screen: 'Chat',                     icon: 'chatbubbles-outline',   iconActive: 'chatbubbles' },
       { title: 'Profile',           screen: 'Profile',                  icon: 'person-outline',        iconActive: 'person' },
@@ -355,11 +356,11 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
               </TouchableOpacity>
               {/* Logo mark */}
               <View style={styles.mobileLogo}>
-                <Image source={require('../assets/logo.png')} style={{width: 44, height: 44, borderRadius: 12}} resizeMode="contain" />
+                <Image source={require('../assets/madhura.png')} style={{width: 44, height: 44, borderRadius: 12}} resizeMode="contain" />
               </View>
               <View>
                 <Text style={styles.mobileBrand}>MADHURA</Text>
-                <Text style={styles.mobileSub}>Sales Portal</Text>
+                <Text style={styles.mobileSub}>CRM</Text>
               </View>
             </View>
             <TouchableOpacity
@@ -399,11 +400,11 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
               {/* Logo row */}
               <View style={styles.logoRow}>
                 <View style={styles.logoMark}>
-                  <Image source={require('../assets/logo.png')} style={{width: 52, height: 52, borderRadius: 14}} resizeMode="contain" />
+                  <Image source={require('../assets/madhura.png')} style={{width: 52, height: 52, borderRadius: 14}} resizeMode="contain" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.logoTitle}>MADHURA</Text>
-                  <Text style={styles.logoSub}>Sales Portal</Text>
+                  <Text style={styles.logoSub}>CRM</Text>
                 </View>
                 <View style={styles.sidebarOnlineDot} />
               </View>
@@ -566,7 +567,7 @@ const styles = StyleSheet.create({
   mobileTopLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   mobileLogo: {
     width: 48, height: 48, borderRadius: 14,
-    backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center',
   },
   mobileLogoText: { color: NAVY, fontWeight: '900', fontSize: 18 },
   mobileBrand: { color: '#fff', fontWeight: '900', fontSize: 15, letterSpacing: 1.5 },
@@ -613,7 +614,7 @@ const styles = StyleSheet.create({
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 16 },
   logoMark: {
     width: 58, height: 58, borderRadius: 16,
-    backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+    backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   logoMarkText: { color: NAVY, fontWeight: '900', fontSize: 22 },
   logoTitle: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 2 },

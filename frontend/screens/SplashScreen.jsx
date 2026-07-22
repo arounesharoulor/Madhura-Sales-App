@@ -55,7 +55,7 @@ export default function SplashScreen() {
       <View style={styles.container}>
         <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.logoWrap}>
-            <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
+            <Image source={require('../assets/madhura.png')} style={styles.logoImage} resizeMode="contain" />
           </View>
           <Text style={styles.appName}>Madhura CRM</Text>
           <Text style={styles.tagline}>Field Staff Management</Text>

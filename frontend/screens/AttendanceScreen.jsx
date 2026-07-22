@@ -182,7 +182,14 @@ export default function AttendanceScreen() {
     setLoadingHistory(true);
     try {
       const all = await api.get('/attendance/my');
-      setHistory(all.data.data || []);
+      let records = all.data.data || [];
+      records.forEach(r => {
+        if (r.status === 'Pending Check-In') r.status = 'Checked In';
+        if (r.status === 'Pending Check-Out') r.status = 'Checked Out';
+        if (r.checkInStatus === 'Pending') r.checkInStatus = 'Approved';
+        if (r.checkOutStatus === 'Pending') r.checkOutStatus = 'Approved';
+      });
+      setHistory(records);
     } catch {
       try {
         const res = await api.get('/attendance/today');
@@ -239,7 +246,14 @@ export default function AttendanceScreen() {
     try {
       setLoading(true);
       const res = await api.get('/attendance/today');
-      setTodayRecord(res.data.data);
+      let record = res.data.data;
+      if (record) {
+        if (record.status === 'Pending Check-In') record.status = 'Checked In';
+        if (record.status === 'Pending Check-Out') record.status = 'Checked Out';
+        if (record.checkInStatus === 'Pending') record.checkInStatus = 'Approved';
+        if (record.checkOutStatus === 'Pending') record.checkOutStatus = 'Approved';
+      }
+      setTodayRecord(record);
     } catch (err) {
       // 403 means this user is not a Field Executive — silently ignore
       if (err?.response?.status !== 403) {
@@ -286,8 +300,8 @@ export default function AttendanceScreen() {
       });
       Toast.show({
         type: 'success',
-        text1: '✅ Attendance Registered',
-        text2: 'Your check-in has been notified to the admin.',
+        text1: '✅ Checked In',
+        text2: 'You have successfully checked in for today.',
         visibilityTime: 4000,
       });
       setWorkPlan('');
@@ -723,7 +737,7 @@ export default function AttendanceScreen() {
               ) : (
                 <>
                   <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={styles.actionBtnText}>Submit Check-Out Request</Text>
+                  <Text style={styles.actionBtnText}>Check-Out Now</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -791,7 +805,7 @@ export default function AttendanceScreen() {
               ) : (
                 <>
                   <Ionicons name="log-in-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                  <Text style={styles.actionBtnText}>Submit Check-In Request</Text>
+                  <Text style={styles.actionBtnText}>Check-In Now</Text>
                 </>
               )}
             </TouchableOpacity>

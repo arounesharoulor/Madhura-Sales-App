@@ -165,10 +165,10 @@ export default function AdminDashboardScreen({ navigation }) {
         </View>
 
         {/* New Professional Clients Banner */}
-        <View className="bg-slate-900 rounded-3xl p-6 flex-row items-center justify-between mb-6 shadow-md">
+        <View className="bg-slate-900 rounded-3xl p-6 flex-row items-center justify-between mb-6 shadow-sm">
           <View>
-            <Text className="text-slate-400 text-[10px] font-extrabold uppercase tracking-widest">Total Clients Onboarded</Text>
-            <Text className="text-white text-4xl font-black mt-1">{stats.clients}</Text>
+            <Text className="text-slate-400 text-xs font-medium uppercase tracking-widest">Total Clients Onboarded</Text>
+            <Text className="text-white text-3xl font-bold mt-1">{stats.clients}</Text>
           </View>
           <View className="bg-slate-800 rounded-2xl p-4 border border-slate-700">
             <Ionicons name="briefcase" size={32} color="#38bdf8" />
@@ -177,21 +177,21 @@ export default function AdminDashboardScreen({ navigation }) {
 
         {/* Stats Grid */}
         <View className="flex-row flex-wrap justify-between mb-6">
-          <View className="w-[48%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm">
-            <Text className="text-2xl font-extrabold text-sky-600">{stats.users}</Text>
-            <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Total Users</Text>
+          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
+            <Text className="text-3xl font-semibold text-sky-600">{stats.users}</Text>
+            <Text className="text-xs font-medium mt-1 text-slate-500">Total Users</Text>
           </View>
-          <View className="w-[48%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm">
-            <Text className="text-2xl font-extrabold text-amber-600">{stats.pendingTasks}</Text>
-            <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Pending Tasks</Text>
+          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
+            <Text className="text-3xl font-semibold text-amber-600">{stats.pendingTasks}</Text>
+            <Text className="text-xs font-medium mt-1 text-slate-500">Pending Tasks</Text>
           </View>
-          <View className="w-[48%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm">
-            <Text className="text-2xl font-extrabold text-emerald-600">{stats.completedTasks}</Text>
-            <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Completed Tasks</Text>
+          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
+            <Text className="text-3xl font-semibold text-emerald-600">{stats.completedTasks}</Text>
+            <Text className="text-xs font-medium mt-1 text-slate-500">Completed Tasks</Text>
           </View>
-          <View className="w-[48%] bg-white border border-slate-200 p-4 rounded-3xl mb-4 shadow-sm">
-            <Text className="text-2xl font-extrabold text-indigo-600">{stats.meetings}</Text>
-            <Text className="text-[10px] font-bold uppercase tracking-wider mt-1 text-slate-500">Logged Meetings</Text>
+          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
+            <Text className="text-3xl font-semibold text-indigo-600">{stats.meetings}</Text>
+            <Text className="text-xs font-medium mt-1 text-slate-500">Logged Meetings</Text>
           </View>
         </View>
 
@@ -201,38 +201,38 @@ export default function AdminDashboardScreen({ navigation }) {
         </Text>
 
         <View className="space-y-3 mb-6">
-          <TouchableOpacity onPress={() => navigation.navigate('UserManagement')} className="p-5 bg-white border border-slate-200 rounded-3xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-900 font-bold text-xs">User Management & Roster</Text>
-            <Text className="text-sky-600 font-bold text-xs">GO →</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('UserManagement')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+            <Text className="text-slate-800 font-medium text-sm">User Management & Roster</Text>
+            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Reports')} className="p-5 bg-white border border-slate-200 rounded-3xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-900 font-bold text-xs">Activity & Visit Reports</Text>
-            <Text className="text-sky-600 font-bold text-xs">GO →</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Reports')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+            <Text className="text-slate-800 font-medium text-sm">Activity & Visit Reports</Text>
+            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Chat')} className="p-5 bg-white border border-slate-200 rounded-3xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-900 font-bold text-xs">Live Team Chat Room</Text>
-            <Text className="text-sky-600 font-bold text-xs">GO →</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Chat')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+            <Text className="text-slate-800 font-medium text-sm">Live Team Chat Room</Text>
+            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('AdminAttendance')} className="p-5 bg-white border border-slate-200 rounded-3xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-900 font-bold text-xs">View Attendance Log</Text>
-            <Text className="text-sky-600 font-bold text-xs">GO →</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('AdminAttendance')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+            <Text className="text-slate-800 font-medium text-sm">View Attendance Log</Text>
+            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>
         </View>
 
         {/* Task Assigning Form Panel */}
         <TouchableOpacity
           onPress={() => setShowTaskForm(!showTaskForm)}
-          className="bg-white border border-slate-200 p-5 rounded-3xl mb-4 flex-row justify-between items-center shadow-sm"
+          className="bg-white border border-slate-100 p-4 rounded-2xl mb-4 flex-row justify-between items-center shadow-sm"
         >
-          <Text className="text-xs font-bold uppercase text-slate-900">Create & Assign Task</Text>
-          <Text className="text-sky-600 font-bold text-xs">{showTaskForm ? 'Collapse' : 'Expand'}</Text>
+          <Text className="text-sm font-medium text-slate-800">Create & Assign Task</Text>
+          <Text className="text-sky-500 font-medium text-xs">{showTaskForm ? 'Collapse' : 'Expand'}</Text>
         </TouchableOpacity>
 
         {showTaskForm && (
-          <View className="p-5 bg-white border border-slate-200 rounded-3xl mb-4 space-y-4 shadow-sm">
+          <View className="p-5 bg-white border border-slate-100 rounded-2xl mb-4 space-y-4 shadow-sm">
             <CustomInput label="Task Title" value={taskTitle} onChangeText={setTaskTitle} placeholder="E.g. Meet client in Chennai" />
             <CustomInput label="Task Description" value={taskDesc} onChangeText={setTaskDesc} placeholder="Details on items to be discussed..." />
             <CustomInput label="Assignee User Email" value={assignedToEmail} onChangeText={setAssignedToEmail} placeholder="executive@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" />
@@ -244,14 +244,14 @@ export default function AdminDashboardScreen({ navigation }) {
         {/* Broadcast Notification Panel */}
         <TouchableOpacity
           onPress={() => setShowNotifyForm(!showNotifyForm)}
-          className="bg-white border border-slate-200 p-5 rounded-3xl mb-4 flex-row justify-between items-center shadow-sm"
+          className="bg-white border border-slate-100 p-4 rounded-2xl mb-4 flex-row justify-between items-center shadow-sm"
         >
-          <Text className="text-xs font-bold uppercase text-slate-900">Broadcast Alerts to Staff</Text>
-          <Text className="text-sky-600 font-bold text-xs">{showNotifyForm ? 'Collapse' : 'Expand'}</Text>
+          <Text className="text-sm font-medium text-slate-800">Broadcast Alerts to Staff</Text>
+          <Text className="text-sky-500 font-medium text-xs">{showNotifyForm ? 'Collapse' : 'Expand'}</Text>
         </TouchableOpacity>
 
         {showNotifyForm && (
-          <View className="p-5 bg-white border border-slate-200 rounded-3xl mb-4 space-y-4 shadow-sm">
+          <View className="p-5 bg-white border border-slate-100 rounded-2xl mb-4 space-y-4 shadow-sm">
             <CustomInput label="Alert Title" value={notifyTitle} onChangeText={setNotifyTitle} placeholder="E.g. Emergency System Maintenance" />
             <CustomInput label="Alert Message" value={notifyMessage} onChangeText={setNotifyMessage} placeholder="Dear Staff, please sync your tasks..." />
             <CustomButton title="Broadcast Alert" loading={notifyLoading} onPress={handleBroadcastNotification} style="bg-rose-600" />

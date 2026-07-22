@@ -81,8 +81,8 @@ exports.checkIn = async (req, res, next) => {
         latitude: latitude ? Number(latitude) : null,
         longitude: longitude ? Number(longitude) : null,
       },
-      status: 'Pending Check-In',
-      checkInStatus: 'Pending',
+      status: 'Checked In',
+      checkInStatus: 'Approved',
       timeline: [{
         type: 'Check-in',
         time: new Date(),
@@ -130,13 +130,9 @@ exports.checkOut = async (req, res, next) => {
       throw new Error('No check-in record found for today. Please check in first.');
     }
 
-    if (attendance.checkInStatus !== 'Approved') {
-      res.status(400);
-      throw new Error('Your check-in has not been approved by the Admin yet.');
-    }
 
-    if (attendance.status === 'Checked Out' || attendance.status === 'Pending Check-Out') {
-      return res.status(400).json({ success: false, message: 'Check-out already pending or completed.' });
+    if (attendance.status === 'Checked Out') {
+      return res.status(400).json({ success: false, message: 'Check-out already completed.' });
     }
 
     // ── Early Checkout Detection ─────────────────────────
@@ -181,8 +177,8 @@ exports.checkOut = async (req, res, next) => {
       latitude: latitude ? Number(latitude) : null,
       longitude: longitude ? Number(longitude) : null,
     };
-    attendance.status = 'Pending Check-Out';
-    attendance.checkOutStatus = 'Pending';
+    attendance.status = 'Checked Out';
+    attendance.checkOutStatus = 'Approved';
     
     attendance.timeline.push({
       type: 'Check-out',
@@ -255,10 +251,26 @@ exports.getAllAttendance = async (req, res, next) => {
     if (executiveId) query.executive = executiveId;
 
     const records = await Attendance.find(query)
-      .populate('executive', 'name email phone employeeId designation earlyCheckoutLocked')
+      .populate('executive', 'name email phone employeeId designation role earlyCheckoutLocked')
       .sort({ date: -1, checkInTime: -1 }).lean();
 
-    res.status(200).json({ success: true, count: records.length, data: records });
+    // Filter based on role to enforce hierarchy
+    const filteredRecords = records.filter(r => {
+      if (!r.executive) return false;
+      
+      // Super Admin sees everyone
+      if (req.user.role === 'Managing Director MD') return true;
+      
+      // Admin / HR sees everyone EXCEPT other Admins, MDs, HRs (unless it's their own record)
+      const executiveRole = r.executive.role || 'Field Executive';
+      if (['Admin', 'Managing Director MD', 'HR'].includes(executiveRole)) {
+        if (r.executive._id.toString() === req.user.id.toString()) return true;
+        return false;
+      }
+      return true;
+    });
+
+    res.status(200).json({ success: true, count: filteredRecords.length, data: filteredRecords });
   } catch (error) {
     next(error);
   }

@@ -127,7 +127,7 @@ export default function LoginScreen() {
       <View style={styles.formInner}>
         {/* Logo / Brand Header */}
         <View style={styles.header}>
-          <Image source={require('../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
+          <Image source={require('../assets/madhura.png')} style={styles.logoImage} resizeMode="contain" />
           <Text style={styles.brandName}>Madhura CRM</Text>
           <Text style={styles.brandTagline}>
             Field Staff Management Platform
@@ -301,11 +301,9 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.webLeftContent}>
-              <View style={styles.webIconWrap}>
-                <Image source={require('../assets/logo.png')} style={{width: 140, height: 140}} resizeMode="contain" />
-              </View>
+              <Image source={require('../assets/madhura.png')} style={{ width: 100, height: 100, marginBottom: 20, borderRadius: 14 }} resizeMode="contain" />
               <Text style={styles.webLeftTitle}>MADHURA</Text>
-              <Text style={styles.webLeftBrand}>Sales Portal</Text>
+              <Text style={styles.webLeftBrand}>CRM</Text>
               <Text style={styles.webLeftSubtitle}>
                 Empower your field workforce. Track performance, manage routes, and increase productivity in real-time.
               </Text>
@@ -450,10 +448,10 @@ const styles = StyleSheet.create({
     marginBottom: 36,
   },
   logoImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 16,
-    borderRadius: 28,
+    width: 58,
+    height: 58,
+    marginBottom: 10,
+    borderRadius: 14,
   },
   logoCircle: {
     width: 72,

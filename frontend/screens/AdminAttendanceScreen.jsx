@@ -50,9 +50,9 @@ export default function AdminAttendanceScreen() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchDate, setSearchDate] = useState('');
+  const [searchDate, setSearchDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [mainTab, setMainTab] = useState('Queue');   // 'Queue' | 'History' | 'Location'
+  const [mainTab, setMainTab] = useState('Check-In');   // 'Check-In' | 'Check-Out' | 'Leaves' | 'Location'
 
   // Reject modal state
   const [rejectModal, setRejectModal] = useState(false);
@@ -274,12 +274,13 @@ export default function AdminAttendanceScreen() {
   };
 
   // Derived lists
-  const safeRecords = Array.isArray(records) ? records : [];
-  const queue   = safeRecords.filter((r) => isPending(r));
-  const held    = safeRecords.filter((r) => isHeld(r));
-  const history = safeRecords.filter((r) => !isPending(r) && !isHeld(r));
+  const safeRecords = records || [];
 
   const isLeaveRecord = (item) => item.status === 'Pending Leave' || item.status === 'On Leave' || item.status === 'Rejected Leave' || !!item.leaveType;
+
+  const checkInList = safeRecords.filter((r) => !isLeaveRecord(r) && r.status === 'Checked In');
+  const checkOutList = safeRecords.filter((r) => !isLeaveRecord(r) && r.status === 'Checked Out');
+  const leaveList = safeRecords.filter((r) => isLeaveRecord(r));
 
   const renderCard = ({ item }) => {
     let cfg = STATUS_CONFIG[item.status] || { color: '#94a3b8', bg: '#f8fafc', label: item.status, icon: 'help-circle-outline' };
@@ -484,46 +485,6 @@ export default function AdminAttendanceScreen() {
               </View>
             ) : null}
 
-            {/* Attendance buttons: Approve + Keep in Queue + Reject */}
-            {isActionable ? (
-              <View style={[styles.actionRow, { marginTop: 12 }]}>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.approveBtn]}
-                  onPress={() => handleApprove(item)}
-                  disabled={isLoading}
-                  activeOpacity={0.8}
-                >
-                  {isLoading ? <ActivityIndicator size="small" color="#fff" /> : (
-                    <>
-                      <Ionicons name="checkmark-circle-outline" size={15} color="#fff" />
-                      <Text style={styles.actionBtnText}>Approve</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-
-                {isPending(item) ? (
-                  <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: '#eab308' }]}
-                    onPress={() => handleHold(item)}
-                    disabled={isLoading}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="pause-circle-outline" size={15} color="#fff" />
-                    <Text style={styles.actionBtnText}>Queue</Text>
-                  </TouchableOpacity>
-                ) : null}
-
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.rejectBtn]}
-                  onPress={() => openRejectModal(item)}
-                  disabled={isLoading}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="close-circle-outline" size={15} color="#fff" />
-                  <Text style={styles.actionBtnText}>Reject</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
           </View>
         )}
       </View>
@@ -540,7 +501,7 @@ export default function AdminAttendanceScreen() {
           <View>
             <Text style={styles.title}>Team Attendance</Text>
             {isFullAdmin && (
-              <Text style={styles.subtitle}>{queue.length} pending approval{queue.length !== 1 ? 's' : ''}</Text>
+              <Text style={styles.subtitle}>{leaveList.filter(isPending).length} leave{leaveList.filter(isPending).length !== 1 ? 's' : ''} pending approval</Text>
             )}
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -586,10 +547,10 @@ export default function AdminAttendanceScreen() {
         {isFullAdmin && (
           <View style={styles.tabs}>
             {[
-              { key: 'Queue',    label: `Pending (${queue.length})`, icon: 'time-outline' },
-              { key: 'Held',     label: `Held (${held.length})`,     icon: 'pause-circle-outline' },
-              { key: 'History',  label: 'History',                   icon: 'list-outline' },
-              { key: 'Location', label: 'Live GPS',                  icon: 'location-outline' },
+              { key: 'Check-In', label: `Check-In (${checkInList.length})`, icon: 'log-in-outline' },
+              { key: 'Check-Out',label: `Check-Out (${checkOutList.length})`, icon: 'log-out-outline' },
+              { key: 'Leaves',   label: `Leaves (${leaveList.length})`,     icon: 'umbrella-outline' },
+              { key: 'Location', label: 'Live GPS',                         icon: 'location-outline' },
             ].map((t) => (
               <TouchableOpacity
                 key={t.key}
@@ -666,16 +627,16 @@ export default function AdminAttendanceScreen() {
         {isFullAdmin && (
           loading ? (
             <ActivityIndicator color="#0284c7" size="large" style={{ marginTop: 60 }} />
-          ) : mainTab === 'Queue' ? (
-          queue.length === 0 ? (
+          ) : mainTab === 'Check-In' ? (
+          checkInList.length === 0 ? (
             <View style={styles.empty}>
-              <Ionicons name="checkmark-done-circle-outline" size={56} color="#a7f3d0" />
-              <Text style={styles.emptyTitle}>All Clear!</Text>
-              <Text style={styles.emptyText}>No pending attendance requests.</Text>
+              <Ionicons name="log-in-outline" size={56} color="#cbd5e1" />
+              <Text style={styles.emptyTitle}>No Check-Ins</Text>
+              <Text style={styles.emptyText}>No active check-ins found for this date.</Text>
             </View>
           ) : (
             <FlatList
-              data={queue}
+              data={checkInList}
               keyExtractor={(i) => i._id}
               renderItem={renderCard}
               refreshing={refreshing}
@@ -684,16 +645,16 @@ export default function AdminAttendanceScreen() {
               showsVerticalScrollIndicator={false}
             />
           )
-        ) : mainTab === 'Held' ? (
-          held.length === 0 ? (
+        ) : mainTab === 'Check-Out' ? (
+          checkOutList.length === 0 ? (
             <View style={styles.empty}>
-              <Ionicons name="pause-circle-outline" size={56} color="#fde047" />
-              <Text style={styles.emptyTitle}>No Held Requests</Text>
-              <Text style={styles.emptyText}>There are no attendance requests in the queue.</Text>
+              <Ionicons name="log-out-outline" size={56} color="#cbd5e1" />
+              <Text style={styles.emptyTitle}>No Check-Outs</Text>
+              <Text style={styles.emptyText}>No check-outs found for this date.</Text>
             </View>
           ) : (
             <FlatList
-              data={held}
+              data={checkOutList}
               keyExtractor={(i) => i._id}
               renderItem={renderCard}
               refreshing={refreshing}
@@ -702,16 +663,16 @@ export default function AdminAttendanceScreen() {
               showsVerticalScrollIndicator={false}
             />
           )
-        ) : mainTab === 'History' ? (
-          history.length === 0 ? (
+        ) : mainTab === 'Leaves' ? (
+          leaveList.length === 0 ? (
             <View style={styles.empty}>
-              <Ionicons name="calendar-outline" size={56} color="#cbd5e1" />
-              <Text style={styles.emptyTitle}>No Records</Text>
-              <Text style={styles.emptyText}>No approved/rejected records yet.</Text>
+              <Ionicons name="umbrella-outline" size={56} color="#cbd5e1" />
+              <Text style={styles.emptyTitle}>No Leaves</Text>
+              <Text style={styles.emptyText}>No leave requests found.</Text>
             </View>
           ) : (
             <FlatList
-              data={history}
+              data={leaveList}
               keyExtractor={(i) => i._id}
               renderItem={renderCard}
               refreshing={refreshing}
