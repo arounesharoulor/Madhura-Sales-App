@@ -247,6 +247,125 @@ export default function UserManagementScreen() {
     );
   };
 
+  const renderAddFormContent = () => (
+    <>
+      {Platform.OS === 'web' && (
+        <View className="flex-row justify-between items-center mb-2">
+          <Text className="text-lg font-bold text-slate-900">Add Member</Text>
+          <TouchableOpacity onPress={() => setShowAddForm(false)}>
+            <Ionicons name="close" size={24} color="#0f172a" />
+          </TouchableOpacity>
+        </View>
+      )}
+      <CustomInput label="Full Name *" value={name} onChangeText={setName} placeholder="E.g. John Doe" />
+      <CustomInput label="Email Address *" value={email} onChangeText={setEmail} placeholder="executive@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" />
+      <CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
+      <CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" />
+      
+      <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">User Type *</Text>
+      <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
+        {['Employee', 'Admin'].map((t) => (
+          <TouchableOpacity
+            key={t}
+            onPress={() => setUserType(t)}
+            className={`flex-1 py-3 rounded-xl ${userType === t ? 'bg-sky-600' : ''}`}
+          >
+            <Text className={`text-center text-xs font-bold ${userType === t ? 'text-white' : 'text-slate-500'}`}>{t}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      
+      <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Designation *</Text>
+      <View className="flex-row flex-wrap gap-2 mb-4">
+        {(userType === 'Employee' ? ['BDE', 'BDM', 'Pre Sales'] : ['Admin', 'Manager', 'HR']).map((d) => (
+          <TouchableOpacity
+            key={d}
+            onPress={() => setDesignation(d)}
+            className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-600 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
+          >
+            <Text className={`text-xs font-bold ${designation === d ? 'text-white' : 'text-slate-600'}`}>{d}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Experience Level *</Text>
+      <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
+        {['Fresher', 'Experienced'].map((level) => (
+          <TouchableOpacity
+            key={level}
+            onPress={() => setExperienceLevel(level)}
+            className={`flex-1 py-3 rounded-xl ${experienceLevel === level ? 'bg-sky-600' : ''}`}
+          >
+            <Text className={`text-center text-xs font-bold ${experienceLevel === level ? 'text-white' : 'text-slate-500'}`}>{level}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      
+      {experienceLevel === 'Experienced' && (
+        <CustomInput label="PF Number *" value={pfNumber} onChangeText={setPfNumber} placeholder="Enter PF Number" />
+      )}
+      
+      <CustomInput label="PAN Number" value={panNumber} onChangeText={setPanNumber} placeholder="ABCDE1234F" autoCapitalize="characters" />
+      <CustomInput label="Aadhar Number" value={aadharNumber} onChangeText={setAadharNumber} placeholder="1234 5678 9012" keyboardType="numeric" />
+
+      <View className="mb-4">
+        <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Documents</Text>
+        
+        <TouchableOpacity onPress={async () => {
+          const res = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
+          if (!res.canceled) setPhotoFile(res.assets[0]);
+        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="image-outline" size={20} color="#64748b" />
+            <Text className="text-xs font-bold text-slate-700">{photoFile ? photoFile.name : 'Profile Photo'}</Text>
+          </View>
+          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={async () => {
+          const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
+          if (!res.canceled) setPanFile(res.assets[0]);
+        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="document-text-outline" size={20} color="#64748b" />
+            <Text className="text-xs font-bold text-slate-700">{panFile ? panFile.name : 'PAN Document'}</Text>
+          </View>
+          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={async () => {
+          const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
+          if (!res.canceled) setAadharFile(res.assets[0]);
+        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="document-text-outline" size={20} color="#64748b" />
+            <Text className="text-xs font-bold text-slate-700">{aadharFile ? aadharFile.name : 'Aadhar Document'}</Text>
+          </View>
+          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={async () => {
+          const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
+          if (!res.canceled) setPayslipFile(res.assets[0]);
+        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+          <View className="flex-row items-center gap-2">
+            <Ionicons name="document-text-outline" size={20} color="#64748b" />
+            <Text className="text-xs font-bold text-slate-700">{payslipFile ? payslipFile.name : 'Latest Payslip'}</Text>
+          </View>
+          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+        </TouchableOpacity>
+      </View>
+
+      <CustomButton title="Add User Member" loading={loading} onPress={handleCreateUser} />
+      
+      {Platform.OS !== 'web' && (
+        <TouchableOpacity onPress={() => setShowAddForm(false)} className="mt-4 py-3 border border-slate-200 rounded-2xl bg-white shadow-sm">
+          <Text className="text-center text-slate-900 font-bold text-xs">Cancel</Text>
+        </TouchableOpacity>
+      )}
+    </>
+  );
+
   return (
     <AppLayout currentScreen="UserManagement" role="Admin" scrollable={false}>
       <View className="flex-1">
@@ -260,113 +379,20 @@ export default function UserManagementScreen() {
           </View>
         </View>
 
-        {showAddForm ? (
+        {showAddForm && Platform.OS === 'web' ? (
+          <Modal visible={true} transparent={true} animationType="fade">
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingBottom: 40 }}>
+                <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm self-center w-full" style={{ maxWidth: 600 }}>
+                  {renderAddFormContent()}
+                </View>
+              </ScrollView>
+            </View>
+          </Modal>
+        ) : showAddForm ? (
           <ScrollView showsVerticalScrollIndicator={false} className="mt-4" contentContainerStyle={{ paddingBottom: 40 }}>
             <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm self-center w-full" style={{ maxWidth: 600 }}>
-              <CustomInput label="Full Name *" value={name} onChangeText={setName} placeholder="E.g. John Doe" />
-              <CustomInput label="Email Address *" value={email} onChangeText={setEmail} placeholder="executive@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" />
-              <CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
-              <CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" />
-              
-              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">User Type *</Text>
-              <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
-                {['Employee', 'Admin'].map((t) => (
-                  <TouchableOpacity
-                    key={t}
-                    onPress={() => setUserType(t)}
-                    className={`flex-1 py-3 rounded-xl ${userType === t ? 'bg-sky-600' : ''}`}
-                  >
-                    <Text className={`text-center text-xs font-bold ${userType === t ? 'text-white' : 'text-slate-500'}`}>{t}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              
-              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Designation *</Text>
-              <View className="flex-row flex-wrap gap-2 mb-4">
-                {(userType === 'Employee' ? ['BDE', 'BDM', 'Pre Sales'] : ['Admin', 'Manager', 'HR']).map((d) => (
-                  <TouchableOpacity
-                    key={d}
-                    onPress={() => setDesignation(d)}
-                    className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-600 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
-                  >
-                    <Text className={`text-xs font-bold ${designation === d ? 'text-white' : 'text-slate-600'}`}>{d}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Experience Level *</Text>
-              <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
-                {['Fresher', 'Experienced'].map((level) => (
-                  <TouchableOpacity
-                    key={level}
-                    onPress={() => setExperienceLevel(level)}
-                    className={`flex-1 py-3 rounded-xl ${experienceLevel === level ? 'bg-sky-600' : ''}`}
-                  >
-                    <Text className={`text-center text-xs font-bold ${experienceLevel === level ? 'text-white' : 'text-slate-500'}`}>{level}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              
-              {experienceLevel === 'Experienced' && (
-                <CustomInput label="PF Number *" value={pfNumber} onChangeText={setPfNumber} placeholder="Enter PF Number" />
-              )}
-              
-              <CustomInput label="PAN Number" value={panNumber} onChangeText={setPanNumber} placeholder="ABCDE1234F" autoCapitalize="characters" />
-              <CustomInput label="Aadhar Number" value={aadharNumber} onChangeText={setAadharNumber} placeholder="1234 5678 9012" keyboardType="numeric" />
-
-              <View className="mb-4">
-                <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Documents</Text>
-                
-                <TouchableOpacity onPress={async () => {
-                  const res = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
-                  if (!res.canceled) setPhotoFile(res.assets[0]);
-                }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="image-outline" size={20} color="#64748b" />
-                    <Text className="text-xs font-bold text-slate-700">{photoFile ? photoFile.name : 'Profile Photo'}</Text>
-                  </View>
-                  <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={async () => {
-                  const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
-                  if (!res.canceled) setPanFile(res.assets[0]);
-                }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="document-text-outline" size={20} color="#64748b" />
-                    <Text className="text-xs font-bold text-slate-700">{panFile ? panFile.name : 'PAN Document'}</Text>
-                  </View>
-                  <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={async () => {
-                  const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
-                  if (!res.canceled) setAadharFile(res.assets[0]);
-                }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="document-text-outline" size={20} color="#64748b" />
-                    <Text className="text-xs font-bold text-slate-700">{aadharFile ? aadharFile.name : 'Aadhar Document'}</Text>
-                  </View>
-                  <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={async () => {
-                  const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
-                  if (!res.canceled) setPayslipFile(res.assets[0]);
-                }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="document-text-outline" size={20} color="#64748b" />
-                    <Text className="text-xs font-bold text-slate-700">{payslipFile ? payslipFile.name : 'Latest Payslip'}</Text>
-                  </View>
-                  <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-                </TouchableOpacity>
-              </View>
-
-              <CustomButton title="Add User Member" loading={loading} onPress={handleCreateUser} />
-              
-              <TouchableOpacity onPress={() => setShowAddForm(false)} className="mt-4 py-3 border border-slate-200 rounded-2xl bg-white shadow-sm">
-                <Text className="text-center text-slate-900 font-bold text-xs">Cancel</Text>
-              </TouchableOpacity>
+              {renderAddFormContent()}
             </View>
           </ScrollView>
         ) : (
