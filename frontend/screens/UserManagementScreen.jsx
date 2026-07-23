@@ -251,7 +251,6 @@ export default function UserManagementScreen() {
     <AppLayout currentScreen="UserManagement" role="Admin" scrollable={false}>
       <View className="flex-1">
         
-        {/* Header with Back Arrow and Title */}
         <View className="flex-row justify-between items-center mb-6">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <TouchableOpacity onPress={() => router.push('/AdminDashboard')}>
@@ -259,11 +258,6 @@ export default function UserManagementScreen() {
             </TouchableOpacity>
             <Text className="text-2xl font-black text-slate-900">Field Staff</Text>
           </View>
-          {!showAddForm && (
-            <TouchableOpacity onPress={() => setShowAddForm(true)} className="bg-sky-600 px-4 py-2 rounded-xl shadow-sm">
-              <Text className="text-white font-bold text-xs">+ Add Member</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {showAddForm ? (
