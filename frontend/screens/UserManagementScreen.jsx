@@ -379,9 +379,11 @@ export default function UserManagementScreen() {
               <Text className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Staff Members
               </Text>
-              <TouchableOpacity onPress={() => setShowAddForm(true)} className="bg-sky-600 px-4 py-2 rounded-xl shadow-sm">
-                <Text className="text-white font-bold text-xs">+ Add Member</Text>
-              </TouchableOpacity>
+              {['HR', 'Managing Director MD'].includes(userRole) && (
+                <TouchableOpacity onPress={() => setShowAddForm(true)} className="bg-sky-600 px-4 py-2 rounded-xl shadow-sm">
+                  <Text className="text-white font-bold text-xs">+ Add Member</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             <FlatList
@@ -392,7 +394,7 @@ export default function UserManagementScreen() {
               ListEmptyComponent={() => (
                 <View className="flex-1 items-center justify-center pt-20">
                   <Text className="text-xs text-slate-500">
-                    No users found. Tap "+ Add Member" to register one.
+                    {['HR', 'Managing Director MD'].includes(userRole) ? 'No users found. Tap "+ Add Member" to register one.' : 'No users found.'}
                   </Text>
                 </View>
               )}
