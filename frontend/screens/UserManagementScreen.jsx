@@ -250,119 +250,140 @@ export default function UserManagementScreen() {
   const renderAddFormContent = () => (
     <>
       {Platform.OS === 'web' && (
-        <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-lg font-bold text-slate-900">Add Member</Text>
-          <TouchableOpacity onPress={() => setShowAddForm(false)}>
-            <Ionicons name="close" size={24} color="#0f172a" />
+        <View className="flex-row justify-between items-center mb-6 border-b border-slate-100 pb-4">
+          <View>
+            <Text className="text-xl font-black text-slate-900">Add New Member</Text>
+            <Text className="text-xs text-slate-500 mt-1">Fill in the details to register a new employee.</Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowAddForm(false)} className="p-2 bg-slate-50 rounded-full border border-slate-100">
+            <Ionicons name="close" size={20} color="#64748b" />
           </TouchableOpacity>
         </View>
       )}
-      <CustomInput label="Full Name *" value={name} onChangeText={setName} placeholder="E.g. John Doe" />
-      <CustomInput label="Email Address *" value={email} onChangeText={setEmail} placeholder="executive@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" />
-      <CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
-      <CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" />
-      
-      <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">User Type *</Text>
-      <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
-        {['Employee', 'Admin'].map((t) => (
-          <TouchableOpacity
-            key={t}
-            onPress={() => setUserType(t)}
-            className={`flex-1 py-3 rounded-xl ${userType === t ? 'bg-sky-600' : ''}`}
-          >
-            <Text className={`text-center text-xs font-bold ${userType === t ? 'text-white' : 'text-slate-500'}`}>{t}</Text>
-          </TouchableOpacity>
-        ))}
+
+      {/* Account Details Section */}
+      <Text className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-3">Account Details</Text>
+      <View className={Platform.OS === 'web' ? "flex-row gap-4" : ""}>
+        <View className="flex-1"><CustomInput label="Full Name *" value={name} onChangeText={setName} placeholder="E.g. John Doe" /></View>
+        <View className="flex-1"><CustomInput label="Email Address *" value={email} onChangeText={setEmail} placeholder="john@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" /></View>
       </View>
+      <View className={Platform.OS === 'web' ? "flex-row gap-4" : ""}>
+        <View className="flex-1"><CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry /></View>
+        <View className="flex-1"><CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" /></View>
+      </View>
+
+      <View className="h-px bg-slate-100 w-full my-4" />
+
+      {/* Role & Experience Section */}
+      <Text className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-3">Role & Experience</Text>
       
-      <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Designation *</Text>
+      <View className={Platform.OS === 'web' ? "flex-row gap-6 mb-4" : "mb-4"}>
+        <View className="flex-1 mb-4 lg:mb-0">
+          <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">User Type *</Text>
+          <View className="flex-row bg-slate-50 p-1 rounded-xl border border-slate-200">
+            {['Employee', 'Admin'].map((t) => (
+              <TouchableOpacity
+                key={t}
+                onPress={() => setUserType(t)}
+                className={`flex-1 py-2 rounded-lg ${userType === t ? 'bg-white shadow-sm border border-slate-200' : ''}`}
+              >
+                <Text className={`text-center text-xs font-bold ${userType === t ? 'text-sky-600' : 'text-slate-500'}`}>{t}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View className="flex-1">
+          <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Experience Level *</Text>
+          <View className="flex-row bg-slate-50 p-1 rounded-xl border border-slate-200">
+            {['Fresher', 'Experienced'].map((level) => (
+              <TouchableOpacity
+                key={level}
+                onPress={() => setExperienceLevel(level)}
+                className={`flex-1 py-2 rounded-lg ${experienceLevel === level ? 'bg-white shadow-sm border border-slate-200' : ''}`}
+              >
+                <Text className={`text-center text-xs font-bold ${experienceLevel === level ? 'text-sky-600' : 'text-slate-500'}`}>{level}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </View>
+
+      <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Designation *</Text>
       <View className="flex-row flex-wrap gap-2 mb-4">
         {(userType === 'Employee' ? ['BDE', 'BDM', 'Pre Sales'] : ['Admin', 'Manager', 'HR']).map((d) => (
           <TouchableOpacity
             key={d}
             onPress={() => setDesignation(d)}
-            className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-600 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
+            className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-50 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
           >
-            <Text className={`text-xs font-bold ${designation === d ? 'text-white' : 'text-slate-600'}`}>{d}</Text>
+            <Text className={`text-xs font-bold ${designation === d ? 'text-sky-700' : 'text-slate-600'}`}>{d}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Experience Level *</Text>
-      <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
-        {['Fresher', 'Experienced'].map((level) => (
-          <TouchableOpacity
-            key={level}
-            onPress={() => setExperienceLevel(level)}
-            className={`flex-1 py-3 rounded-xl ${experienceLevel === level ? 'bg-sky-600' : ''}`}
-          >
-            <Text className={`text-center text-xs font-bold ${experienceLevel === level ? 'text-white' : 'text-slate-500'}`}>{level}</Text>
-          </TouchableOpacity>
-        ))}
+      <View className="h-px bg-slate-100 w-full my-4" />
+
+      {/* KYC & Documents Section */}
+      <Text className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-3">KYC & Documents</Text>
+
+      <View className={Platform.OS === 'web' ? "flex-row gap-4" : ""}>
+        <View className="flex-1"><CustomInput label="PAN Number" value={panNumber} onChangeText={setPanNumber} placeholder="ABCDE1234F" autoCapitalize="characters" /></View>
+        <View className="flex-1"><CustomInput label="Aadhar Number" value={aadharNumber} onChangeText={setAadharNumber} placeholder="1234 5678 9012" keyboardType="numeric" /></View>
       </View>
-      
+
       {experienceLevel === 'Experienced' && (
-        <CustomInput label="PF Number *" value={pfNumber} onChangeText={setPfNumber} placeholder="Enter PF Number" />
+        <View className={Platform.OS === 'web' ? "w-1/2 pr-2" : ""}><CustomInput label="PF Number *" value={pfNumber} onChangeText={setPfNumber} placeholder="Enter PF Number" /></View>
       )}
-      
-      <CustomInput label="PAN Number" value={panNumber} onChangeText={setPanNumber} placeholder="ABCDE1234F" autoCapitalize="characters" />
-      <CustomInput label="Aadhar Number" value={aadharNumber} onChangeText={setAadharNumber} placeholder="1234 5678 9012" keyboardType="numeric" />
 
-      <View className="mb-4">
-        <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Documents</Text>
-        
-        <TouchableOpacity onPress={async () => {
-          const res = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
-          if (!res.canceled) setPhotoFile(res.assets[0]);
-        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-          <View className="flex-row items-center gap-2">
-            <Ionicons name="image-outline" size={20} color="#64748b" />
-            <Text className="text-xs font-bold text-slate-700">{photoFile ? photoFile.name : 'Profile Photo'}</Text>
-          </View>
-          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={async () => {
-          const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
-          if (!res.canceled) setPanFile(res.assets[0]);
-        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-          <View className="flex-row items-center gap-2">
-            <Ionicons name="document-text-outline" size={20} color="#64748b" />
-            <Text className="text-xs font-bold text-slate-700">{panFile ? panFile.name : 'PAN Document'}</Text>
-          </View>
-          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={async () => {
-          const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
-          if (!res.canceled) setAadharFile(res.assets[0]);
-        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-          <View className="flex-row items-center gap-2">
-            <Ionicons name="document-text-outline" size={20} color="#64748b" />
-            <Text className="text-xs font-bold text-slate-700">{aadharFile ? aadharFile.name : 'Aadhar Document'}</Text>
-          </View>
-          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={async () => {
-          const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
-          if (!res.canceled) setPayslipFile(res.assets[0]);
-        }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
-          <View className="flex-row items-center gap-2">
-            <Ionicons name="document-text-outline" size={20} color="#64748b" />
-            <Text className="text-xs font-bold text-slate-700">{payslipFile ? payslipFile.name : 'Latest Payslip'}</Text>
-          </View>
-          <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
-        </TouchableOpacity>
+      <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500 mt-2">Upload Documents</Text>
+      <View className="flex-row flex-wrap gap-3 mb-6">
+        {[
+          { label: 'Profile Photo', state: photoFile, set: setPhotoFile, icon: 'image-outline', type: 'image/*' },
+          { label: 'PAN Document', state: panFile, set: setPanFile, icon: 'card-outline', type: ['application/pdf', 'image/*'] },
+          { label: 'Aadhar Doc', state: aadharFile, set: setAadharFile, icon: 'finger-print-outline', type: ['application/pdf', 'image/*'] },
+          { label: 'Latest Payslip', state: payslipFile, set: setPayslipFile, icon: 'cash-outline', type: ['application/pdf', 'image/*'] }
+        ].map((doc, idx) => (
+          <TouchableOpacity 
+            key={idx}
+            onPress={async () => {
+              const res = await DocumentPicker.getDocumentAsync({ type: doc.type });
+              if (!res.canceled) doc.set(res.assets[0]);
+            }} 
+            className={`flex-row items-center justify-between p-3 border rounded-xl flex-1 min-w-[200px] ${doc.state ? 'bg-sky-50 border-sky-200' : 'bg-slate-50 border-slate-200 border-dashed'}`}
+          >
+            <View className="flex-row items-center gap-2">
+              <Ionicons name={doc.icon} size={18} color={doc.state ? "#0284c7" : "#64748b"} />
+              <Text className={`text-xs font-bold ${doc.state ? 'text-sky-700' : 'text-slate-600'}`} numberOfLines={1}>
+                {doc.state ? doc.state.name : doc.label}
+              </Text>
+            </View>
+            <Ionicons name={doc.state ? "checkmark-circle" : "cloud-upload-outline"} size={18} color={doc.state ? "#0ea5e9" : "#94a3b8"} />
+          </TouchableOpacity>
+        ))}
       </View>
 
-      <CustomButton title="Add User Member" loading={loading} onPress={handleCreateUser} />
-      
-      {Platform.OS !== 'web' && (
-        <TouchableOpacity onPress={() => setShowAddForm(false)} className="mt-4 py-3 border border-slate-200 rounded-2xl bg-white shadow-sm">
-          <Text className="text-center text-slate-900 font-bold text-xs">Cancel</Text>
+      {/* Actions */}
+      <View className={`mt-2 ${Platform.OS === 'web' ? 'flex-row justify-end gap-3' : 'space-y-3'}`}>
+        {Platform.OS === 'web' && (
+          <TouchableOpacity onPress={() => setShowAddForm(false)} className="px-6 py-3 border border-slate-200 rounded-xl bg-white shadow-sm">
+            <Text className="text-center text-slate-700 font-bold text-xs">Cancel</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity onPress={handleCreateUser} disabled={loading} className={`px-6 py-3 rounded-xl shadow-sm justify-center items-center ${loading ? 'bg-sky-400' : 'bg-sky-600'} ${Platform.OS !== 'web' ? 'w-full' : ''}`}>
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text className="text-center text-white font-bold text-xs">Add User Member</Text>
+          )}
         </TouchableOpacity>
-      )}
+        
+        {Platform.OS !== 'web' && (
+          <TouchableOpacity onPress={() => setShowAddForm(false)} className="py-3 border border-slate-200 rounded-xl bg-white shadow-sm w-full">
+            <Text className="text-center text-slate-700 font-bold text-xs">Cancel</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </>
   );
 
@@ -477,7 +498,7 @@ export default function UserManagementScreen() {
             <Modal transparent={true} visible={true} animationType="fade">
               <View className="backdrop-blur-sm" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-                  <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl self-center w-full" style={{ maxWidth: 600 }}>
+                  <View className="bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl self-center w-full my-10" style={{ maxWidth: 800 }}>
                     {renderAddFormContent()}
                   </View>
                 </ScrollView>
