@@ -471,6 +471,24 @@ export default function UserManagementScreen() {
             />
           </View>
         )}
+
+        {showAddForm && (
+          Platform.OS === 'web' ? (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(5px)', zIndex: 50, justifyContent: 'center', padding: 20, borderRadius: 24 }}>
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+                <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl self-center w-full" style={{ maxWidth: 600 }}>
+                  {renderAddFormContent()}
+                </View>
+              </ScrollView>
+            </View>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false} className="mt-4" contentContainerStyle={{ paddingBottom: 40 }}>
+              <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm self-center w-full" style={{ maxWidth: 600 }}>
+                {renderAddFormContent()}
+              </View>
+            </ScrollView>
+          )
+        )}
       </View>
 
       {/* Profile / Documents Modal */}
