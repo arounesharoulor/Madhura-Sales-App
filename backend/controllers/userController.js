@@ -161,3 +161,65 @@ exports.toggleUserStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update employee tenure/joining date
+// @route   PUT /api/users/:id/record
+// @access  Private/Admin
+exports.updateEmployeeRecord = async (req, res, next) => {
+  try {
+    const { joiningDate } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (joiningDate) user.joiningDate = joiningDate;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Upload document for employee
+// @route   POST /api/users/:id/documents
+// @access  Private/Admin
+exports.uploadEmployeeDocument = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (!req.file) {
+      res.status(400);
+      throw new Error('Please upload a document file');
+    }
+
+    const result = await uploadToCloudinary(req.file.buffer, 'employee_docs');
+    
+    const newDoc = {
+      name: req.file.originalname || 'Document',
+      url: result.secure_url,
+      type: req.file.mimetype || 'application/octet-stream'
+    };
+
+    user.documents.push(newDoc);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
