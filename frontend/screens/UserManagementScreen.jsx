@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../components/CustomInput';
@@ -8,13 +8,12 @@ import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import EmployeeMonitoringScreen from './EmployeeMonitoringScreen';
+import * as Location from 'expo-location';
 
 export default function UserManagementScreen() {
   const [users, setUsers] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [activeTab, setActiveTab] = useState('users');
   const [userRole, setUserRole] = useState('Admin');
 
   useEffect(() => {
@@ -35,13 +34,22 @@ export default function UserManagementScreen() {
   const [designation, setDesignation] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const safeGet = async (url, config) => {
+    try {
+      return await api.get(url, config);
+    } catch (e) {
+      console.warn(`API call failed: ${url}`, e);
+      return { data: { data: [] } };
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       setRefreshing(true);
       const today = new Date().toISOString().split('T')[0];
       const [usersRes, attendanceRes] = await Promise.all([
-        api.get('/users'),
-        api.get('/attendance', { params: { date: today } }),
+        safeGet('/users'),
+        safeGet('/attendance', { params: { date: today } }),
       ]);
 
       const attendanceByExec = (attendanceRes.data.data || []).reduce((acc, rec) => {
@@ -130,24 +138,12 @@ export default function UserManagementScreen() {
             </TouchableOpacity>
             <Text className="text-2xl font-black text-slate-900">Field Staff</Text>
           </View>
-          {!showAddForm && activeTab === 'users' && (
+          {!showAddForm && (
             <TouchableOpacity onPress={() => setShowAddForm(true)} className="bg-sky-600 px-4 py-2 rounded-xl shadow-sm">
               <Text className="text-white font-bold text-xs">+ Add Member</Text>
             </TouchableOpacity>
           )}
         </View>
-
-        {/* Tab Buttons */}
-        {!showAddForm && (
-          <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
-            <TouchableOpacity onPress={() => setActiveTab('users')} className={`flex-1 py-3 rounded-xl ${activeTab === 'users' ? 'bg-sky-600 shadow-sm' : ''}`}>
-              <Text className={`text-center text-xs font-bold ${activeTab === 'users' ? 'text-white' : 'text-slate-500'}`}>User Management</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setActiveTab('map')} className={`flex-1 py-3 rounded-xl ${activeTab === 'map' ? 'bg-sky-600 shadow-sm' : ''}`}>
-              <Text className={`text-center text-xs font-bold ${activeTab === 'map' ? 'text-white' : 'text-slate-500'}`}>Employee Monitoring</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         {showAddForm ? (
           <ScrollView showsVerticalScrollIndicator={false} className="mt-4">
@@ -196,7 +192,7 @@ export default function UserManagementScreen() {
               </TouchableOpacity>
             </View>
           </ScrollView>
-        ) : activeTab === 'users' ? (
+        ) : (
           <View className="flex-1">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -284,8 +280,6 @@ export default function UserManagementScreen() {
               }}
             />
           </View>
-        ) : (
-          <EmployeeMonitoringScreen isTab={true} userRole={userRole} />
         )}
       </View>
     </AppLayout>
