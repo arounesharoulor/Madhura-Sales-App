@@ -495,15 +495,13 @@ export default function UserManagementScreen() {
 
         {showAddForm && (
           Platform.OS === 'web' ? (
-            <Modal transparent={true} visible={true} animationType="fade">
-              <View className="backdrop-blur-sm" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 }}>
-                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-                  <View className="bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl self-center w-full my-10" style={{ maxWidth: 800 }}>
-                    {renderAddFormContent()}
-                  </View>
+            <View className="backdrop-blur-md" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 99999, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+              <View className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full flex-shrink-1" style={{ maxWidth: 800, maxHeight: '90%' }}>
+                <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ padding: 32 }}>
+                  {renderAddFormContent()}
                 </ScrollView>
               </View>
-            </Modal>
+            </View>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} className="mt-4" contentContainerStyle={{ paddingBottom: 40 }}>
               <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm self-center w-full" style={{ maxWidth: 600 }}>
