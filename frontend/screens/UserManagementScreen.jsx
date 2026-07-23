@@ -379,23 +379,7 @@ export default function UserManagementScreen() {
           </View>
         </View>
 
-        {showAddForm && Platform.OS === 'web' ? (
-          <Modal visible={true} transparent={true} animationType="fade">
-            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingBottom: 40 }}>
-                <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm self-center w-full" style={{ maxWidth: 600 }}>
-                  {renderAddFormContent()}
-                </View>
-              </ScrollView>
-            </View>
-          </Modal>
-        ) : showAddForm ? (
-          <ScrollView showsVerticalScrollIndicator={false} className="mt-4" contentContainerStyle={{ paddingBottom: 40 }}>
-            <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm self-center w-full" style={{ maxWidth: 600 }}>
-              {renderAddFormContent()}
-            </View>
-          </ScrollView>
-        ) : (
+        {(!showAddForm || Platform.OS === 'web') && (
           <View className="flex-1">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -426,46 +410,38 @@ export default function UserManagementScreen() {
                   : item.todayAttendanceStatus === 'Checked Out'
                     ? 'bg-rose-50 border-rose-200'
                     : 'bg-slate-100 border-slate-200';
-                const attendanceTextClass = item.todayAttendanceStatus === 'Checked In'
-                  ? 'text-emerald-600'
+
+                const attendanceBadgeText = item.todayAttendanceStatus === 'Checked In'
+                  ? 'text-emerald-700'
                   : item.todayAttendanceStatus === 'Checked Out'
-                    ? 'text-rose-600'
-                    : 'text-slate-500';
-                const attendanceLabel = item.todayAttendanceStatus === 'Checked In'
-                  ? 'Active'
-                  : item.todayAttendanceStatus === 'Checked Out'
-                    ? 'Inactive'
-                    : 'No Attendance';
+                    ? 'text-rose-700'
+                    : 'text-slate-600';
+
                 return (
-                  <View className="mb-4 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm">
-                    <View className="flex-row justify-between items-start">
-                      <View className="flex-1 pr-3">
-                        <Text className="font-bold text-sm text-slate-900">{item.name}</Text>
-                        <Text className="text-xs text-slate-500">{item.email}</Text>
-                        <Text className="text-xs text-slate-500 mt-1">Role: {item.role} | Desig: {item.designation || 'N/A'} | Phone: {item.phone}</Text>
+                  <View className="bg-white border border-slate-200 rounded-3xl p-5 mb-4 shadow-sm">
+                    <View className="flex-row justify-between items-start mb-3">
+                      <View className="flex-1">
+                        <Text className="text-sm font-black text-slate-900 mb-1">{item.name}</Text>
+                        <Text className="text-xs text-slate-500 font-medium">{item.email}</Text>
+                        <Text className="text-[11px] text-slate-400 mt-1">
+                          Role: {item.role} | Desig: {item.designation || 'N/A'} | Phone: {item.phone || 'N/A'}
+                        </Text>
                       </View>
+                      
                       <View className="flex-row items-center gap-2">
-                        {item.role === 'Field Executive' ? (
-                          <View className={`px-3 py-1.5 rounded-lg border ${attendanceBadgeClass}`}>
-                            <Text className={`text-[10px] font-bold ${attendanceTextClass}`}>
-                              {attendanceLabel}
+                        {item.role !== 'Admin' && item.role !== 'Managing Director MD' && item.role !== 'HR' && (
+                          <View className={`px-3 py-1.5 rounded-xl border ${attendanceBadgeClass}`}>
+                            <Text className={`text-[10px] font-bold ${attendanceBadgeText}`}>
+                              {item.todayAttendanceStatus === 'Checked In' ? 'Active' : 
+                               item.todayAttendanceStatus === 'Checked Out' ? 'Checked Out' : 'No Attendance'}
                             </Text>
                           </View>
-                        ) : null}
-                        <TouchableOpacity
-                          onPress={() => handleToggleStatus(item._id, item.isActive)}
-                          className={`px-3 py-1.5 rounded-lg border ${
-                            item.isActive
-                              ? 'bg-emerald-50 border-emerald-200'
-                              : 'bg-rose-50 border-rose-200'
-                          }`}
-                        >
-                          <Text className={`text-[10px] font-bold ${
-                            item.isActive ? 'text-emerald-600' : 'text-rose-600'
-                          }`}>
-                            {item.isActive ? 'Active' : 'Suspended'}
+                        )}
+                        <View className={`px-3 py-1.5 rounded-xl border ${item.isActive ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+                          <Text className={`text-[10px] font-bold ${item.isActive ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            {item.isActive ? 'Active' : 'Inactive'}
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </View>
                     <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-slate-100 justify-end">
