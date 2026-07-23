@@ -46,7 +46,6 @@ const TYPE_CONFIG = {
 };
 
 export default function NotificationScreen() {
-  const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState('Employee');
