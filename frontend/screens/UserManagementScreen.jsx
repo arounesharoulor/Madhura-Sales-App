@@ -39,8 +39,21 @@ export default function UserManagementScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState('Field Executive'); // default
+  const [userType, setUserType] = useState('Employee'); // Admin | Employee
   const [designation, setDesignation] = useState('');
+  
+  const [panNumber, setPanNumber] = useState('');
+  const [aadharNumber, setAadharNumber] = useState('');
+  const [experienceLevel, setExperienceLevel] = useState('Fresher');
+  const [pfNumber, setPfNumber] = useState('');
+  const [joiningDate, setJoiningDate] = useState(new Date());
+  const [showAddDatePicker, setShowAddDatePicker] = useState(false);
+  
+  const [photoFile, setPhotoFile] = useState(null);
+  const [panFile, setPanFile] = useState(null);
+  const [aadharFile, setAadharFile] = useState(null);
+  const [payslipFile, setPayslipFile] = useState(null);
+
   const [loading, setLoading] = useState(false);
 
   const openProfile = async (empId) => {
@@ -155,21 +168,55 @@ export default function UserManagementScreen() {
   }, []);
 
   const handleCreateUser = async () => {
-    if (!name || !email || !password || !phone || !designation) {
+    const finalRole = userType === 'Admin' ? 'Admin' : 'Field Executive';
+    const finalDesignation = userType === 'Admin' ? 'Admin' : designation;
+
+    if (!name || !email || !password || !phone || !finalDesignation) {
       Alert.alert('Validation Error', 'Please complete all required fields.');
       return;
     }
 
     setLoading(true);
     try {
-      await api.post('/users', { name, email, password, phone, role, designation });
-      Alert.alert('Success', `${role} user successfully added!`);
-      setName('');
-      setEmail('');
-      setPassword('');
-      setPhone('');
-      setRole('Field Executive');
-      setDesignation('');
+      const payload = {
+        name, email, password, phone, role: finalRole, designation: finalDesignation,
+        panNumber, aadharNumber, experienceLevel, joiningDate
+      };
+      if (experienceLevel === 'Experienced') payload.pfNumber = pfNumber;
+
+      const userRes = await api.post('/users', payload);
+      const newUserId = userRes.data.data.id;
+
+      // Upload Documents
+      const filesToUpload = [
+        { file: photoFile, name: 'Profile Photo' },
+        { file: panFile, name: 'PAN Document' },
+        { file: aadharFile, name: 'Aadhar Document' },
+        { file: payslipFile, name: 'Payslip' }
+      ];
+
+      for (const item of filesToUpload) {
+        if (item.file) {
+          const formData = new FormData();
+          formData.append('document', {
+            uri: item.file.uri,
+            name: item.file.name,
+            type: item.file.mimeType || 'application/octet-stream'
+          });
+          await api.post('/users/' + newUserId + '/documents', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+        }
+      }
+
+      Alert.alert('Success', `${finalRole} user successfully added!`);
+      
+      // Reset form
+      setName(''); setEmail(''); setPassword(''); setPhone('');
+      setUserType('Employee'); setDesignation(''); setPanNumber(''); setAadharNumber('');
+      setExperienceLevel('Fresher'); setPfNumber(''); setJoiningDate(new Date());
+      setPhotoFile(null); setPanFile(null); setAadharFile(null); setPayslipFile(null);
+      
       setShowAddForm(false);
       fetchUsers();
     } catch (e) {
@@ -227,37 +274,103 @@ export default function UserManagementScreen() {
               <CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
               <CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" />
               
-              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Designation *</Text>
-              <View className="flex-row flex-wrap gap-2 mb-4">
-                {['BDE', 'BDM', 'Pre Sales', 'Manager', 'Other'].map((d) => (
+              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">User Type *</Text>
+              <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
+                {['Employee', 'Admin'].map((t) => (
                   <TouchableOpacity
-                    key={d}
-                    onPress={() => setDesignation(d)}
-                    className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-600 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
+                    key={t}
+                    onPress={() => setUserType(t)}
+                    className={`flex-1 py-3 rounded-xl ${userType === t ? 'bg-sky-600' : ''}`}
                   >
-                    <Text className={`text-xs font-bold ${designation === d ? 'text-white' : 'text-slate-600'}`}>{d}</Text>
+                    <Text className={`text-center text-xs font-bold ${userType === t ? 'text-white' : 'text-slate-500'}`}>{t}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
               
-              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">User Role *</Text>
-              <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
-                {['Field Executive', 'Manager', 'Admin'].map((r) => (
-                  <TouchableOpacity
-                    key={r}
-                    onPress={() => setRole(r)}
-                    className={`flex-1 py-3 rounded-xl ${
-                      role === r ? 'bg-sky-600' : ''
-                    }`}
-                  >
-                    <Text className={`text-center text-xs font-bold ${
-                      role === r ? 'text-white' : 'text-slate-500'
-                    }`}>
-                      {r}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              {userType === 'Employee' && (
+                <>
+                  <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Designation *</Text>
+                  <View className="flex-row flex-wrap gap-2 mb-4">
+                    {['BDE', 'BDM', 'Pre Sales'].map((d) => (
+                      <TouchableOpacity
+                        key={d}
+                        onPress={() => setDesignation(d)}
+                        className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-600 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
+                      >
+                        <Text className={`text-xs font-bold ${designation === d ? 'text-white' : 'text-slate-600'}`}>{d}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Experience Level *</Text>
+                  <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
+                    {['Fresher', 'Experienced'].map((level) => (
+                      <TouchableOpacity
+                        key={level}
+                        onPress={() => setExperienceLevel(level)}
+                        className={`flex-1 py-3 rounded-xl ${experienceLevel === level ? 'bg-sky-600' : ''}`}
+                      >
+                        <Text className={`text-center text-xs font-bold ${experienceLevel === level ? 'text-white' : 'text-slate-500'}`}>{level}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  
+                  {experienceLevel === 'Experienced' && (
+                    <CustomInput label="PF Number *" value={pfNumber} onChangeText={setPfNumber} placeholder="Enter PF Number" />
+                  )}
+                  
+                  <CustomInput label="PAN Number" value={panNumber} onChangeText={setPanNumber} placeholder="ABCDE1234F" autoCapitalize="characters" />
+                  <CustomInput label="Aadhar Number" value={aadharNumber} onChangeText={setAadharNumber} placeholder="1234 5678 9012" keyboardType="numeric" />
+
+                  <View className="mb-4">
+                    <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500">Documents</Text>
+                    
+                    <TouchableOpacity onPress={async () => {
+                      const res = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
+                      if (!res.canceled) setPhotoFile(res.assets[0]);
+                    }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons name="image-outline" size={20} color="#64748b" />
+                        <Text className="text-xs font-bold text-slate-700">{photoFile ? photoFile.name : 'Profile Photo'}</Text>
+                      </View>
+                      <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={async () => {
+                      const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
+                      if (!res.canceled) setPanFile(res.assets[0]);
+                    }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons name="document-text-outline" size={20} color="#64748b" />
+                        <Text className="text-xs font-bold text-slate-700">{panFile ? panFile.name : 'PAN Document'}</Text>
+                      </View>
+                      <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={async () => {
+                      const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
+                      if (!res.canceled) setAadharFile(res.assets[0]);
+                    }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons name="document-text-outline" size={20} color="#64748b" />
+                        <Text className="text-xs font-bold text-slate-700">{aadharFile ? aadharFile.name : 'Aadhar Document'}</Text>
+                      </View>
+                      <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity onPress={async () => {
+                      const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
+                      if (!res.canceled) setPayslipFile(res.assets[0]);
+                    }} className="flex-row items-center justify-between p-3 border border-slate-200 rounded-xl mb-2 bg-slate-50">
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons name="document-text-outline" size={20} color="#64748b" />
+                        <Text className="text-xs font-bold text-slate-700">{payslipFile ? payslipFile.name : 'Latest Payslip'}</Text>
+                      </View>
+                      <Ionicons name="cloud-upload-outline" size={20} color="#0284c7" />
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
 
               <CustomButton title="Add User Member" loading={loading} onPress={handleCreateUser} />
               
@@ -338,13 +451,15 @@ export default function UserManagementScreen() {
                       </View>
                     </View>
                     <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-slate-100 justify-end">
-                      <TouchableOpacity
-                        onPress={() => openProfile(item._id)}
-                        className="bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex-row items-center"
-                      >
-                        <Ionicons name="document-text-outline" size={14} color="#d97706" style={{ marginRight: 4 }} />
-                        <Text className="text-[10px] text-amber-600 font-bold">Records</Text>
-                      </TouchableOpacity>
+                      {['HR', 'Managing Director MD'].includes(userRole) && (
+                        <TouchableOpacity
+                          onPress={() => openProfile(item._id)}
+                          className="bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex-row items-center"
+                        >
+                          <Ionicons name="document-text-outline" size={14} color="#d97706" style={{ marginRight: 4 }} />
+                          <Text className="text-[10px] text-amber-600 font-bold">Records</Text>
+                        </TouchableOpacity>
+                      )}
                       <TouchableOpacity
                         onPress={() => router.push({
                           pathname: '/Chat',

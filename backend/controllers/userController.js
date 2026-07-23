@@ -6,7 +6,7 @@ const { uploadToCloudinary } = require('../utils/helpers');
 // @access  Private/Admin
 exports.createUser = async (req, res, next) => {
   try {
-    const { name, email, password, role, phone, manager, designation } = req.body;
+    const { name, email, password, role, phone, manager, designation, panNumber, aadharNumber, pfNumber, experienceLevel, joiningDate } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -14,7 +14,11 @@ exports.createUser = async (req, res, next) => {
       throw new Error('User already exists with this email');
     }
 
-    const userData = { name, email, password, role, phone, designation };
+    const userData = { 
+      name, email, password, role, phone, designation, 
+      panNumber, aadharNumber, pfNumber, experienceLevel 
+    };
+    if (joiningDate) userData.joiningDate = joiningDate;
     if (manager) userData.manager = manager;
 
     const user = await User.create(userData);

@@ -65,6 +65,23 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    panNumber: {
+      type: String,
+      default: '',
+    },
+    aadharNumber: {
+      type: String,
+      default: '',
+    },
+    pfNumber: {
+      type: String,
+      default: '',
+    },
+    experienceLevel: {
+      type: String,
+      enum: ['Fresher', 'Experienced'],
+      default: 'Fresher',
+    },
     documents: [
       {
         name: String,
