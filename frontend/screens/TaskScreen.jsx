@@ -23,7 +23,7 @@ const PRIORITY_CONFIG = {
   'Low':    { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' },
 };
 
-export default function TaskScreen({ navigation, isComponent = false }) {
+export default function TaskScreen({ isComponent = false }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
@@ -173,10 +173,10 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                   flexDirection: 'row', alignItems: 'center', gap: 6,
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: filter === tab ? '#0f172a' : '#64748b' }}>{tab}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '900', color: filter === tab ? '#0f172a' : '#64748b' }}>{tab}</Text>
                 {counts[tab] > 0 && (
                   <View style={{ backgroundColor: filter === tab ? '#eff6ff' : '#e2e8f0', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ fontSize: 9, fontWeight: '800', color: filter === tab ? '#0284c7' : '#64748b' }}>{counts[tab]}</Text>
+                    <Text style={{ fontSize: 9, fontWeight: '900', color: filter === tab ? '#0284c7' : '#64748b' }}>{counts[tab]}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -201,7 +201,7 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                 <View style={{ backgroundColor: '#f1f5f9', borderRadius: 20, padding: 20 }}>
                   <Ionicons name="clipboard-outline" size={40} color="#cbd5e1" />
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#94a3b8' }}>No {filter} tasks</Text>
+                <Text style={{ fontSize: 15, fontWeight: '900', color: '#94a3b8' }}>No {filter} tasks</Text>
               </View>
             )}
             renderItem={({ item }) => {
@@ -218,14 +218,14 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                   {overdue && (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8, backgroundColor: '#fef2f2', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start' }}>
                       <Ionicons name="warning" size={12} color="#e11d48" />
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#e11d48' }}>OVERDUE</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#e11d48' }}>OVERDUE</Text>
                     </View>
                   )}
 
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0f172a', flex: 1, marginRight: 8 }}>{item.title}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#0f172a', flex: 1, marginRight: 8 }}>{item.title}</Text>
                     <View style={{ backgroundColor: sc.bg, borderRadius: 10, borderWidth: 1, borderColor: sc.border, paddingHorizontal: 8, paddingVertical: 4 }}>
-                      <Text style={{ fontSize: 9, fontWeight: '700', color: sc.text, textTransform: 'uppercase' }}>{item.status}</Text>
+                      <Text style={{ fontSize: 9, fontWeight: '900', color: sc.text, textTransform: 'uppercase' }}>{item.status}</Text>
                     </View>
                   </View>
 
@@ -237,7 +237,7 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                       {item.priority && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: pc.bg, borderRadius: 8, borderWidth: 1, borderColor: pc.border, paddingHorizontal: 8, paddingVertical: 3 }}>
                           <Ionicons name="flag" size={10} color={pc.text} />
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: pc.text }}>{item.priority}</Text>
+                          <Text style={{ fontSize: 10, fontWeight: '900', color: pc.text }}>{item.priority}</Text>
                         </View>
                       )}
                       {item.dueDate && (
@@ -265,7 +265,7 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                         style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#eff6ff', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, gap: 6 }}
                       >
                         <Ionicons name="chatbubble-ellipses-outline" size={14} color="#0284c7" />
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0284c7' }}>Update Status & Add Notes</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '900', color: '#0284c7' }}>Update Status & Add Notes</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -273,7 +273,7 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                   {/* Expanded Update Form */}
                   {expandedTask === item._id && (
                     <View style={{ marginTop: 12, backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 8 }}>Update Task Progress</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '900', color: '#0f172a', marginBottom: 8 }}>Update Task Progress</Text>
                       
                       {/* Status Selector */}
                       <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748b', marginBottom: 4 }}>Select Status</Text>
@@ -290,7 +290,7 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                             }}
                           >
                             <Text style={{
-                              fontSize: 11, fontWeight: '700',
+                              fontSize: 11, fontWeight: '900',
                               color: updateStatus === s ? '#fff' : '#64748b'
                             }}>
                               {s}
@@ -373,7 +373,7 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                             backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0'
                           }}
                         >
-                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>Cancel</Text>
+                          <Text style={{ fontSize: 12, fontWeight: '900', color: '#64748b' }}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           disabled={updatingId === item._id}
@@ -388,7 +388,7 @@ export default function TaskScreen({ navigation, isComponent = false }) {
                           ) : (
                             <>
                               <Ionicons name="send" size={14} color="#fff" />
-                              <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>Submit Update</Text>
+                              <Text style={{ fontSize: 12, fontWeight: '900', color: '#fff' }}>Submit Update</Text>
                             </>
                           )}
                         </TouchableOpacity>

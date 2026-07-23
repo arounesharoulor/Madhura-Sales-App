@@ -6,7 +6,7 @@ import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 
 import LeadScreen from './LeadScreen';
 import TaskAssignmentScreen from './TaskAssignmentScreen';
@@ -37,7 +37,7 @@ function MultiPillSelector({ options, selectedValues, onToggle }) {
               borderColor: isSelected ? '#0284c7' : '#e2e8f0',
             }}
           >
-            <Text style={{ fontSize: 12, fontWeight: '700', color: isSelected ? '#fff' : '#64748b' }}>
+            <Text style={{ fontSize: 12, fontWeight: '900', color: isSelected ? '#fff' : '#64748b' }}>
               {opt}
             </Text>
           </TouchableOpacity>
@@ -52,7 +52,7 @@ function SelectField({ label, required, value, onChange, options, optionKey = 'v
   if (Platform.OS === 'web') {
     return (
       <View style={{ marginBottom: 16 }}>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+        <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
           {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
         </Text>
         <View style={{
@@ -75,7 +75,7 @@ function SelectField({ label, required, value, onChange, options, optionKey = 'v
   }
   return (
     <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+      <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
         {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
       </Text>
       <View style={{
@@ -99,7 +99,7 @@ function SelectField({ label, required, value, onChange, options, optionKey = 'v
 function Field({ label, required, value, onChangeText, placeholder, keyboardType, multiline }) {
   return (
     <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+      <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
         {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
       </Text>
       <TextInput
@@ -126,7 +126,7 @@ function DateField({ label, required, value, onChange }) {
   if (Platform.OS === 'web') {
     return (
       <View style={{ marginBottom: 16 }}>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+        <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
           {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
         </Text>
         <View style={{
@@ -148,7 +148,7 @@ function DateField({ label, required, value, onChange }) {
   const DateTimePicker = require('@react-native-community/datetimepicker').default;
   return (
     <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+      <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
         {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
       </Text>
       <TouchableOpacity
@@ -176,7 +176,7 @@ function DateField({ label, required, value, onChange }) {
   );
 }
 
-export default function ProjectScreen({ navigation }) {
+export default function ProjectScreen() {
   const [role, setRole] = useState('Field Executive');
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
@@ -296,6 +296,16 @@ export default function ProjectScreen({ navigation }) {
   return (
     <AppLayout currentScreen="Project" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
+        <View style={{ marginBottom: 16, marginHorizontal: 2, flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+          <TouchableOpacity onPress={() => router.push(['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) ? '/AdminDashboard' : '/Dashboard')} style={{ marginTop: 6 }}>
+            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+          </TouchableOpacity>
+
+          <View>
+            <Text style={{ fontSize: 26, fontWeight: '900', color: '#0f172a' }}>Project Management</Text>
+            <Text style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>Manage leads, projects, tasks, and follow-ups</Text>
+          </View>
+        </View>
         <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: 16, marginHorizontal: 2 }}>
           {[
             { id: 'leads', label: 'Leads', icon: 'funnel' },
@@ -343,7 +353,7 @@ export default function ProjectScreen({ navigation }) {
         </View>
 
         {activeTab === 'leads' && <LeadScreen 
-          navigation={navigation} 
+           
           isComponent={true} 
           onOnboardProject={(lead) => {
             setPrefilledLead(lead);
@@ -356,13 +366,13 @@ export default function ProjectScreen({ navigation }) {
         />}
         {activeTab === 'tasks' && (
           ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) 
-            ? <TaskAssignmentScreen navigation={navigation} isComponent={true} />
-            : <TaskScreen navigation={navigation} isComponent={true} />
+            ? <TaskAssignmentScreen  isComponent={true} />
+            : <TaskScreen  isComponent={true} />
         )}
         {activeTab === 'followups' && (
           ['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role)
-            ? <AdminFollowupManagementScreen navigation={navigation} isComponent={true} />
-            : <FollowupScreen navigation={navigation} isComponent={true} />
+            ? <AdminFollowupManagementScreen  isComponent={true} />
+            : <FollowupScreen  isComponent={true} />
         )}
         
 
@@ -376,7 +386,7 @@ export default function ProjectScreen({ navigation }) {
               style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6 }}
             >
               <Ionicons name="add" size={16} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>New Project</Text>
+              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 12 }}>New Project</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -384,7 +394,7 @@ export default function ProjectScreen({ navigation }) {
         {showForm ? (
           <ScrollView contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
             <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: '#0f172a', marginBottom: 16 }}>Add New Project</Text>
+              <Text style={{ fontSize: 18, fontWeight: '900', color: '#0f172a', marginBottom: 16 }}>Add New Project</Text>
               
               <Field label="Project Name" required value={name} onChangeText={setName} placeholder="E.g. Website Redesign" />
               <Field label="Project Code / ID (Optional)" value={projectCode} onChangeText={setProjectCode} placeholder="E.g. PRJ-2024-001" />
@@ -397,7 +407,7 @@ export default function ProjectScreen({ navigation }) {
               
               <SelectField label="Category" value={category} onChange={setCategory} options={CATEGORY_OPTIONS} />
               
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Services Required</Text>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Services Required</Text>
               <MultiPillSelector options={SERVICE_OPTIONS} selectedValues={services} onToggle={(val) => {
                 setServices(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
               }} />
@@ -415,13 +425,13 @@ export default function ProjectScreen({ navigation }) {
                 disabled={submitting}
                 style={{ backgroundColor: submitting ? '#93c5fd' : '#0284c7', borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 12 }}
               >
-                {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>Create Project</Text>}
+                {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14 }}>Create Project</Text>}
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => { setShowForm(false); resetForm(); }}
                 style={{ borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 8, borderWidth: 1.5, borderColor: '#e2e8f0' }}
               >
-                <Text style={{ fontWeight: '700', fontSize: 14, color: '#64748b' }}>Cancel</Text>
+                <Text style={{ fontWeight: '900', fontSize: 14, color: '#64748b' }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -430,7 +440,7 @@ export default function ProjectScreen({ navigation }) {
         ) : projects.length === 0 ? (
            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
              <Ionicons name="laptop-outline" size={48} color="#94a3b8" />
-             <Text style={{ fontSize: 16, fontWeight: '700', color: '#475569' }}>No projects created yet.</Text>
+             <Text style={{ fontSize: 16, fontWeight: '900', color: '#475569' }}>No projects created yet.</Text>
            </View>
         ) : (
           <ScrollView contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
@@ -439,10 +449,10 @@ export default function ProjectScreen({ navigation }) {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 18, fontWeight: '900', color: '#0f172a', marginBottom: 4 }}>{proj.name}</Text>
-                    {proj.projectCode ? <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '700', marginBottom: 4 }}>{proj.projectCode}</Text> : null}
+                    {proj.projectCode ? <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '900', marginBottom: 4 }}>{proj.projectCode}</Text> : null}
                   </View>
                   <View style={{ backgroundColor: proj.priority === 'Urgent' ? '#fee2e2' : proj.priority === 'High' ? '#ffedd5' : '#eff6ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '800', color: proj.priority === 'Urgent' ? '#ef4444' : proj.priority === 'High' ? '#f97316' : '#0ea5e9' }}>{proj.priority}</Text>
+                    <Text style={{ fontSize: 10, fontWeight: '900', color: proj.priority === 'Urgent' ? '#ef4444' : proj.priority === 'High' ? '#f97316' : '#0ea5e9' }}>{proj.priority}</Text>
                   </View>
                 </View>
                 
@@ -452,7 +462,7 @@ export default function ProjectScreen({ navigation }) {
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
                     {proj.services.map(s => (
                       <View key={s} style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
-                        <Text style={{ fontSize: 11, color: '#475569', fontWeight: '700' }}>{s}</Text>
+                        <Text style={{ fontSize: 11, color: '#475569', fontWeight: '900' }}>{s}</Text>
                       </View>
                     ))}
                   </View>
@@ -463,7 +473,7 @@ export default function ProjectScreen({ navigation }) {
                 </View>
                 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '700' }}>{proj.progress}% Complete</Text>
+                   <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '900' }}>{proj.progress}% Complete</Text>
                    <Text style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>{new Date(proj.createdAt).toLocaleDateString()}</Text>
                 </View>
 
@@ -472,26 +482,26 @@ export default function ProjectScreen({ navigation }) {
                   <View style={{ flexDirection: 'row', gap: 8, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
                     <TouchableOpacity 
                       style={{ flex: 1, backgroundColor: '#f8fafc', paddingVertical: 8, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' }}
-                      onPress={() => navigation.navigate('Quotation')}
+                      onPress={() => router.push('/Quotation')}
                     >
                       <Ionicons name="document-text-outline" size={16} color="#0f172a" style={{ marginBottom: 4 }} />
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#0f172a' }}>Quotation</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#0f172a' }}>Quotation</Text>
                     </TouchableOpacity>
                     
                     <TouchableOpacity 
                       style={{ flex: 1, backgroundColor: '#f8fafc', paddingVertical: 8, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' }}
-                      onPress={() => navigation.navigate('Proposal')}
+                      onPress={() => router.push('/Proposal')}
                     >
                       <Ionicons name="briefcase-outline" size={16} color="#0f172a" style={{ marginBottom: 4 }} />
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#0f172a' }}>Proposal</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#0f172a' }}>Proposal</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
                       style={{ flex: 1, backgroundColor: '#f8fafc', paddingVertical: 8, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' }}
-                      onPress={() => navigation.navigate('Invoice')}
+                      onPress={() => router.push('/Invoice')}
                     >
                       <Ionicons name="receipt-outline" size={16} color="#0f172a" style={{ marginBottom: 4 }} />
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#0f172a' }}>Invoice</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#0f172a' }}>Invoice</Text>
                     </TouchableOpacity>
                   </View>
                 )}

@@ -4,14 +4,14 @@ import {
   StyleSheet, Alert, Platform, RefreshControl
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import * as Location from 'expo-location';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
 
 
 
-const LocationCard = ({ item, openInMap, router }) => {
+const LocationCard = ({ item, openInMap }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -28,16 +28,16 @@ const LocationCard = ({ item, openInMap, router }) => {
             {item.employeeId ? `#${item.employeeId}  ·  ` : ''}{item.designation || 'Field Executive'}
           </Text>
           {(item.overdueTasks > 0 || item.overdueFollowUps > 0) && (
-            <Text style={{ fontSize: 11, color: '#dc2626', fontWeight: '700', marginTop: 3 }}>
+            <Text style={{ fontSize: 11, color: '#dc2626', fontWeight: '900', marginTop: 3 }}>
               ⚠️ {(item.overdueTasks || 0) + (item.overdueFollowUps || 0)} Overdue Item{((item.overdueTasks || 0) + (item.overdueFollowUps || 0)) > 1 ? 's' : ''}
             </Text>
           )}
         </View>
-        <TouchableOpacity
-          style={styles.chatBtn}
-          onPress={() => router.push(`/ChatScreen?partnerId=${item.executive}&partnerName=${item.executiveName}`)}
-        >
-          <Ionicons name="chatbubble-ellipses-outline" size={16} color="#0284c7" />
+        <TouchableOpacity style={styles.chatBtn} onPress={() => router.push({
+          pathname: '/Chat',
+          params: { partnerId: item.executive || item._id, partnerName: item.executiveName }
+        })}>
+          <Ionicons name="chatbubble-outline" size={16} color="#0284c7" />
           <Text style={styles.chatBtnText}>Chat</Text>
         </TouchableOpacity>
         <View style={[styles.badge, { backgroundColor: item.latitude ? '#e0f2fe' : '#f1f5f9', borderColor: item.latitude ? '#bae6fd' : '#e2e8f0' }]}>
@@ -108,8 +108,7 @@ const LocationCard = ({ item, openInMap, router }) => {
   );
 };
 
-export default function EmployeeMonitoringScreen() {
-  const router = useRouter();
+export default function EmployeeMonitoringScreen({ isTab = false, userRole = 'Admin' }) {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -200,18 +199,19 @@ export default function EmployeeMonitoringScreen() {
   const totalCheckedIn = locations.filter(l => l.timeline && l.timeline.some(t => t.type === 'Check-in')).length;
   const totalOverdue = locations.reduce((sum, l) => sum + (l.overdueTasks || 0) + (l.overdueFollowUps || 0), 0);
 
-  return (
-    <AppLayout currentScreen="EmployeeMonitoring" role="Admin" scrollable={false}>
+  const content = (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Track Field Staff</Text>
-            <Text style={styles.subtitle}>Live GPS Monitoring & Timeline</Text>
+        {!isTab && (
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>Track Field Staff</Text>
+              <Text style={styles.subtitle}>Live GPS Monitoring & Timeline</Text>
+            </View>
+            <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchLiveLocations(true)}>
+              <Ionicons name="refresh" size={18} color="#0284c7" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchLiveLocations(true)}>
-            <Ionicons name="refresh" size={18} color="#0284c7" />
-          </TouchableOpacity>
-        </View>
+        )}
 
         {!loading && locations.length > 0 && (
           <View style={styles.analyticsRow}>
@@ -236,7 +236,7 @@ export default function EmployeeMonitoringScreen() {
           <FlatList
             data={locations}
             keyExtractor={(i, idx) => i.executive?.toString() || idx.toString()}
-            renderItem={({ item }) => <LocationCard item={item} openInMap={openInMap} router={router} />}
+            renderItem={({ item }) => <LocationCard item={item} openInMap={openInMap} />}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchLiveLocations(true)} tintColor="#0284c7" />}
@@ -250,6 +250,13 @@ export default function EmployeeMonitoringScreen() {
           />
         )}
       </View>
+  );
+
+  if (isTab) return content;
+
+  return (
+    <AppLayout currentScreen="EmployeeMonitoring" role={userRole} scrollable={false}>
+      {content}
     </AppLayout>
   );
 }

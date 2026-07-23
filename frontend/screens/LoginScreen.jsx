@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   webLeftBrand: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#F5A623',
     letterSpacing: 1.5,
     marginBottom: 28,
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   brandName: {
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#0f172a',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#0f172a',
     marginBottom: 6,
   },
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#64748b',
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   forgotText: {
     color: '#F5A623',
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   signInBtn: {
     backgroundColor: '#1B2B4B',
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   signInText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '900',
     letterSpacing: 0.5,
   },
   divider: {
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   roleOptionText: {
     color: '#64748b',
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '900',
   },
   roleOptionTextActive: {
     color: '#ffffff',

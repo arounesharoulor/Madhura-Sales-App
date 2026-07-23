@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { disconnectSocket } from './socket';
 import api from '../api/api';
@@ -15,5 +16,5 @@ export const performLogout = async (navigation) => {
   }
   disconnectSocket();
   await AsyncStorage.clear();
-  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  router.replace('/Login');
 };

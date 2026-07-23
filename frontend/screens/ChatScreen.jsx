@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import api from '../api/api';
 import { connectSocket, getSocket } from '../utils/socket';
+import AppLayout from '../components/AppLayout';
 
 const NAVY = '#1B2B4B';
 const GOLD = '#F5A623';
@@ -172,19 +173,11 @@ export default function ChatScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <AppLayout currentScreen="Chat" scrollable={false}>
       <StatusBar barStyle="light-content" backgroundColor={NAVY} />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={20} color="#fff" />
-        </TouchableOpacity>
-
         <View style={styles.headerAvatar}>
           <Text style={styles.headerAvatarText}>
             {partnerName ? getInitials(partnerName) : '👥'}
@@ -258,7 +251,7 @@ export default function ChatScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AppLayout>
   );
 }
 
@@ -279,7 +272,7 @@ const styles = StyleSheet.create({
     backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center',
   },
   headerAvatarText: { color: NAVY, fontWeight: '900', fontSize: 14 },
-  headerTitle: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  headerTitle: { color: '#fff', fontWeight: '900', fontSize: 16 },
   onlineRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
   onlineDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#22c55e' },
   onlineText: { color: '#9EB4D0', fontSize: 11, fontWeight: '500' },
@@ -299,14 +292,14 @@ const styles = StyleSheet.create({
     backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
     marginRight: 8, flexShrink: 0,
   },
-  avatarText: { color: GOLD, fontWeight: '800', fontSize: 10 },
+  avatarText: { color: GOLD, fontWeight: '900', fontSize: 10 },
 
   bubbleWrap: { maxWidth: '75%' },
   bubbleWrapMe: { alignItems: 'flex-end' },
   bubbleWrapOther: { alignItems: 'flex-start' },
 
   senderName: {
-    fontSize: 11, fontWeight: '700', color: '#475569',
+    fontSize: 11, fontWeight: '900', color: '#475569',
     marginBottom: 3, marginLeft: 2,
   },
 
@@ -332,7 +325,7 @@ const styles = StyleSheet.create({
 
   // ── Empty State ──
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#334155', marginTop: 16 },
+  emptyTitle: { fontSize: 18, fontWeight: '900', color: '#334155', marginTop: 16 },
   emptyText: { fontSize: 13, color: '#94a3b8', marginTop: 6, textAlign: 'center', lineHeight: 20 },
 
   // ── Input Bar ──

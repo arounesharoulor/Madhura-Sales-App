@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
@@ -173,7 +174,7 @@ function AssignModal({ visible, followUp, employees, onClose, onSaved }) {
                       <Text style={[styles.empName, isSelected && { color: '#0284c7' }]}>{emp.name}</Text>
                       <Text style={styles.empSub}>{emp.designation || emp.email}</Text>
                       {emp.isCheckedIn ? (
-                        <Text style={{ fontSize: 9, color: '#059669', fontWeight: '700', marginTop: 2 }}>✓ Checked In</Text>
+                        <Text style={{ fontSize: 9, color: '#059669', fontWeight: '900', marginTop: 2 }}>✓ Checked In</Text>
                       ) : (
                         <Text style={{ fontSize: 9, color: '#94a3b8', fontWeight: '600', marginTop: 2 }}>Not Checked In</Text>
                       )}
@@ -199,7 +200,8 @@ function AssignModal({ visible, followUp, employees, onClose, onSaved }) {
   );
 }
 
-export default function AdminFollowupManagementScreen({ navigation, isComponent = false }) {
+export default function AdminFollowupManagementScreen({ isComponent = false }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('assign'); // 'assign' | 'history'
   
   const [followUps, setFollowUps] = useState([]);
@@ -374,7 +376,17 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
               <Ionicons name="alarm" size={24} color="#f97316" />
             </View>
             <View>
-              <Text style={styles.title}>Follow-up Tasks</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+
+                <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')}>
+
+                  <Ionicons name="arrow-back" size={24} color="#0f172a" />
+
+                </TouchableOpacity>
+
+                <Text style={styles.title}>Follow-up Tasks</Text>
+
+              </View>
               <Text style={styles.subtitle}>Assign follow-ups and monitor status</Text>
             </View>
           </View>
@@ -439,7 +451,7 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                             }}
                           >
                             <View>
-                              <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
+                              <Text style={{ fontSize: 14, fontWeight: '900', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
                             </View>
                             {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                           </TouchableOpacity>
@@ -473,7 +485,7 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                             }}
                           >
                             <View>
-                              <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{proj.name} {proj.client?.businessName ? `(${proj.client.businessName})` : ''}</Text>
+                              <Text style={{ fontSize: 14, fontWeight: '900', color: isSelected ? '#0284c7' : '#0f172a' }}>{proj.name} {proj.client?.businessName ? `(${proj.client.businessName})` : ''}</Text>
                             </View>
                             {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                           </TouchableOpacity>
@@ -516,7 +528,7 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                         }}
                       >
                         <Ionicons name={pc.icon} size={14} color={priority === p ? pc.text : '#94a3b8'} />
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: priority === p ? pc.text : '#64748b' }}>{p}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '900', color: priority === p ? pc.text : '#64748b' }}>{p}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -630,7 +642,7 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                         }}>
                           <Text style={{ 
                             fontSize: 10, 
-                            fontWeight: '800', 
+                            fontWeight: '900', 
                             color: isActive ? '#0f172a' : '#94a3b8' 
                           }}>{statusCounts[tab]}</Text>
                         </View>
@@ -699,7 +711,7 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                         <View style={styles.metaItem}>
                           <Ionicons name="person-outline" size={13} color="#64748b" />
                           <Text style={styles.metaText}>
-                            Employee: <Text style={{ fontWeight: '800', color: '#334155' }}>
+                            Employee: <Text style={{ fontWeight: '900', color: '#334155' }}>
                               {item.assignedTo?.name || item.executive?.name || 'Unassigned'}
                             </Text>
                           </Text>
@@ -714,7 +726,7 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                           {item.followUpDate && (
                             <View style={styles.metaItem}>
                               <Ionicons name="calendar-outline" size={13} color="#94a3b8" />
-                              <Text style={[styles.metaText, overdue && { color: '#e11d48', fontWeight: '700' }]}>
+                              <Text style={[styles.metaText, overdue && { color: '#e11d48', fontWeight: '900' }]}>
                                 {new Date(item.followUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                               </Text>
                             </View>
@@ -723,7 +735,7 @@ export default function AdminFollowupManagementScreen({ navigation, isComponent 
                         
                         {item.remarks ? (
                           <View style={{ marginTop: 8, backgroundColor: '#f8fafc', padding: 8, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0' }}>
-                            <Text style={{ fontSize: 10, fontWeight: '800', color: '#94a3b8', marginBottom: 2 }}>EMPLOYEE REMARKS</Text>
+                            <Text style={{ fontSize: 10, fontWeight: '900', color: '#94a3b8', marginBottom: 2 }}>EMPLOYEE REMARKS</Text>
                             <Text style={{ fontSize: 12, color: '#334155' }}>"{item.remarks}"</Text>
                           </View>
                         ) : null}
@@ -770,14 +782,14 @@ const styles = StyleSheet.create({
   tabBar: { flexDirection: 'row', gap: 10, marginBottom: 20, backgroundColor: '#f1f5f9', borderRadius: 20, padding: 4 },
   tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 16 },
   tabBtnActive: { backgroundColor: '#0f172a' },
-  tabBtnText: { fontSize: 13, fontWeight: '700', color: '#64748b' },
+  tabBtnText: { fontSize: 13, fontWeight: '900', color: '#64748b' },
   tabBtnTextActive: { color: '#fff' },
 
   cardBox: { backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: '#e2e8f0', padding: 20, marginBottom: 16 },
-  cardLabel: { fontSize: 10, fontWeight: '800', color: '#94a3b8', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 },
+  cardLabel: { fontSize: 10, fontWeight: '900', color: '#94a3b8', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 },
   
   fieldGroup: { marginBottom: 16 },
-  label: { fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 8 },
+  label: { fontSize: 12, fontWeight: '900', color: '#475569', marginBottom: 8 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 14, minHeight: 50 },
   textAreaWrap: { alignItems: 'flex-start', paddingVertical: 12 },
   inputIcon: { marginRight: 10 },
@@ -792,67 +804,67 @@ const styles = StyleSheet.create({
   empCardSelected: { backgroundColor: '#eff6ff', borderColor: '#0284c7' },
   empAvatar: { width: 46, height: 46, borderRadius: 14, backgroundColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center' },
   empAvatarSelected: { backgroundColor: '#0284c7' },
-  empAvatarText: { fontSize: 18, fontWeight: '800', color: '#475569' },
+  empAvatarText: { fontSize: 18, fontWeight: '900', color: '#475569' },
   empInfo: { flex: 1 },
-  empName: { fontSize: 15, fontWeight: '700', color: '#0f172a' },
+  empName: { fontSize: 15, fontWeight: '900', color: '#0f172a' },
   empNameSelected: { color: '#0284c7' },
   empSub2: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
   statusBadgeActive: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#a7f3d0', marginTop: 6 },
-  statusTextActive: { fontSize: 9, fontWeight: '700', color: '#059669' },
+  statusTextActive: { fontSize: 9, fontWeight: '900', color: '#059669' },
   empRight: { alignItems: 'flex-end', gap: 6 },
   empCheck: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#0284c7', alignItems: 'center', justifyContent: 'center' },
   emptyEmp: { alignItems: 'center', paddingVertical: 32 },
   emptyEmpText: { fontSize: 13, fontWeight: '600', color: '#94a3b8', marginTop: 12 },
 
   submitBtn: { backgroundColor: '#f97316', borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, height: 56, marginBottom: 32 },
-  submitBtnText: { color: '#fff', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  submitBtnText: { color: '#fff', fontSize: 15, fontWeight: '900', letterSpacing: 0.5 },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { paddingBottom: 40 },
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { backgroundColor: '#f1f5f9', borderRadius: 20, padding: 20 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#334155' },
+  emptyTitle: { fontSize: 16, fontWeight: '900', color: '#334155' },
   emptyText: { fontSize: 13, color: '#94a3b8' },
 
   card: { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0', borderLeftWidth: 4, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
   cardOverdue: { borderColor: '#fecdd3', backgroundColor: '#fff9f9' },
   urgencyBanner: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, alignSelf: 'flex-start', marginBottom: 10 },
-  urgencyText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  urgencyText: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  clientName: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
+  clientName: { fontSize: 15, fontWeight: '900', color: '#0f172a' },
   companyName: { fontSize: 12, color: '#64748b', marginTop: 2 },
   priorityTag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
-  priorityTagText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  priorityTagText: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 },
   notes: { fontSize: 12, color: '#475569', lineHeight: 18, marginBottom: 10, fontStyle: 'italic' },
   
   monitoringBlock: { backgroundColor: '#f8fafc', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#f1f5f9', marginBottom: 12 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaText: { fontSize: 12, color: '#64748b' },
   statusTag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
-  statusTagText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+  statusTagText: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
 
   reassignBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, backgroundColor: '#eff6ff', borderRadius: 12, borderWidth: 1, borderColor: '#bfdbfe' },
-  reassignBtnText: { color: '#0284c7', fontWeight: '700', fontSize: 12 },
+  reassignBtnText: { color: '#0284c7', fontWeight: '900', fontSize: 12 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalBox: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  modalTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a' },
+  modalTitle: { fontSize: 18, fontWeight: '900', color: '#0f172a' },
   modalSub: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  modalLabel: { fontSize: 10, fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  modalLabel: { fontSize: 10, fontWeight: '900', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
   priorityRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   priorityBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 10, borderRadius: 12, borderWidth: 1.5 },
-  priorityBtnText: { fontSize: 12, fontWeight: '700' },
+  priorityBtnText: { fontSize: 12, fontWeight: '900' },
   noEmpWrap: { alignItems: 'center', paddingVertical: 24, gap: 8, marginBottom: 16 },
   noEmpText: { fontSize: 13, color: '#94a3b8', fontWeight: '600' },
   empRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#f8fafc', borderRadius: 14, borderWidth: 1, borderColor: '#e2e8f0', padding: 12, marginBottom: 8 },
   empRowSelected: { backgroundColor: '#eff6ff', borderColor: '#0284c7' },
   empAvatar: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center' },
   empAvatarSelected: { backgroundColor: '#0284c7' },
-  empAvatarText: { fontSize: 17, fontWeight: '800', color: '#475569' },
+  empAvatarText: { fontSize: 17, fontWeight: '900', color: '#475569' },
   empInfo: { flex: 1 },
-  empName: { fontSize: 14, fontWeight: '700', color: '#0f172a' },
+  empName: { fontSize: 14, fontWeight: '900', color: '#0f172a' },
   empSub: { fontSize: 11, color: '#64748b', marginTop: 2 },
   saveBtn: { backgroundColor: '#0f172a', borderRadius: 16, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16 },
-  saveBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
+  saveBtnText: { color: '#fff', fontWeight: '900', fontSize: 15 },
 });

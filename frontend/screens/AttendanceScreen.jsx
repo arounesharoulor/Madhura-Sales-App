@@ -22,6 +22,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/api';
 import { useSocketRefresh } from '../hooks/useSocketRefresh';
+import AppLayout from '../components/AppLayout';
 
 const LEAVE_TYPES = ['Medical Leave', 'Casual Leave', 'Personal Leave', 'Emergency Leave'];
 
@@ -131,7 +132,6 @@ export default function AttendanceScreen() {
       const user = JSON.parse(s);
       if (user.role === 'Admin' || user.role === 'Manager') {
         setIsAdmin(true);
-        router.replace('/AdminAttendance');
       }
     });
     
@@ -452,7 +452,7 @@ export default function AttendanceScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <AppLayout currentScreen="Attendance" role="Employee" scrollable={false}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
 
       {/* ── Early Checkout Reason Modal ── */}
@@ -464,14 +464,14 @@ export default function AttendanceScreen() {
                 <Ionicons name="warning" size={24} color="#f59e0b" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a' }}>Early Check-Out</Text>
+                <Text style={{ fontSize: 16, fontWeight: '900', color: '#0f172a' }}>Early Check-Out</Text>
                 <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Office hours: 9:30 AM – 6:00 PM</Text>
               </View>
             </View>
             <Text style={{ fontSize: 13, color: '#64748b', marginBottom: 16, lineHeight: 20 }}>
               You are checking out before 6:00 PM. Please provide a valid reason for your early departure. This will be flagged and reviewed by the Admin.
             </Text>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Reason *</Text>
+            <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Reason *</Text>
             <TextInput
               value={earlyCheckoutReason}
               onChangeText={setEarlyCheckoutReason}
@@ -485,7 +485,7 @@ export default function AttendanceScreen() {
                 onPress={() => { setShowEarlyModal(false); setEarlyCheckoutReason(''); }}
                 style={{ flex: 1, backgroundColor: '#f1f5f9', borderRadius: 14, paddingVertical: 14, alignItems: 'center' }}
               >
-                <Text style={{ color: '#64748b', fontWeight: '700' }}>Cancel</Text>
+                <Text style={{ color: '#64748b', fontWeight: '900' }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -502,7 +502,7 @@ export default function AttendanceScreen() {
                 {submitting ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={{ color: '#fff', fontWeight: '800' }}>Submit & Check Out</Text>
+                  <Text style={{ color: '#fff', fontWeight: '900' }}>Submit & Check Out</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -512,13 +512,7 @@ export default function AttendanceScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router?.canGoBack?.() && router.back()}
-          style={styles.backBtn}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={22} color="#0f172a" />
-        </TouchableOpacity>
+
         <View>
           <Text style={styles.headerTitle}>Attendance & Leave</Text>
           <Text style={styles.headerSub}>
@@ -561,7 +555,7 @@ export default function AttendanceScreen() {
         {/* Live Location Toggle */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4, elevation: 1 }}>
           <View>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#0f172a' }}>Live Location Sharing</Text>
+            <Text style={{ fontSize: 16, fontWeight: '900', color: '#0f172a' }}>Live Location Sharing</Text>
             <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{isLiveLocationShared ? 'Your location is visible to Admin' : 'Location tracking is disabled'}</Text>
           </View>
           <Switch 
@@ -613,7 +607,7 @@ export default function AttendanceScreen() {
                 onPress={() => setShowTimeline(!showTimeline)}
                 style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', padding: 12, borderRadius: 8 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>🕒 Daily Timeline ({todayRecord.timeline.length})</Text>
+                <Text style={{ fontSize: 13, fontWeight: '900', color: '#475569' }}>🕒 Daily Timeline ({todayRecord.timeline.length})</Text>
                 <Ionicons name={showTimeline ? 'chevron-up' : 'chevron-down'} size={18} color="#64748b" />
               </TouchableOpacity>
 
@@ -621,11 +615,11 @@ export default function AttendanceScreen() {
                 <View style={{ padding: 12 }}>
                   {todayRecord.timeline.map((event, idx) => (
                     <View key={idx} style={{ flexDirection: 'row', marginBottom: 10 }}>
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', width: 60, marginTop: 1 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', width: 60, marginTop: 1 }}>
                         {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                       </Text>
                       <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
-                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155' }}>{event.type}</Text>
+                        <Text style={{ fontSize: 13, fontWeight: '900', color: '#334155' }}>{event.type}</Text>
                         <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
                       </View>
                     </View>
@@ -869,7 +863,7 @@ export default function AttendanceScreen() {
                 onPress={() => setLeaveType(lt)}
                 activeOpacity={0.8}
               >
-                <Text style={[{ fontSize: 13, color: '#475569', fontWeight: '600' }, leaveType === lt && { color: '#0284c7', fontWeight: '700' }]}>
+                <Text style={[{ fontSize: 13, color: '#475569', fontWeight: '600' }, leaveType === lt && { color: '#0284c7', fontWeight: '900' }]}>
                   {lt}
                 </Text>
               </TouchableOpacity>
@@ -887,7 +881,7 @@ export default function AttendanceScreen() {
                     onPress={() => setLeaveCriteria(crit)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[{ fontSize: 13, color: '#475569', fontWeight: '600' }, leaveCriteria === crit && { color: '#0284c7', fontWeight: '700' }]}>
+                    <Text style={[{ fontSize: 13, color: '#475569', fontWeight: '600' }, leaveCriteria === crit && { color: '#0284c7', fontWeight: '900' }]}>
                       {crit}
                     </Text>
                   </TouchableOpacity>
@@ -934,7 +928,7 @@ export default function AttendanceScreen() {
         ) : history.length === 0 ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 }}>
             <Ionicons name="time-outline" size={56} color="#cbd5e1" />
-            <Text style={{ fontSize: 18, fontWeight: '700', color: '#334155', marginTop: 14 }}>No Records Yet</Text>
+            <Text style={{ fontSize: 18, fontWeight: '900', color: '#334155', marginTop: 14 }}>No Records Yet</Text>
             <Text style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>Your attendance history will appear here.</Text>
           </View>
         ) : (
@@ -945,11 +939,11 @@ export default function AttendanceScreen() {
                 <View key={item._id} style={[{ backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 12, borderLeftWidth: 4, borderWidth: 1, borderColor: '#f1f5f9', elevation: 1 }, { borderLeftColor: cfg.color }]}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                     <View>
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: '#0f172a' }}>{item.date}</Text>
+                      <Text style={{ fontSize: 15, fontWeight: '900', color: '#0f172a' }}>{item.date}</Text>
                       {item.leaveType ? <Text style={{ fontSize: 11, color: '#7c3aed', marginTop: 2, fontWeight: '600' }}>{item.leaveType}</Text> : null}
                     </View>
                     <View style={[{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, borderWidth: 1 }, { backgroundColor: cfg.color + '20', borderColor: cfg.color + '50' }]}>
-                      <Text style={[{ fontSize: 10, fontWeight: '700' }, { color: cfg.color }]}>{cfg.label}</Text>
+                      <Text style={[{ fontSize: 10, fontWeight: '900' }, { color: cfg.color }]}>{cfg.label}</Text>
                     </View>
                   </View>
                   {item.workPlan ? (
@@ -975,8 +969,7 @@ export default function AttendanceScreen() {
           </ScrollView>
         )
       )}
-
-    </SafeAreaView>
+    </AppLayout>
   );
 }
 
@@ -1030,7 +1023,7 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: '#0284c7',
-    fontWeight: '700',
+    fontWeight: '900',
   },
   backBtn: {
     width: 42,
@@ -1044,7 +1037,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#0f172a',
     letterSpacing: -0.3,
   },
@@ -1082,14 +1075,14 @@ const styles = StyleSheet.create({
   statusLabel: {
     fontSize: 11,
     color: '#94a3b8',
-    fontWeight: '700',
+    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
   statusValue: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '900',
   },
   timeGrid: {
     flexDirection: 'row',
@@ -1117,7 +1110,7 @@ const styles = StyleSheet.create({
   },
   timeCellValue: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#0f172a',
   },
   section: {
@@ -1125,7 +1118,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '900',
     color: '#475569',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -1182,7 +1175,7 @@ const styles = StyleSheet.create({
   },
   actionBtnText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '900',
     fontSize: 16,
   },
   doneCard: {
@@ -1196,7 +1189,7 @@ const styles = StyleSheet.create({
   },
   doneTitle: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#15803d',
     marginBottom: 6,
   },

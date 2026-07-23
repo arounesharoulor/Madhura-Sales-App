@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import {
   View,
   Text,
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 30,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#0f172a',
     letterSpacing: 0.5,
     marginBottom: 8,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Platform, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { router } from 'expo-router';
 import api from '../api/api';
 import Toast from 'react-native-toast-message';
 
@@ -10,7 +11,7 @@ function SelectField({ label, required, value, onChange, options, optionKey = 'v
   if (Platform.OS === 'web') {
     return (
       <View style={{ marginBottom: 16 }}>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+        <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
           {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
         </Text>
         <View style={{
@@ -35,7 +36,7 @@ function SelectField({ label, required, value, onChange, options, optionKey = 'v
   }
   return (
     <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+      <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
         {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
       </Text>
       <View style={{
@@ -60,10 +61,10 @@ function SelectField({ label, required, value, onChange, options, optionKey = 'v
 }
 
 // Field input
-function Field({ label, required, value, onChangeText, placeholder, keyboardType, multiline }) {
+function Field({ label, required, value, onChangeText, placeholder, keyboardType, multiline, maxLength }) {
   return (
     <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+      <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
         {label}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
       </Text>
       <TextInput
@@ -73,6 +74,7 @@ function Field({ label, required, value, onChangeText, placeholder, keyboardType
         placeholderTextColor="#94a3b8"
         keyboardType={keyboardType || 'default'}
         multiline={multiline}
+        maxLength={maxLength}
         style={{
           backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
           borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
@@ -84,7 +86,7 @@ function Field({ label, required, value, onChangeText, placeholder, keyboardType
   );
 }
 
-export default function LeadScreen({ navigation, isComponent, onOnboardProject }) {
+export default function LeadScreen({ isComponent, onOnboardProject }) {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -130,6 +132,10 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
       Alert.alert('Missing Fields', 'Client Name, Company Name, and Phone are required.');
       return;
     }
+    if (!/^\d{10}$/.test(phone.trim())) {
+      Alert.alert('Invalid Phone', 'Phone number must be exactly 10 digits.');
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post('/leads', {
@@ -169,9 +175,16 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <View>
-          <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a' }}>Client Leads</Text>
-          <Text style={{ fontSize: 12, color: '#64748b' }}>Manage presales and meetings</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+          {!isComponent && (
+            <TouchableOpacity onPress={() => router.push('/Dashboard')} style={{ marginTop: 4 }}>
+              <Ionicons name="arrow-back" size={24} color="#0f172a" />
+            </TouchableOpacity>
+          )}
+          <View>
+            <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a' }}>Client Leads</Text>
+            <Text style={{ fontSize: 12, color: '#64748b' }}>Manage presales and meetings</Text>
+          </View>
         </View>
         {!showForm && (
           <TouchableOpacity 
@@ -179,7 +192,7 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
             style={{ backgroundColor: '#f97316', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 6 }}
           >
             <Ionicons name="add" size={16} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>New Lead</Text>
+            <Text style={{ color: '#fff', fontWeight: '900', fontSize: 12 }}>New Lead</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -187,11 +200,11 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
       {showForm ? (
         <ScrollView contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
           <View style={styles.card}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a', marginBottom: 16 }}>Add New Lead</Text>
+            <Text style={{ fontSize: 16, fontWeight: '900', color: '#0f172a', marginBottom: 16 }}>Add New Lead</Text>
             
             <Field label="Client Name" required value={clientName} onChangeText={setClientName} placeholder="E.g. John Doe" />
             <Field label="Company / Business Name" required value={companyName} onChangeText={setCompanyName} placeholder="E.g. Acme Corp" />
-            <Field label="Phone Number" required value={phone} onChangeText={setPhone} placeholder="10-digit number" keyboardType="phone-pad" />
+            <Field label="Phone Number" required value={phone} onChangeText={setPhone} placeholder="10-digit number" keyboardType="phone-pad" maxLength={10} />
             <Field label="Email Address" value={email} onChangeText={setEmail} placeholder="client@example.com" keyboardType="email-address" />
             <SelectField label="Service Interested In" value={serviceInterested} onChange={setServiceInterested} options={SERVICE_OPTIONS} />
             <Field label="Notes / Comments" value={notes} onChangeText={setNotes} placeholder="Context for the lead..." multiline />
@@ -201,20 +214,20 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
               disabled={submitting}
               style={{ backgroundColor: submitting ? '#fdba74' : '#f97316', borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 12 }}
             >
-              {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>Save Lead</Text>}
+              {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14 }}>Save Lead</Text>}
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => { setShowForm(false); resetForm(); }}
               style={{ borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 8, borderWidth: 1.5, borderColor: '#e2e8f0' }}
             >
-              <Text style={{ fontWeight: '700', fontSize: 14, color: '#64748b' }}>Cancel</Text>
+              <Text style={{ fontWeight: '900', fontSize: 14, color: '#64748b' }}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       ) : leads.length === 0 ? (
          <View style={{ flex: 1, alignItems: 'center', paddingTop: 60, gap: 12 }}>
            <Ionicons name="funnel-outline" size={48} color="#cbd5e1" />
-           <Text style={{ fontSize: 16, fontWeight: '700', color: '#475569' }}>No leads added yet.</Text>
+           <Text style={{ fontSize: 16, fontWeight: '900', color: '#475569' }}>No leads added yet.</Text>
          </View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
@@ -273,7 +286,7 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
                 )}
                 {lead.status === 'Meeting' && (
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
                       {lead.meetingDate 
                         ? `Scheduled on ${new Date(lead.meetingDate).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` 
                         : `Meeting Confirmed (${lead.meetingType}) - Next: Log Visit`}
@@ -292,7 +305,7 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
                 )}
                 {lead.status === 'Meeting Completed' && (
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
                       Meeting Completed - Next: Client Onboard
                     </Text>
                     <TouchableOpacity 
@@ -309,7 +322,7 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
                 )}
                 {lead.status === 'Client Onboarded' && (
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#16a34a', fontStyle: 'italic', flex: 1 }}>
                       Client Onboarded - Next: Create Project
                     </Text>
                     <TouchableOpacity 
@@ -324,7 +337,7 @@ export default function LeadScreen({ navigation, isComponent, onOnboardProject }
                   </View>
                 )}
                 {lead.status === 'Project Onboarded' && (
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#0f172a', fontStyle: 'italic' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '900', color: '#0f172a', fontStyle: 'italic' }}>
                     ✅ Successfully converted into a Project
                   </Text>
                 )}
@@ -341,11 +354,11 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 },
   leadCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 6, elevation: 1 },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
-  statusText: { fontSize: 10, fontWeight: '800' },
+  statusText: { fontSize: 10, fontWeight: '900' },
   iconRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   iconText: { fontSize: 12, color: '#475569', fontWeight: '600' },
   notes: { fontSize: 12, color: '#64748b', fontStyle: 'italic', marginBottom: 12, backgroundColor: '#f8fafc', padding: 8, borderRadius: 8 },
   actionRow: { marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
   actionBtn: { paddingVertical: 10, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
-  actionBtnText: { fontSize: 12, fontWeight: '800' }
+  actionBtnText: { fontSize: 12, fontWeight: '900' }
 });

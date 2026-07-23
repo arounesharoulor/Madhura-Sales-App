@@ -1,4 +1,7 @@
+import { router } from 'expo-router';
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { View, Text, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomInput from '../components/CustomInput';
@@ -6,7 +9,7 @@ import CustomButton from '../components/CustomButton';
 import Header from '../components/Header';
 import api from '../api/api';
 
-export default function ForgotPasswordScreen({ navigation }) {
+export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [step, setStep] = useState(1); // 1 = request token, 2 = reset password
   const [token, setToken] = useState('');
@@ -15,7 +18,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [error, setError] = useState('');
 
   const handleGoBack = () => {
-    if (navigation?.canGoBack?.()) navigation.goBack();
+    if (router.canGoBack()) router.back();
   };
 
   const handleRequestToken = async () => {
@@ -62,7 +65,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       Alert.alert(
         'Success',
         'Your password has been changed successfully. Please sign in with your new password.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        [{ text: 'OK', onPress: () => router.push('/Login') }]
       );
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to reset password');

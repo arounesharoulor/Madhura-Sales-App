@@ -1,4 +1,6 @@
+import { router } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,7 +9,8 @@ import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import api from '../api/api';
 
-export default function WorkUpdateScreen({ navigation }) {
+export default function WorkUpdateScreen() {
+  const router = useRouter();
   const [role, setRole] = useState('Employee');
   const [activeTab, setActiveTab] = useState('history'); // 'new' | 'history'
   
@@ -177,7 +180,17 @@ export default function WorkUpdateScreen({ navigation }) {
               <Ionicons name="document-text" size={24} color="#0ea5e9" />
             </View>
             <View>
-              <Text style={styles.title}>Work Updates</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+
+                <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')}>
+
+                  <Ionicons name="arrow-back" size={24} color="#0f172a" />
+
+                </TouchableOpacity>
+
+                <Text style={styles.title}>Work Updates</Text>
+
+              </View>
               <Text style={styles.subtitle}>Daily activity & client follow-ups</Text>
             </View>
           </View>
@@ -225,7 +238,7 @@ export default function WorkUpdateScreen({ navigation }) {
                       onPress={() => handleClientSelect(null)}
                       style={[styles.clientRow, !selectedClient && styles.clientRowSelected]}
                     >
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: !selectedClient ? '#0284c7' : '#0f172a' }}>General Update (No Client)</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '900', color: !selectedClient ? '#0284c7' : '#0f172a' }}>General Update (No Client)</Text>
                       {!selectedClient && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                     </TouchableOpacity>
                     {clients.map(client => {
@@ -237,7 +250,7 @@ export default function WorkUpdateScreen({ navigation }) {
                           style={[styles.clientRow, isSelected && styles.clientRowSelected]}
                         >
                           <View>
-                            <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
+                            <Text style={{ fontSize: 14, fontWeight: '900', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
                             <Text style={{ fontSize: 12, color: '#64748b' }}>{client.ownerName || client.clientName}</Text>
                           </View>
                           {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
@@ -388,14 +401,14 @@ const styles = StyleSheet.create({
   tabBar: { flexDirection: 'row', gap: 10, marginBottom: 20, backgroundColor: '#f1f5f9', borderRadius: 20, padding: 4 },
   tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 16 },
   tabBtnActive: { backgroundColor: '#0f172a' },
-  tabBtnText: { fontSize: 13, fontWeight: '700', color: '#64748b' },
+  tabBtnText: { fontSize: 13, fontWeight: '900', color: '#64748b' },
   tabBtnTextActive: { color: '#fff' },
 
   cardBox: { backgroundColor: '#fff', borderRadius: 24, borderWidth: 1, borderColor: '#e2e8f0', padding: 20, marginBottom: 16 },
-  cardLabel: { fontSize: 10, fontWeight: '800', color: '#94a3b8', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 },
+  cardLabel: { fontSize: 10, fontWeight: '900', color: '#94a3b8', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 },
   
   fieldGroup: { marginBottom: 16 },
-  label: { fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 8 },
+  label: { fontSize: 12, fontWeight: '900', color: '#475569', marginBottom: 8 },
   inputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 14, minHeight: 50 },
   textAreaWrap: { alignItems: 'flex-start', paddingVertical: 12 },
   input: { flex: 1, color: '#0f172a', fontSize: 14 },
@@ -405,23 +418,23 @@ const styles = StyleSheet.create({
   clientRowSelected: { backgroundColor: '#eff6ff' },
 
   submitBtn: { backgroundColor: '#0ea5e9', borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, height: 56, marginBottom: 32 },
-  submitBtnText: { color: '#fff', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
+  submitBtnText: { color: '#fff', fontSize: 15, fontWeight: '900', letterSpacing: 0.5 },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { paddingBottom: 40 },
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { backgroundColor: '#f1f5f9', borderRadius: 20, padding: 20 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#334155' },
+  emptyTitle: { fontSize: 16, fontWeight: '900', color: '#334155' },
   emptyText: { fontSize: 13, color: '#94a3b8' },
 
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   cardExpanded: { borderColor: '#bae6fd', backgroundColor: '#f0f9ff' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  empName: { fontSize: 15, fontWeight: '800', color: '#0f172a' },
+  empName: { fontSize: 15, fontWeight: '900', color: '#0f172a' },
   timestamp: { fontSize: 11, color: '#64748b', marginTop: 2 },
   
   clientTag: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#e0f2fe', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginBottom: 10 },
-  clientTagText: { fontSize: 10, fontWeight: '700', color: '#0284c7' },
+  clientTagText: { fontSize: 10, fontWeight: '900', color: '#0284c7' },
 
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 10 },
   statBox: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
@@ -429,6 +442,6 @@ const styles = StyleSheet.create({
 
   notesPreview: { fontSize: 13, color: '#64748b', fontStyle: 'italic', lineHeight: 18 },
   notesBox: { backgroundColor: '#fff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginTop: 4 },
-  notesLabel: { fontSize: 10, fontWeight: '800', color: '#94a3b8', letterSpacing: 1, marginBottom: 6 },
+  notesLabel: { fontSize: 10, fontWeight: '900', color: '#94a3b8', letterSpacing: 1, marginBottom: 6 },
   notesText: { fontSize: 13, color: '#334155', lineHeight: 20 },
 });

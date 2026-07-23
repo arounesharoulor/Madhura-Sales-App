@@ -6,13 +6,25 @@ import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import AppLayout from '../components/AppLayout';
 import api from '../api/api';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import EmployeeMonitoringScreen from './EmployeeMonitoringScreen';
 
-export default function UserManagementScreen({ navigation }) {
-  const router = useRouter();
+export default function UserManagementScreen() {
   const [users, setUsers] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('users');
+  const [userRole, setUserRole] = useState('Admin');
+
+  useEffect(() => {
+    AsyncStorage.getItem('user').then(s => {
+      if (s) {
+        const parsed = JSON.parse(s);
+        setUserRole(parsed.role || 'Admin');
+      }
+    });
+  }, []);
 
   // User form details
   const [name, setName] = useState('');
@@ -109,7 +121,33 @@ export default function UserManagementScreen({ navigation }) {
   return (
     <AppLayout currentScreen="UserManagement" role="Admin" scrollable={false}>
       <View className="flex-1">
-        <Text className="text-2xl font-bold text-slate-900 mb-6">User Management</Text>
+        
+        {/* Header with Back Arrow and Title */}
+        <View className="flex-row justify-between items-center mb-6">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <TouchableOpacity onPress={() => router.push('/AdminDashboard')}>
+              <Ionicons name="arrow-back" size={24} color="#0f172a" />
+            </TouchableOpacity>
+            <Text className="text-2xl font-black text-slate-900">Field Staff</Text>
+          </View>
+          {!showAddForm && activeTab === 'users' && (
+            <TouchableOpacity onPress={() => setShowAddForm(true)} className="bg-sky-600 px-4 py-2 rounded-xl shadow-sm">
+              <Text className="text-white font-bold text-xs">+ Add Member</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Tab Buttons */}
+        {!showAddForm && (
+          <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
+            <TouchableOpacity onPress={() => setActiveTab('users')} className={`flex-1 py-3 rounded-xl ${activeTab === 'users' ? 'bg-sky-600 shadow-sm' : ''}`}>
+              <Text className={`text-center text-xs font-bold ${activeTab === 'users' ? 'text-white' : 'text-slate-500'}`}>User Management</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setActiveTab('map')} className={`flex-1 py-3 rounded-xl ${activeTab === 'map' ? 'bg-sky-600 shadow-sm' : ''}`}>
+              <Text className={`text-center text-xs font-bold ${activeTab === 'map' ? 'text-white' : 'text-slate-500'}`}>Employee Monitoring</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {showAddForm ? (
           <ScrollView showsVerticalScrollIndicator={false} className="mt-4">
@@ -158,7 +196,7 @@ export default function UserManagementScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </ScrollView>
-        ) : (
+        ) : activeTab === 'users' ? (
           <View className="flex-1">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -246,6 +284,8 @@ export default function UserManagementScreen({ navigation }) {
               }}
             />
           </View>
+        ) : (
+          <EmployeeMonitoringScreen isTab={true} userRole={userRole} />
         )}
       </View>
     </AppLayout>

@@ -1,4 +1,6 @@
+import { router } from 'expo-router';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,10 +10,12 @@ import api from '../api/api';
 import { disconnectSocket } from '../utils/socket';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function AdminDashboardScreen({ navigation }) {
+export default function AdminDashboardScreen() {
+  const router = useRouter();
   const [adminName, setAdminName] = useState('');
   const [stats, setStats] = useState({ users: 0, pendingTasks: 0, completedTasks: 0, meetings: 0, clients: 0 });
   const [loading, setLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showNotifyForm, setShowNotifyForm] = useState(false);
 
@@ -34,6 +38,7 @@ export default function AdminDashboardScreen({ navigation }) {
       const taskRes = await api.get('/tasks');
       const meetingRes = await api.get('/meetings');
       const clientRes = await api.get('/onboarding').catch(() => ({ data: { data: [] } }));
+      const notifRes = await api.get('/notifications').catch(() => ({ data: { data: [] } }));
       
       const tasks = taskRes.data.data;
       const pending = tasks.filter(t => t.status === 'Pending' || t.status === 'In Progress').length;
@@ -46,6 +51,9 @@ export default function AdminDashboardScreen({ navigation }) {
         meetings: meetingRes.data.data.length,
         clients: clientRes.data.data ? clientRes.data.data.length : 0,
       });
+
+      const notifs = notifRes.data.data || [];
+      setUnreadCount(notifs.filter(n => !n.isRead).length);
     } catch (e) {
       console.error(e);
     } finally {
@@ -62,11 +70,11 @@ export default function AdminDashboardScreen({ navigation }) {
     };
     loadProfile();
 
-    const unsubscribe = navigation.addListener('focus', () => {
+    
       fetchStats();
-    });
-    return unsubscribe;
-  }, [navigation]);
+    
+    
+  }, []);
 
   const handleLogout = async () => {
     Alert.alert('Confirm Logout', 'Are you sure you want to sign out?', [
@@ -78,7 +86,7 @@ export default function AdminDashboardScreen({ navigation }) {
           await AsyncStorage.removeItem('token');
           await AsyncStorage.removeItem('user');
           disconnectSocket();
-          navigation.replace('Login');
+          router.replace('Login');
         },
       },
     ]);
@@ -155,13 +163,38 @@ export default function AdminDashboardScreen({ navigation }) {
             <Text className="text-xs uppercase tracking-widest text-slate-400">
               Control Panel
             </Text>
-            <Text className="text-2xl font-bold text-slate-900 mt-1">
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+
+              <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')}>
+
+                <Ionicons name="arrow-back" size={24} color="#0f172a" />
+
+              </TouchableOpacity>
+
+              <Text className="text-2xl font-black text-slate-900 mt-1">
               {adminName || 'Super Admin'}
             </Text>
+
+            </View>
           </View>
-          <TouchableOpacity onPress={handleLogout} className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-sm">
-            <Text className="text-rose-600 font-bold text-xs">Logout</Text>
-          </TouchableOpacity>
+          <View className="flex-row items-center space-x-3">
+            <TouchableOpacity
+              onPress={() => { setUnreadCount(0); router.push('/Notification'); }}
+              className="w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center shadow-sm"
+              activeOpacity={0.8}
+            >
+              <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={20} color={unreadCount > 0 ? '#d4af37' : '#64748b'} />
+              {unreadCount > 0 && (
+                <View className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-red-500 items-center justify-center border border-white px-0.5">
+                  <Text className="text-white text-[8px] font-black">{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={handleLogout} className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-sm">
+              <Text className="text-rose-600 font-bold text-xs">Logout</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* New Professional Clients Banner */}
@@ -201,22 +234,22 @@ export default function AdminDashboardScreen({ navigation }) {
         </Text>
 
         <View className="space-y-3 mb-6">
-          <TouchableOpacity onPress={() => navigation.navigate('UserManagement')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+          <TouchableOpacity onPress={() => router.push('/UserManagement')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
             <Text className="text-slate-800 font-medium text-sm">User Management & Roster</Text>
             <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Reports')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+          <TouchableOpacity onPress={() => router.push('/Reports')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
             <Text className="text-slate-800 font-medium text-sm">Activity & Visit Reports</Text>
             <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Chat')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+          <TouchableOpacity onPress={() => router.push('/Chat')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
             <Text className="text-slate-800 font-medium text-sm">Live Team Chat Room</Text>
             <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('AdminAttendance')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+          <TouchableOpacity onPress={() => router.push('/AdminAttendance')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
             <Text className="text-slate-800 font-medium text-sm">View Attendance Log</Text>
             <Text className="text-sky-500 font-medium text-xs">GO →</Text>
           </TouchableOpacity>

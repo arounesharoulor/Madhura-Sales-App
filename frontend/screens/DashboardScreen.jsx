@@ -1,4 +1,6 @@
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,13 +23,13 @@ function StatCard({ icon, label, value, color, bg, onPress }) {
       </View>
       <View>
         <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginTop: 3 }}>{value}</Text>
-        <Text style={{ fontSize: 9, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
+        <Text style={{ fontSize: 9, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
       </View>
     </TouchableOpacity>
   );
 }
 
-export default function DashboardScreen({ navigation }) {
+export default function DashboardScreen() {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
   const [checkedIn, setCheckedIn] = useState(false);
@@ -36,6 +38,7 @@ export default function DashboardScreen({ navigation }) {
     visitsToday: 0, followUpsToday: 0,
     totalClients: 0, attendancePct: 0,
   });
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const loadData = async () => {
     try {
@@ -46,27 +49,26 @@ export default function DashboardScreen({ navigation }) {
         setUser(parsedUser);
         const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
         if (adminRoles.includes(parsedUser.role)) {
-          if (navigation && navigation.replace) {
-            navigation.replace('AdminDashboard');
-          } else {
-            navigation.navigate('AdminDashboard');
-          }
+          router.replace('/AdminDashboard');
           return;
         }
       }
 
-      const [tasksRes, meetingsRes, followUpsRes, attendanceRes, onboardingRes] = await Promise.all([
+      const [tasksRes, meetingsRes, followUpsRes, attendanceRes, onboardingRes, notifRes] = await Promise.all([
         api.get('/tasks').catch(() => ({ data: { data: [] } })),
         api.get('/meetings').catch(() => ({ data: { data: [] } })),
         api.get('/followups').catch(() => ({ data: { data: [] } })),
         api.get('/attendance/my').catch(() => ({ data: { data: [] } })),
         api.get('/onboarding').catch(() => ({ data: { data: [] } })),
+        api.get('/notifications').catch(() => ({ data: { data: [] } })),
       ]);
 
       const tasks       = tasksRes.data.data    || [];
       const meetings    = meetingsRes.data.data  || [];
       const followUps   = followUpsRes.data.data || [];
       const attendance  = attendanceRes.data.data || [];
+      const notifs      = notifRes.data.data || [];
+      setUnreadCount(notifs.filter(n => !n.isRead).length);
 
       const todayStr    = today.toDateString();
       const visitsToday = meetings.filter(m => new Date(m.createdAt).toDateString() === todayStr).length;
@@ -107,13 +109,13 @@ export default function DashboardScreen({ navigation }) {
   };
 
   useEffect(() => {
-    const unsub = navigation.addListener('focus', loadData);
+    loadData();
     loadData(); // run on mount
-    return unsub;
-  }, [navigation]);
+    
+  }, []);
 
   // Real-time updates for dashboard
-  useSocketRefresh(loadData, ['task_assigned', 'task_updated', 'followup_assigned', 'followup_updated', 'attendance_updated']);
+  useSocketRefresh(loadData, ['task_assigned', 'task_updated', 'followup_assigned', 'followup_updated', 'attendance_updated', 'notification']);
 
   useEffect(() => {
     (async () => { await connectSocket(); })();
@@ -166,14 +168,36 @@ export default function DashboardScreen({ navigation }) {
                 {user.name || 'Agent'}
               </Text>
               <View style={{ backgroundColor: '#e0f2fe', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, alignSelf: 'flex-start', marginTop: 3 }}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7' }}>
+                <Text style={{ fontSize: 10, fontWeight: '900', color: '#0284c7' }}>
                   {user.designation || 'Field Executive'}
                 </Text>
               </View>
             </View>
-            <Text style={{ fontSize: 10, color: '#94a3b8', textAlign: 'right' }}>
-              {today.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Text style={{ fontSize: 10, color: '#94a3b8', textAlign: 'right' }}>
+                {today.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
+              </Text>
+              <TouchableOpacity
+                onPress={() => { setUnreadCount(0); router.push('/Notification'); }}
+                style={{
+                  width: 42, height: 42, borderRadius: 13, backgroundColor: '#fff',
+                  alignItems: 'center', justifyContent: 'center', shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3,
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={22} color={unreadCount > 0 ? '#d4af37' : '#64748b'} />
+                {unreadCount > 0 && (
+                  <View style={{
+                    position: 'absolute', top: 5, right: 5, minWidth: 16, height: 16,
+                    borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
+                    borderWidth: 1.5, borderColor: '#fff', paddingHorizontal: 2,
+                  }}>
+                    <Text style={{ color: '#fff', fontSize: 8, fontWeight: '900' }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* ── Attendance strip ── */}
@@ -189,7 +213,7 @@ export default function DashboardScreen({ navigation }) {
               color={checkedIn ? '#16a34a' : '#ea580c'}
             />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, fontWeight: '800', color: checkedIn ? '#15803d' : '#c2410c' }}>
+              <Text style={{ fontSize: 12, fontWeight: '900', color: checkedIn ? '#15803d' : '#c2410c' }}>
                 {checkedIn ? 'Checked In Today ✓' : 'Not Checked In Yet'}
               </Text>
               <Text style={{ fontSize: 10, color: '#94a3b8' }}>
@@ -197,23 +221,23 @@ export default function DashboardScreen({ navigation }) {
               </Text>
             </View>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Attendance')}
+              onPress={() => router.push('/Attendance')}
               style={{ backgroundColor: checkedIn ? '#16a34a' : '#ea580c', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}
             >
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 11 }}>
+              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 11 }}>
                 {checkedIn ? 'View' : 'Check In'}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* ── Clients slim banner ── */}
-          <TouchableOpacity onPress={() => navigation.navigate('ClientOnboarding')} style={{
+          <TouchableOpacity onPress={() => router.push('/ClientOnboarding')} style={{
             backgroundColor: '#0f172a', borderRadius: 16,
             paddingVertical: 12, paddingHorizontal: 16,
             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
           }}>
             <View>
-              <Text style={{ color: '#64748b', fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Text style={{ color: '#64748b', fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 }}>
                 Total Clients Onboarded
               </Text>
               <Text style={{ color: '#fff', fontSize: 28, fontWeight: '900', marginTop: 1 }}>
@@ -226,24 +250,24 @@ export default function DashboardScreen({ navigation }) {
           </TouchableOpacity>
 
           {/* ── Stats 3×2 compact grid ── */}
-          <Text style={{ fontSize: 10, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+          <Text style={{ fontSize: 10, fontWeight: '900', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
             Today's Overview
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-            <StatCard icon="location"    label="Visits Today"   value={metrics.visitsToday}         color="#0284c7" bg="#eff6ff" onPress={() => navigation.navigate('Meeting')} />
+            <StatCard icon="location"    label="Visits Today"   value={metrics.visitsToday}         color="#0284c7" bg="#eff6ff" onPress={() => router.push('/Meeting')} />
             <StatCard 
               icon="alarm" 
               label={metrics.followUpStatuses} 
               value={metrics.followUpsCount}      
               color="#d97706" bg="#fffbeb" 
-              onPress={() => navigation.navigate('Followup')} 
+              onPress={() => router.push('/Followup')} 
             />
-            <StatCard icon="stats-chart" label="Attendance"     value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" onPress={() => navigation.navigate('Attendance')} />
+            <StatCard icon="stats-chart" label="Attendance"     value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" onPress={() => router.push('/Attendance')} />
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
-            <StatCard icon="clipboard"      label="Pending"     value={metrics.pendingTasks}    color="#e11d48" bg="#fff1f2" onPress={() => navigation.navigate('Task')} />
-            <StatCard icon="sync-circle"    label="In Progress" value={metrics.inProgressTasks} color="#0284c7" bg="#eff6ff" onPress={() => navigation.navigate('Task')} />
-            <StatCard icon="checkmark-done" label="Completed"   value={metrics.completedTasks}  color="#16a34a" bg="#f0fdf4" onPress={() => navigation.navigate('Task')} />
+            <StatCard icon="clipboard"      label="Pending"     value={metrics.pendingTasks}    color="#e11d48" bg="#fff1f2" onPress={() => router.push('/Task')} />
+            <StatCard icon="sync-circle"    label="In Progress" value={metrics.inProgressTasks} color="#0284c7" bg="#eff6ff" onPress={() => router.push('/Task')} />
+            <StatCard icon="checkmark-done" label="Completed"   value={metrics.completedTasks}  color="#16a34a" bg="#f0fdf4" onPress={() => router.push('/Task')} />
           </View>
 
         </ScrollView>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppLayout from '../components/AppLayout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function ProposalScreen({ navigation }) {
+export default function ProposalScreen() {
   const [role, setRole] = useState('Field Executive');
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function ProposalScreen({ navigation }) {
     <AppLayout currentScreen="Proposal" role={role} scrollable={true}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
         <Ionicons name="briefcase-outline" size={48} color="#94a3b8" />
-        <Text style={{ fontSize: 20, fontWeight: '800', color: '#0f172a' }}>Proposal Management</Text>
+        <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a' }}>Proposal Management</Text>
         <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center' }}>
           Proposal document generation and tracking will be implemented here.
         </Text>

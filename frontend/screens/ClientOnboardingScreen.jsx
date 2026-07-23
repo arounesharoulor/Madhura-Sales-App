@@ -66,14 +66,14 @@ const AREA_DATA = {
 // Reusable field label
 function FieldLabel({ text, required }) {
   return (
-    <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, marginTop: 14 }}>
+    <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, marginTop: 14 }}>
       {text}{required && <Text style={{ color: '#e11d48' }}> *</Text>}
     </Text>
   );
 }
 
 // Reusable text input
-function Field({ label, required, value, onChangeText, placeholder, keyboardType, multiline }) {
+function Field({ label, required, value, onChangeText, placeholder, keyboardType, multiline, maxLength }) {
   return (
     <View>
       <FieldLabel text={label} required={required} />
@@ -84,6 +84,7 @@ function Field({ label, required, value, onChangeText, placeholder, keyboardType
         placeholderTextColor="#94a3b8"
         keyboardType={keyboardType || 'default'}
         multiline={multiline}
+        maxLength={maxLength}
         style={{
           backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0',
           borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
@@ -107,7 +108,7 @@ function SectionCard({ title, icon, children }) {
         <View style={{ backgroundColor: '#eff6ff', borderRadius: 10, padding: 7 }}>
           <Ionicons name={icon} size={16} color="#0284c7" />
         </View>
-        <Text style={{ fontSize: 14, fontWeight: '800', color: '#0f172a' }}>{title}</Text>
+        <Text style={{ fontSize: 14, fontWeight: '900', color: '#0f172a' }}>{title}</Text>
       </View>
       {children}
     </View>
@@ -129,7 +130,7 @@ function PillSelector({ options, value, onSelect }) {
             borderColor: value === opt ? '#0284c7' : '#e2e8f0',
           }}
         >
-          <Text style={{ fontSize: 12, fontWeight: '700', color: value === opt ? '#fff' : '#64748b' }}>
+          <Text style={{ fontSize: 12, fontWeight: '900', color: value === opt ? '#fff' : '#64748b' }}>
             {opt}
           </Text>
         </TouchableOpacity>
@@ -154,7 +155,7 @@ function MultiPillSelector({ options, selectedValues, onToggle }) {
               borderColor: isSelected ? '#0284c7' : '#e2e8f0',
             }}
           >
-            <Text style={{ fontSize: 12, fontWeight: '700', color: isSelected ? '#fff' : '#64748b' }}>
+            <Text style={{ fontSize: 12, fontWeight: '900', color: isSelected ? '#fff' : '#64748b' }}>
               {opt}
             </Text>
           </TouchableOpacity>
@@ -259,7 +260,7 @@ function DateField({ label, required, value, onChange, mode = 'date' }) {
   );
 }
 
-export default function ClientOnboardingScreen({ navigation }) {
+export default function ClientOnboardingScreen() {
   const [role, setRole] = useState('Field Executive');
   const [userData, setUserData] = useState({});
   const [clients, setClients] = useState([]);
@@ -415,7 +416,15 @@ export default function ClientOnboardingScreen({ navigation }) {
 
   const handleSubmit = async () => {
     if (!businessName || !businessType || !ownerName || !phone || !altPhone || !email || !address || !city || !selectedState || !pincode) {
-      Alert.alert('Missing Fields', 'Please fill all required fields marked with *');
+      Alert.alert('Validation Error', 'Please fill out all required fields marked with *');
+      return;
+    }
+    if (!/^\d{10}$/.test(phone.trim())) {
+      Alert.alert('Invalid Phone', 'Mobile Number must be exactly 10 digits.');
+      return;
+    }
+    if (!/^\d{10}$/.test(altPhone.trim())) {
+      Alert.alert('Invalid Alternate Phone', 'Alternate Mobile must be exactly 10 digits.');
       return;
     }
     setSubmitting(true);
@@ -540,13 +549,18 @@ export default function ClientOnboardingScreen({ navigation }) {
   return (
     <AppLayout currentScreen="ClientOnboarding" role={role} scrollable={false}>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0f172a', marginBottom: 16, letterSpacing: -0.5 }}>Client Onboarding</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <TouchableOpacity onPress={() => router.push(role.includes('Admin') || role === 'Managing Director MD' ? '/AdminDashboard' : '/Dashboard')}>
+            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 24, fontWeight: '900', color: '#0f172a', letterSpacing: -0.5 }}>Client Onboarding</Text>
+        </View>
 
         {!showForm ? (
           // ── LIST VIEW ──
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>
                 {clients.length} Client{clients.length !== 1 ? 's' : ''} Onboarded
               </Text>
               <TouchableOpacity
@@ -554,7 +568,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                 style={{ backgroundColor: '#0f172a', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 30, flexDirection: 'row', alignItems: 'center', gap: 6, shadowColor: '#0f172a', shadowOpacity: 0.3, shadowOffset: { width: 0, height: 4 }, shadowRadius: 8, elevation: 5 }}
               >
                 <Ionicons name="add" size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>New Client</Text>
+                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 12 }}>New Client</Text>
               </TouchableOpacity>
             </View>
 
@@ -567,7 +581,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                 <View style={{ backgroundColor: '#f1f5f9', borderRadius: 30, padding: 24 }}>
                   <Ionicons name="briefcase-outline" size={48} color="#94a3b8" />
                 </View>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#475569' }}>No clients onboarded yet</Text>
+                <Text style={{ fontSize: 16, fontWeight: '900', color: '#475569' }}>No clients onboarded yet</Text>
                 {role === 'Field Executive' && (
                   <Text style={{ fontSize: 13, color: '#94a3b8', textAlign: 'center' }}>Tap "New Client" to add your first client</Text>
                 )}
@@ -587,7 +601,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                           <Text style={{ fontSize: 12, fontWeight: '600', color: '#64748b' }}>{item.businessType}</Text>
                         </View>
                         <View style={{ backgroundColor: '#f0fdf4', borderRadius: 30, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#bbf7d0' }}>
-                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', letterSpacing: 0.5 }}>Active</Text>
+                          <Text style={{ fontSize: 10, fontWeight: '900', color: '#16a34a', textTransform: 'uppercase', letterSpacing: 0.5 }}>Active</Text>
                         </View>
                       </View>
 
@@ -623,7 +637,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                       {item.followUpDate && (
                         <View style={{ marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eff6ff', padding: 12, borderRadius: 16 }}>
                           <Ionicons name="calendar" size={16} color="#0284c7" />
-                          <Text style={{ fontSize: 12, color: '#0284c7', fontWeight: '700' }}>
+                          <Text style={{ fontSize: 12, color: '#0284c7', fontWeight: '900' }}>
                             Next Follow-up: {new Date(item.followUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </Text>
                         </View>
@@ -647,7 +661,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                           {item.executive && (
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f8fafc', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
                               <Ionicons name="person-circle" size={14} color="#64748b" />
-                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>
+                              <Text style={{ fontSize: 11, fontWeight: '900', color: '#475569' }}>
                                 {item.executive.name.split(' ')[0]}
                               </Text>
                             </View>
@@ -683,8 +697,8 @@ export default function ClientOnboardingScreen({ navigation }) {
             <SectionCard title="Contact Information" icon="people-outline">
               <Field label="Owner Name" required value={ownerName} onChangeText={setOwnerName} placeholder="E.g. Rajesh Sharma" />
               <Field label="Contact Person Name" value={contactPerson} onChangeText={setContactPerson} placeholder="E.g. Anita (Accountant)" />
-              <Field label="Mobile Number" required value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="E.g. 9876543210" />
-              <Field label="Alternate Mobile" required value={altPhone} onChangeText={setAltPhone} keyboardType="phone-pad" placeholder="E.g. 9123456789" />
+              <Field label="Mobile Number" required value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="E.g. 9876543210" maxLength={10} />
+              <Field label="Alternate Mobile" required value={altPhone} onChangeText={setAltPhone} keyboardType="phone-pad" placeholder="E.g. 9123456789" maxLength={10} />
               <Field label="Email Address" required value={email} onChangeText={setEmail} keyboardType="email-address" placeholder="E.g. sharma@traders.com" />
             </SectionCard>
 
@@ -720,7 +734,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                   ) : (
                     <Ionicons name={coords ? 'checkmark-circle' : 'navigate-outline'} size={20} color={coords ? '#16a34a' : '#0284c7'} />
                   )}
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: coords ? '#16a34a' : '#0284c7' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '900', color: coords ? '#16a34a' : '#0284c7' }}>
                     {gettingCoords ? 'Acquiring GPS...' : coords ? 'GPS Captured ✓' : 'Capture Current Location'}
                   </Text>
                 </TouchableOpacity>
@@ -749,7 +763,7 @@ export default function ClientOnboardingScreen({ navigation }) {
                         }}
                         style={{ padding: 12, backgroundColor: '#e0f2fe', borderRadius: 12, alignItems: 'center' }}
                       >
-                        <Text style={{ color: '#0284c7', fontSize: 13, fontWeight: '700' }}>View on Google Maps</Text>
+                        <Text style={{ color: '#0284c7', fontSize: 13, fontWeight: '900' }}>View on Google Maps</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -789,21 +803,21 @@ export default function ClientOnboardingScreen({ navigation }) {
               <View style={{ backgroundColor: '#f8fafc', borderRadius: 12, padding: 14, gap: 6 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 12, color: '#94a3b8', fontWeight: '600' }}>Employee Name</Text>
-                  <Text style={{ fontSize: 12, color: '#0f172a', fontWeight: '700' }}>{userData.name || '—'}</Text>
+                  <Text style={{ fontSize: 12, color: '#0f172a', fontWeight: '900' }}>{userData.name || '—'}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 12, color: '#94a3b8', fontWeight: '600' }}>Employee ID</Text>
-                  <Text style={{ fontSize: 12, color: '#0f172a', fontWeight: '700' }}>{userData.employeeId || '—'}</Text>
+                  <Text style={{ fontSize: 12, color: '#0f172a', fontWeight: '900' }}>{userData.employeeId || '—'}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 12, color: '#94a3b8', fontWeight: '600' }}>Date & Time</Text>
-                  <Text style={{ fontSize: 12, color: '#0f172a', fontWeight: '700' }}>
+                  <Text style={{ fontSize: 12, color: '#0f172a', fontWeight: '900' }}>
                     {new Date().toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 12, color: '#94a3b8', fontWeight: '600' }}>GPS Coordinates</Text>
-                  <Text style={{ fontSize: 12, color: coords ? '#16a34a' : '#e11d48', fontWeight: '700' }}>
+                  <Text style={{ fontSize: 12, color: coords ? '#16a34a' : '#e11d48', fontWeight: '900' }}>
                     {coords ? `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}` : 'Not captured'}
                   </Text>
                 </View>
@@ -823,7 +837,7 @@ export default function ClientOnboardingScreen({ navigation }) {
               }}
             >
               {submitting ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />}
-              <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>
+              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14 }}>
                 {submitting ? (editId ? 'Updating...' : 'Submitting...') : (editId ? 'Update Client' : 'Complete Onboarding')}
               </Text>
             </TouchableOpacity>
@@ -832,7 +846,7 @@ export default function ClientOnboardingScreen({ navigation }) {
               onPress={() => { setShowForm(false); resetForm(); }}
               style={{ borderRadius: 16, paddingVertical: 14, alignItems: 'center', borderWidth: 1.5, borderColor: '#e2e8f0', backgroundColor: '#fff' }}
             >
-              <Text style={{ fontWeight: '700', fontSize: 14, color: '#64748b' }}>Cancel</Text>
+              <Text style={{ fontWeight: '900', fontSize: 14, color: '#64748b' }}>Cancel</Text>
             </TouchableOpacity>
           </ScrollView>
         )}

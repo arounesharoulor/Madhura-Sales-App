@@ -61,6 +61,21 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    joiningDate: {
+      type: Date,
+      default: Date.now,
+    },
+    documents: [
+      {
+        name: String,
+        url: String,
+        type: String,
+        uploadedAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
     isLiveLocationShared: {
       type: Boolean,
       default: true,

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { View, Text, Alert, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,14 +18,14 @@ function InfoRow({ icon, label, value }) {
         <Ionicons name={icon} size={15} color="#0284c7" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>{label}</Text>
+        <Text style={{ fontSize: 10, fontWeight: '900', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 }}>{label}</Text>
         <Text style={{ fontSize: 14, fontWeight: '600', color: '#0f172a' }}>{value || '—'}</Text>
       </View>
     </View>
   );
 }
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen() {
   const [user, setUser] = useState(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -67,6 +68,10 @@ export default function ProfileScreen({ navigation }) {
 
   const handleSave = async () => {
     if (!name) { Alert.alert('Error', 'Name is required'); return; }
+    if (phone && !/^\d{10}$/.test(phone.trim())) {
+      Alert.alert('Error', 'Mobile Number must be exactly 10 digits.');
+      return;
+    }
     setLoading(true);
     try {
       let payload;
@@ -129,7 +134,7 @@ export default function ProfileScreen({ navigation }) {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign Out', style: 'destructive',
-        onPress: () => performLogout(navigation),
+        onPress: () => performLogout(),
       },
     ]);
   };
@@ -165,7 +170,7 @@ export default function ProfileScreen({ navigation }) {
             <Text style={{ fontSize: 20, fontWeight: '900', color: '#fff', letterSpacing: -0.3 }}>{user?.name}</Text>
             <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{user?.designation || 'Field Executive'}</Text>
             <View style={{ backgroundColor: '#0284c7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: 8 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              <Text style={{ fontSize: 10, fontWeight: '900', color: '#fff', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 ID: {user?.employeeId || 'N/A'}
               </Text>
             </View>
@@ -176,7 +181,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* Performance Mini Dashboard */}
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>My Performance</Text>
+        <Text style={{ fontSize: 11, fontWeight: '900', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>My Performance</Text>
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
           {[
             { label: 'Visits', value: metrics.visits, icon: 'location', color: '#0284c7', bg: '#eff6ff' },
@@ -187,14 +192,14 @@ export default function ProfileScreen({ navigation }) {
             <View key={s.label} style={{ flex: 1, backgroundColor: s.bg, borderRadius: 16, padding: 12, alignItems: 'center', gap: 4 }}>
               <Ionicons name={s.icon} size={18} color={s.color} />
               <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a' }}>{s.value}</Text>
-              <Text style={{ fontSize: 9, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>{s.label}</Text>
+              <Text style={{ fontSize: 9, fontWeight: '900', color: '#64748b', textTransform: 'uppercase' }}>{s.label}</Text>
             </View>
           ))}
         </View>
 
         {/* Employee Details */}
         <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 16, marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 4 }}>
+          <Text style={{ fontSize: 13, fontWeight: '900', color: '#0f172a', marginBottom: 4 }}>
             {user?.role === 'Admin' ? 'Admin Information' : 'Employee Information'}
           </Text>
           {user?.role !== 'Admin' && (
@@ -211,10 +216,10 @@ export default function ProfileScreen({ navigation }) {
         {/* Edit Form */}
         {editing && (
           <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 16, marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 14 }}>Edit Profile</Text>
+            <Text style={{ fontSize: 13, fontWeight: '900', color: '#0f172a', marginBottom: 14 }}>Edit Profile</Text>
             <CustomInput label="Full Name" value={name} onChangeText={setName} placeholder="Your full name" />
             <View style={{ height: 12 }} />
-            <CustomInput label="Mobile Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="10-digit mobile number" />
+            <CustomInput label="Mobile Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="10-digit mobile number" maxLength={10} />
             <View style={{ height: 12 }} />
             <CustomInput label="Designation" value={designation} onChangeText={setDesignation} placeholder="E.g. Sales Executive" />
             <View style={{ height: 12 }} />
@@ -234,7 +239,7 @@ export default function ProfileScreen({ navigation }) {
           }}
         >
           <Ionicons name="log-out-outline" size={18} color="#e11d48" />
-          <Text style={{ color: '#e11d48', fontWeight: '800', fontSize: 14 }}>Sign Out</Text>
+          <Text style={{ color: '#e11d48', fontWeight: '900', fontSize: 14 }}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </AppLayout>

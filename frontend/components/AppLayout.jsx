@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressabl
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from 'expo-router';
+import { router } from 'expo-router';
 import { connectSocket, disconnectSocket } from '../utils/socket';
 import Toast from 'react-native-toast-message';
 import * as Location from 'expo-location';
@@ -60,7 +60,6 @@ const allAdminNavSections = [
     title: 'Tracking',
     items: [
       { title: 'Live Map & GPS',    screen: 'LiveLocation',             icon: 'map-outline',           iconActive: 'map' },
-      { title: 'Employee Monitoring',screen: 'EmployeeMonitoring',      icon: 'eye-outline',           iconActive: 'eye' },
       { title: 'Team Attendance',   screen: 'AdminAttendance',          icon: 'people-outline',        iconActive: 'people' },
       { title: 'My Attendance',     screen: 'Attendance',               icon: 'time-outline',          iconActive: 'time' },
       { title: 'Reports',           screen: 'Reports',                  icon: 'bar-chart-outline',     iconActive: 'bar-chart' },
@@ -136,7 +135,7 @@ function buildNavSections(role) {
 }
 
 export default function AppLayout({ children, currentScreen, scrollable = true, role = 'Admin' }) {
-  const navigation = useNavigation();
+  
   const { width } = useWindowDimensions();
   const [userName, setUserName] = useState('');
   const [userInitial, setUserInitial] = useState('?');
@@ -202,7 +201,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
           onPress: () => {
             Toast.hide();
             setUnreadCount(0);
-            navigation.navigate('Notification');
+            router.push('/Notification');
           }
         });
         setUnreadCount(prev => prev + 1);
@@ -243,7 +242,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
     try {
       await Location.stopLocationUpdatesAsync('background-location-task');
     } catch (e) {}
-    await performLogout(navigation);
+    await performLogout();
   };
 
   // Global 401 SESSION_TAKEN interceptor — force logout if another device logs in
@@ -260,7 +259,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
           Alert.alert(
             '🔒 Account In Use',
             'Your account has been logged in on another device. You have been signed out.',
-            [{ text: 'OK', onPress: () => performLogout(navigation) }],
+            [{ text: 'OK', onPress: () => performLogout() }],
             { cancelable: false }
           );
         }
@@ -268,7 +267,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
       }
     );
     return () => api.interceptors.response.eject(interceptor);
-  }, [navigation]);
+  }, []);
 
   // Periodic location check and live sharing for employees
   useEffect(() => {
@@ -319,7 +318,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
     if (screen === 'AdminFollowupManagement' || screen === 'Followup') setUnreadFollowUps(0);
     if (screen === 'Meeting') setUnreadMeetings(0);
     if (screen === 'AdminAttendance' || screen === 'Attendance') setUnreadAttendance(0);
-    navigation.navigate(screen);
+    router.push(screen.startsWith('/') ? screen : '/' + screen);
   };
 
   const isDesktop = width > 768;
@@ -366,7 +365,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
             <TouchableOpacity
               onPress={() => {
                 setUnreadCount(0);
-                navigation.navigate('Notification');
+                router.push('/Notification');
               }}
               style={styles.bellBtn}
             >
@@ -477,7 +476,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
               ))}
             </ScrollView>
 
-            {/* Logout */}
+            {/* Footer: Logout */}
             <View style={styles.sidebarFooter}>
               <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn} activeOpacity={0.8}>
                 <Ionicons name="log-out-outline" size={18} color="#f87171" />
@@ -489,51 +488,12 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
 
         {/* ── Main Content ── */}
         <View style={styles.main}>
-          {/* Top bar row: back button on sub-screens, bell on desktop */}
-          {(isDesktop || (currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard')) && (
-            <View style={[
-              styles.topBarRow,
-              { paddingHorizontal: isDesktop ? 32 : 16, paddingTop: isDesktop ? 28 : 12, paddingBottom: 4 }
-            ]}>
-              {currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? (
-                <TouchableOpacity
-                  onPress={() => navigation.navigate(isAdmin ? 'AdminDashboard' : 'Dashboard')}
-                  style={styles.globalBackBtn}
-                  activeOpacity={0.7}
-                >
-                  <View style={{ backgroundColor: '#f1f5f9', padding: 6, borderRadius: 10 }}>
-                    <Ionicons name="arrow-back" size={18} color="#475569" />
-                  </View>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Back to Dashboard</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={{ flex: 1 }} />
-              )}
-
-              {/* Notification bell — only on desktop; mobile already has it in the top navbar */}
-              {isDesktop && (
-                <TouchableOpacity
-                  onPress={() => { setUnreadCount(0); navigation.navigate('Notification'); }}
-                  style={[styles.dashBellBtn, currentScreen !== 'AdminDashboard' && currentScreen !== 'Dashboard' ? { marginLeft: 'auto' } : {}]}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={22} color={unreadCount > 0 ? GOLD : '#64748b'} />
-                  {unreadCount > 0 && (
-                    <View style={styles.dashBellBadge}>
-                      <Text style={styles.dashBellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-          
           {scrollable ? (
             <ScrollView
               showsVerticalScrollIndicator={false}
               contentContainerStyle={[
                 styles.mainContent,
-                { padding: isDesktop ? 32 : 16, paddingTop: 12 },
+                { padding: isDesktop ? 24 : 16, paddingTop: isDesktop ? 16 : 8 },
               ]}
             >
               {children}
@@ -541,7 +501,7 @@ export default function AppLayout({ children, currentScreen, scrollable = true, 
           ) : (
             <View style={[
               styles.mainFlex,
-              { padding: isDesktop ? 32 : 16, paddingTop: 12 },
+              { padding: isDesktop ? 24 : 16, paddingTop: isDesktop ? 16 : 8 },
             ]}>
               {children}
             </View>

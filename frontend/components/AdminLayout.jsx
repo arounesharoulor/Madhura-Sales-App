@@ -1,9 +1,10 @@
+import { router } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, Pressable, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from 'expo-router';
+
 import { connectSocket } from '../utils/socket';
 import Toast from 'react-native-toast-message';
 
@@ -33,7 +34,7 @@ const navSections = [
 ];
 
 export default function AdminLayout({ children, currentScreen, scrollable = true }) {
-  const navigation = useNavigation();
+  
   const { width } = useWindowDimensions();
   const [adminName, setAdminName] = useState('Admin');
   const [adminInitial, setAdminInitial] = useState('A');
@@ -77,12 +78,12 @@ export default function AdminLayout({ children, currentScreen, scrollable = true
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('user');
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    router.replace('/Login');
   };
 
   const handleNav = (screen) => {
     if (width <= 768) setIsSidebarOpen(false);
-    navigation.navigate(screen);
+    router.push(screen.startsWith('/') ? screen : '/' + screen);
   };
 
   const isDesktop = width > 768;

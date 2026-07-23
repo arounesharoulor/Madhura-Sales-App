@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
@@ -44,7 +45,8 @@ const TYPE_CONFIG = {
   Info:    { color: '#0891b2', bg: '#ecfeff', icon: 'information-circle' },
 };
 
-export default function NotificationScreen({ navigation }) {
+export default function NotificationScreen() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState('Employee');
@@ -116,13 +118,13 @@ export default function NotificationScreen({ navigation }) {
     const m = (message || '').toLowerCase();
     
     if (t.includes('attendance') || t.includes('check-in') || t.includes('check-out') || t.includes('leave')) {
-      navigation.navigate(userRole === 'Admin' ? 'AdminAttendance' : 'Dashboard');
+      router.push(userRole === 'Admin' ? '/AdminAttendance' : '/Dashboard');
     } else if (t.includes('task') || m.includes('task')) {
-      navigation.navigate(userRole === 'Admin' ? 'TaskAssignment' : 'Task');
+      router.push(userRole === 'Admin' ? '/TaskAssignment' : '/Task');
     } else if (t.includes('follow-up') || m.includes('follow up')) {
-      navigation.navigate(userRole === 'Admin' ? 'AdminFollowupManagement' : 'Followup');
+      router.push(userRole === 'Admin' ? '/AdminFollowupManagement' : '/Followup');
     } else if (t.includes('onboard') || t.includes('client')) {
-      navigation.navigate('ClientOnboarding');
+      router.push('/ClientOnboarding');
     }
   };
 
@@ -146,7 +148,17 @@ export default function NotificationScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Notifications</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+
+              <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')}>
+
+                <Ionicons name="arrow-back" size={24} color="#0f172a" />
+
+              </TouchableOpacity>
+
+              <Text style={styles.title}>Notifications</Text>
+
+            </View>
             {unreadCount > 0 && (
               <Text style={styles.subtitle}>{unreadCount} unread message{unreadCount !== 1 ? 's' : ''}</Text>
             )}
@@ -236,7 +248,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eff6ff', borderRadius: 10,
     paddingHorizontal: 10, paddingVertical: 7,
   },
-  markAllText: { fontSize: 11, fontWeight: '700', color: '#0284c7' },
+  markAllText: { fontSize: 11, fontWeight: '900', color: '#0284c7' },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
@@ -246,7 +258,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     backgroundColor: '#f1f5f9', borderRadius: 20, padding: 20, marginBottom: 4,
   },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#334155' },
+  emptyTitle: { fontSize: 16, fontWeight: '900', color: '#334155' },
   emptyText: { fontSize: 13, color: '#94a3b8', textAlign: 'center' },
 
   card: {
@@ -264,14 +276,14 @@ const styles = StyleSheet.create({
   },
   cardContent: { flex: 1 },
   cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  cardTitle: { fontSize: 13, fontWeight: '800', color: '#0f172a', flex: 1, marginRight: 8 },
+  cardTitle: { fontSize: 13, fontWeight: '900', color: '#0f172a', flex: 1, marginRight: 8 },
   cardTime: { fontSize: 10, color: '#94a3b8', fontWeight: '600', flexShrink: 0 },
   cardMessage: { fontSize: 12, color: '#475569', lineHeight: 18, marginBottom: 8 },
   cardMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   typeBadge: {
     paddingHorizontal: 7, paddingVertical: 2, borderRadius: 20,
   },
-  typeBadgeText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  typeBadgeText: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 },
   unreadDot: {
     width: 8, height: 8, borderRadius: 4, backgroundColor: '#3b82f6',
   },

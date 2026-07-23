@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, Alert, ScrollView,
@@ -92,20 +93,20 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
         <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, paddingBottom: 40 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a' }}>Email Report</Text>
+            <Text style={{ fontSize: 16, fontWeight: '900', color: '#0f172a' }}>Email Report</Text>
             <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color="#64748b" /></TouchableOpacity>
           </View>
 
           {report && (
             <View style={{ backgroundColor: '#eff6ff', borderRadius: 12, padding: 12, marginBottom: 16 }}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0284c7' }}>{report.title}</Text>
+              <Text style={{ fontSize: 12, fontWeight: '900', color: '#0284c7' }}>{report.title}</Text>
               <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
                 {report.startDate ? new Date(report.startDate).toLocaleDateString('en-IN') : ''} – {report.endDate ? new Date(report.endDate).toLocaleDateString('en-IN') : ''}
               </Text>
             </View>
           )}
 
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Recipient Email *</Text>
+          <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Recipient Email *</Text>
           <TextInput
             value={clientEmail}
             onChangeText={setClientEmail}
@@ -115,7 +116,7 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
             style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 50, fontSize: 14, color: '#0f172a', marginBottom: 12 }}
           />
 
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Recipient Name</Text>
+          <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Recipient Name</Text>
           <TextInput
             value={clientName}
             onChangeText={setClientName}
@@ -124,7 +125,7 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
             style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 50, fontSize: 14, color: '#0f172a', marginBottom: 12 }}
           />
 
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Custom Message (optional)</Text>
+          <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Custom Message (optional)</Text>
           <TextInput
             value={message}
             onChangeText={setMessage}
@@ -140,7 +141,7 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
             style={{ backgroundColor: sending ? '#93c5fd' : '#0284c7', borderRadius: 14, paddingVertical: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}
           >
             {sending ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="mail" size={18} color="#fff" />}
-            <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{sending ? 'Sending...' : 'Send Excel Report'}</Text>
+            <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14 }}>{sending ? 'Sending...' : 'Send Excel Report'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -148,7 +149,7 @@ function SendEmailModal({ visible, onClose, report, onSent }) {
   );
 }
 
-export default function ReportsScreen({ navigation }) {
+export default function ReportsScreen() {
   const router = useRouter();
   const [role, setRole] = useState('Field Executive');
   const [reports, setReports] = useState([]);
@@ -502,7 +503,7 @@ export default function ReportsScreen({ navigation }) {
               
               <View style={{ backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, marginBottom: 24, borderLeftWidth: 4, borderLeftColor: '#0284c7' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '900', color: '#0f172a', marginBottom: 6 }}>
                     {editingReportId ? 'Edit Report' : 'Automated Report Generation'}
                   </Text>
                   {editingReportId && (
@@ -510,7 +511,7 @@ export default function ReportsScreen({ navigation }) {
                       setEditingReportId(null);
                       setTitle(''); setManualClient(''); setManualProject(''); setManualSummary(''); setManualNextSteps(''); setManualQuotes('');
                     }}>
-                      <Text style={{ fontSize: 11, color: '#ef4444', fontWeight: '700' }}>Cancel Edit</Text>
+                      <Text style={{ fontSize: 11, color: '#ef4444', fontWeight: '900' }}>Cancel Edit</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -521,7 +522,7 @@ export default function ReportsScreen({ navigation }) {
 
               <CustomInput label="Report Title *" value={title} onChangeText={setTitle} placeholder="E.g. Q2 Sales Executive Activity Summary" />
 
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 12 }}>Report Frequency *</Text>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 12 }}>Report Frequency *</Text>
               <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 16, padding: 4, marginBottom: 20 }}>
                 {['Weekly', 'Monthly', 'Closure'].map((t) => (
                   <TouchableOpacity
@@ -529,25 +530,25 @@ export default function ReportsScreen({ navigation }) {
                     onPress={() => setType(t)}
                     style={{ flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: type === t ? '#0284c7' : 'transparent', alignItems: 'center' }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '800', color: type === t ? '#fff' : '#64748b' }}>{t}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '900', color: type === t ? '#fff' : '#64748b' }}>{t}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
               <View style={{ flexDirection: 'row', gap: 16, marginBottom: 20 }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Start Date *</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Start Date *</Text>
                   <CrossPlatformDatePicker value={startDate} onChange={setStartDate} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>End Date *</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>End Date *</Text>
                   <CrossPlatformDatePicker value={endDate} onChange={setEndDate} />
                 </View>
               </View>
               
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a', marginBottom: 12, marginTop: 8 }}>Additional Manual Details (Optional)</Text>
+              <Text style={{ fontSize: 13, fontWeight: '900', color: '#0f172a', marginBottom: 12, marginTop: 8 }}>Additional Manual Details (Optional)</Text>
               
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 8 }}>Select Client</Text>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: 8 }}>Select Client</Text>
               {clients.length === 0 ? (
                 <Text style={{ fontSize: 12, color: '#e11d48', marginTop: 4, marginBottom: 16 }}>No onboarded clients available.</Text>
               ) : (
@@ -557,7 +558,7 @@ export default function ReportsScreen({ navigation }) {
                       onPress={() => handleClientSelect(null)}
                       style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', backgroundColor: !selectedClient ? '#eff6ff' : '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
                     >
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: !selectedClient ? '#0284c7' : '#0f172a' }}>General Report (No Client)</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '900', color: !selectedClient ? '#0284c7' : '#0f172a' }}>General Report (No Client)</Text>
                       {!selectedClient && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
                     </TouchableOpacity>
                     {clients.map(client => {
@@ -569,7 +570,7 @@ export default function ReportsScreen({ navigation }) {
                           style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', backgroundColor: isSelected ? '#eff6ff' : '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
                         >
                           <View>
-                            <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
+                            <Text style={{ fontSize: 14, fontWeight: '900', color: isSelected ? '#0284c7' : '#0f172a' }}>{client.businessName || client.companyName}</Text>
                             <Text style={{ fontSize: 12, color: '#64748b' }}>{client.ownerName || client.clientName}</Text>
                           </View>
                           {isSelected && <Ionicons name="checkmark-circle" size={20} color="#0284c7" />}
@@ -582,7 +583,7 @@ export default function ReportsScreen({ navigation }) {
 
               <CustomInput label="Project Name" value={manualProject} onChangeText={setManualProject} placeholder="E.g. Project Apollo" />
               
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6, marginTop: 4 }}>Executive Summary</Text>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: 6, marginTop: 4 }}>Executive Summary</Text>
               <TextInput
                 value={manualSummary}
                 onChangeText={setManualSummary}
@@ -592,7 +593,7 @@ export default function ReportsScreen({ navigation }) {
                 style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0f172a', minHeight: 80, textAlignVertical: 'top', marginBottom: 16 }}
               />
 
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Next Steps</Text>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Next Steps</Text>
               <TextInput
                 value={manualNextSteps}
                 onChangeText={setManualNextSteps}
@@ -602,7 +603,7 @@ export default function ReportsScreen({ navigation }) {
                 style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0f172a', minHeight: 80, textAlignVertical: 'top', marginBottom: 16 }}
               />
 
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Quotations / Pricing</Text>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', marginBottom: 6 }}>Quotations / Pricing</Text>
               <TextInput
                 value={manualQuotes}
                 onChangeText={setManualQuotes}
@@ -613,11 +614,11 @@ export default function ReportsScreen({ navigation }) {
               />
 
               <View style={{ backgroundColor: '#f0fdf4', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: '#bbf7d0' }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#16a34a', marginBottom: 8 }}>Included Data Points:</Text>
+                <Text style={{ fontSize: 12, fontWeight: '900', color: '#16a34a', marginBottom: 8 }}>Included Data Points:</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {['Client Meetings', 'Follow-ups', 'Task Progress', 'Executive Stats', 'Manual Details'].map(item => (
                     <View key={item} style={{ backgroundColor: '#dcfce7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#15803d' }}>✓ {item}</Text>
+                      <Text style={{ fontSize: 10, fontWeight: '900', color: '#15803d' }}>✓ {item}</Text>
                     </View>
                   ))}
                 </View>
@@ -628,14 +629,14 @@ export default function ReportsScreen({ navigation }) {
               </View>
 
               <TouchableOpacity onPress={() => setShowAddForm(false)} style={{ marginTop: 12, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', alignItems: 'center' }}>
-                <Text style={{ color: '#64748b', fontWeight: '800', fontSize: 13 }}>Cancel</Text>
+                <Text style={{ color: '#64748b', fontWeight: '900', fontSize: 13 }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
         ) : (
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {reports.length} Report{reports.length !== 1 ? 's' : ''}
               </Text>
               <TouchableOpacity onPress={() => {
@@ -644,7 +645,7 @@ export default function ReportsScreen({ navigation }) {
                 setShowAddForm(true);
               }} style={{ backgroundColor: '#0284c7', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Ionicons name="add" size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>Generate</Text>
+                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 12 }}>Generate</Text>
               </TouchableOpacity>
             </View>
 
@@ -670,9 +671,9 @@ export default function ReportsScreen({ navigation }) {
                   <View style={{ marginBottom: 14, backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOpacity: 0.04, shadowOffset: { width: 0, height: 2 }, shadowRadius: 6, elevation: 2, overflow: 'hidden' }}>
                     <TouchableOpacity activeOpacity={0.8} onPress={() => setExpandedReportId(isExpanded ? null : item._id)} style={{ padding: 16 }}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                        <Text style={{ fontWeight: '800', fontSize: 14, color: '#0f172a', flex: 1, marginRight: 8 }}>{item.title}</Text>
+                        <Text style={{ fontWeight: '900', fontSize: 14, color: '#0f172a', flex: 1, marginRight: 8 }}>{item.title}</Text>
                         <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 }}>
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284c7', textTransform: 'uppercase' }}>{item.type}</Text>
+                          <Text style={{ fontSize: 10, fontWeight: '900', color: '#0284c7', textTransform: 'uppercase' }}>{item.type}</Text>
                         </View>
                       </View>
 
@@ -688,7 +689,7 @@ export default function ReportsScreen({ navigation }) {
                           { icon: '👥', label: 'Executives', val: item.summary?.totalExecutivesActive || 0 },
                         ].map(stat => (
                           <View key={stat.label} style={{ backgroundColor: '#f8fafc', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
-                            <Text style={{ fontSize: 11, color: '#475569', fontWeight: '600' }}>{stat.icon} {stat.label}: <Text style={{ fontWeight: '800', color: '#0284c7' }}>{stat.val}</Text></Text>
+                            <Text style={{ fontSize: 11, color: '#475569', fontWeight: '600' }}>{stat.icon} {stat.label}: <Text style={{ fontWeight: '900', color: '#0284c7' }}>{stat.val}</Text></Text>
                           </View>
                         ))}
                       </View>
@@ -705,7 +706,7 @@ export default function ReportsScreen({ navigation }) {
                             style={{ backgroundColor: '#f0fdf4', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#bbf7d0' }}
                           >
                             {isDownloading ? <ActivityIndicator size="small" color="#16a34a" /> : <Ionicons name="download-outline" size={14} color="#16a34a" />}
-                            <Text style={{ fontSize: 11, fontWeight: '700', color: '#16a34a' }}>Excel</Text>
+                            <Text style={{ fontSize: 11, fontWeight: '900', color: '#16a34a' }}>Excel</Text>
                           </TouchableOpacity>
 
                           {/* Send to Email (Admin/Super Admin) */}
@@ -715,7 +716,7 @@ export default function ReportsScreen({ navigation }) {
                               style={{ backgroundColor: '#eff6ff', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#bfdbfe' }}
                             >
                               <Ionicons name="mail-outline" size={14} color="#0284c7" />
-                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>Send</Text>
+                              <Text style={{ fontSize: 11, fontWeight: '900', color: '#0284c7' }}>Send</Text>
                             </TouchableOpacity>
                           )}
 
@@ -726,7 +727,7 @@ export default function ReportsScreen({ navigation }) {
                               style={{ backgroundColor: '#fffbeb', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#fde68a' }}
                             >
                               <Ionicons name="create-outline" size={14} color="#d97706" />
-                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#d97706' }}>Edit</Text>
+                              <Text style={{ fontSize: 11, fontWeight: '900', color: '#d97706' }}>Edit</Text>
                             </TouchableOpacity>
                           )}
 
@@ -737,7 +738,7 @@ export default function ReportsScreen({ navigation }) {
                               style={{ backgroundColor: '#fef2f2', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: '#fecdd3' }}
                             >
                               <Ionicons name="chatbubble-ellipses-outline" size={14} color="#ef4444" />
-                              <Text style={{ fontSize: 11, fontWeight: '700', color: '#ef4444' }}>Issue</Text>
+                              <Text style={{ fontSize: 11, fontWeight: '900', color: '#ef4444' }}>Issue</Text>
                             </TouchableOpacity>
                           )}
 
@@ -749,14 +750,14 @@ export default function ReportsScreen({ navigation }) {
                     {/* Expanded activity details */}
                     {isExpanded && (
                       <View style={{ backgroundColor: '#f8fafc', paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: 1, borderTopColor: '#e2e8f0' }}>
-                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Activity Details</Text>
+                        <Text style={{ fontSize: 11, fontWeight: '900', color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Activity Details</Text>
                         {!item.activities || item.activities.length === 0 ? (
                           <Text style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>No activities recorded during this period.</Text>
                         ) : (
                           item.activities.map((act, i) => (
                             <View key={i} style={{ marginBottom: 12, paddingBottom: 12, borderBottomWidth: i < item.activities.length - 1 ? 1 : 0, borderBottomColor: '#e2e8f0' }}>
                               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-                                <Text style={{ fontWeight: '700', fontSize: 12, color: '#0f172a', flex: 1 }}>
+                                <Text style={{ fontWeight: '900', fontSize: 12, color: '#0f172a', flex: 1 }}>
                                   {act.activityType === 'Meeting' ? '🤝 Meeting' : '📞 Follow-Up'}: {act.clientName}
                                 </Text>
                                 <Text style={{ fontSize: 10, color: '#64748b' }}>
