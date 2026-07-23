@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Platform } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, ScrollView, StyleSheet, ActivityIndicator, RefreshControl, Platform, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../components/CustomInput';
@@ -9,12 +9,21 @@ import api from '../api/api';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import * as DocumentPicker from 'expo-document-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function UserManagementScreen() {
   const [users, setUsers] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [userRole, setUserRole] = useState('Admin');
+
+  // Modal State
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+  const [employeeDetails, setEmployeeDetails] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('user').then(s => {
@@ -33,6 +42,71 @@ export default function UserManagementScreen() {
   const [role, setRole] = useState('Field Executive'); // default
   const [designation, setDesignation] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const openProfile = async (empId) => {
+    if (!empId) return;
+    setSelectedEmployeeId(empId);
+    setShowProfileModal(true);
+    setLoadingProfile(true);
+    try {
+      const res = await api.get('/users/' + empId);
+      setEmployeeDetails(res.data.data);
+    } catch(e) {
+      Alert.alert('Error', 'Failed to load employee details');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const uploadDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'] });
+      if (result.canceled) return;
+      
+      const file = result.assets[0];
+      const formData = new FormData();
+      formData.append('document', {
+        uri: file.uri,
+        name: file.name,
+        type: file.mimeType || 'application/octet-stream'
+      });
+      
+      setLoadingProfile(true);
+      const res = await api.post('/users/' + selectedEmployeeId + '/documents', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setEmployeeDetails(res.data.data);
+      Alert.alert('Success', 'Document uploaded successfully');
+    } catch (e) {
+      Alert.alert('Error', 'Failed to upload document');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const updateJoiningDate = async (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      try {
+        setLoadingProfile(true);
+        const res = await api.put('/users/' + selectedEmployeeId + '/record', { joiningDate: selectedDate });
+        setEmployeeDetails(res.data.data);
+      } catch (e) {
+        Alert.alert('Error', 'Failed to update joining date');
+      } finally {
+        setLoadingProfile(false);
+      }
+    }
+  };
+
+  const calculateYears = (dateStr) => {
+    if (!dateStr) return '0 years';
+    const joinDate = new Date(dateStr);
+    const now = new Date();
+    const diff = now - joinDate;
+    const years = diff / (1000 * 60 * 60 * 24 * 365.25);
+    return years.toFixed(1) + ' years';
+  };
 
   const safeGet = async (url, config) => {
     try {
@@ -258,12 +332,214 @@ export default function UserManagementScreen() {
                           <Text className={`text-[10px] font-bold ${
                             item.isActive ? 'text-emerald-600' : 'text-rose-600'
                           }`}>
+          todayAttendanceStatus: attendance?.status || 'No Attendance',
+        };
+      });
+
+      setUsers(usersWithStatus);
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'Failed to retrieve team members list.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleCreateUser = async () => {
+    if (!name || !email || !password || !phone || !designation) {
+      Alert.alert('Validation Error', 'Please complete all required fields.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post('/users', { name, email, password, phone, role, designation });
+      Alert.alert('Success', `${role} user successfully added!`);
+      setName('');
+      setEmail('');
+      setPassword('');
+      setPhone('');
+      setRole('Field Executive');
+      setDesignation('');
+      setShowAddForm(false);
+      fetchUsers();
+    } catch (e) {
+      Alert.alert('Error', e.response?.data?.message || 'Failed to create user');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (userId, currentStatus) => {
+    Alert.alert(
+      'Toggle Status',
+      `Are you sure you want to ${currentStatus ? 'Deactivate' : 'Activate'} this user?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Change Status',
+          onPress: async () => {
+            try {
+              await api.delete(`/users/${userId}`);
+              fetchUsers();
+            } catch (e) {
+              Alert.alert('Error', 'Failed to change user status');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <AppLayout currentScreen="UserManagement" role="Admin" scrollable={false}>
+      <View className="flex-1">
+        
+        {/* Header with Back Arrow and Title */}
+        <View className="flex-row justify-between items-center mb-6">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <TouchableOpacity onPress={() => router.push('/AdminDashboard')}>
+              <Ionicons name="arrow-back" size={24} color="#0f172a" />
+            </TouchableOpacity>
+            <Text className="text-2xl font-black text-slate-900">Field Staff</Text>
+          </View>
+          {!showAddForm && (
+            <TouchableOpacity onPress={() => setShowAddForm(true)} className="bg-sky-600 px-4 py-2 rounded-xl shadow-sm">
+              <Text className="text-white font-bold text-xs">+ Add Member</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {showAddForm ? (
+          <ScrollView showsVerticalScrollIndicator={false} className="mt-4">
+            <View className="space-y-4 bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+              <CustomInput label="Full Name *" value={name} onChangeText={setName} placeholder="E.g. John Doe" />
+              <CustomInput label="Email Address *" value={email} onChangeText={setEmail} placeholder="executive@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" />
+              <CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
+              <CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" />
+              
+              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">Designation *</Text>
+              <View className="flex-row flex-wrap gap-2 mb-4">
+                {['BDE', 'BDM', 'Pre Sales', 'Manager', 'Other'].map((d) => (
+                  <TouchableOpacity
+                    key={d}
+                    onPress={() => setDesignation(d)}
+                    className={`px-4 py-2 rounded-xl border ${designation === d ? 'bg-sky-600 border-sky-600' : 'bg-slate-50 border-slate-200'}`}
+                  >
+                    <Text className={`text-xs font-bold ${designation === d ? 'text-white' : 'text-slate-600'}`}>{d}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500">User Role *</Text>
+              <View className="flex-row bg-slate-100 p-1 rounded-2xl mb-4">
+                {['Field Executive', 'Manager', 'Admin'].map((r) => (
+                  <TouchableOpacity
+                    key={r}
+                    onPress={() => setRole(r)}
+                    className={`flex-1 py-3 rounded-xl ${
+                      role === r ? 'bg-sky-600' : ''
+                    }`}
+                  >
+                    <Text className={`text-center text-xs font-bold ${
+                      role === r ? 'text-white' : 'text-slate-500'
+                    }`}>
+                      {r}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <CustomButton title="Add User Member" loading={loading} onPress={handleCreateUser} />
+              
+              <TouchableOpacity onPress={() => setShowAddForm(false)} className="mt-4 py-3 border border-slate-200 rounded-2xl bg-white shadow-sm">
+                <Text className="text-center text-slate-900 font-bold text-xs">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        ) : (
+          <View className="flex-1">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Staff Members
+              </Text>
+              <TouchableOpacity onPress={() => setShowAddForm(true)} className="bg-sky-600 px-4 py-2 rounded-xl shadow-sm">
+                <Text className="text-white font-bold text-xs">+ Add Member</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={users}
+              keyExtractor={(item) => item._id}
+              refreshing={refreshing}
+              onRefresh={fetchUsers}
+              ListEmptyComponent={() => (
+                <View className="flex-1 items-center justify-center pt-20">
+                  <Text className="text-xs text-slate-500">
+                    No users found. Tap "+ Add Member" to register one.
+                  </Text>
+                </View>
+              )}
+              renderItem={({ item }) => {
+                const attendanceBadgeClass = item.todayAttendanceStatus === 'Checked In'
+                  ? 'bg-emerald-50 border-emerald-200'
+                  : item.todayAttendanceStatus === 'Checked Out'
+                    ? 'bg-rose-50 border-rose-200'
+                    : 'bg-slate-100 border-slate-200';
+                const attendanceTextClass = item.todayAttendanceStatus === 'Checked In'
+                  ? 'text-emerald-600'
+                  : item.todayAttendanceStatus === 'Checked Out'
+                    ? 'text-rose-600'
+                    : 'text-slate-500';
+                const attendanceLabel = item.todayAttendanceStatus === 'Checked In'
+                  ? 'Active'
+                  : item.todayAttendanceStatus === 'Checked Out'
+                    ? 'Inactive'
+                    : 'No Attendance';
+                return (
+                  <View className="mb-4 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                    <View className="flex-row justify-between items-start">
+                      <View className="flex-1 pr-3">
+                        <Text className="font-bold text-sm text-slate-900">{item.name}</Text>
+                        <Text className="text-xs text-slate-500">{item.email}</Text>
+                        <Text className="text-xs text-slate-500 mt-1">Role: {item.role} | Desig: {item.designation || 'N/A'} | Phone: {item.phone}</Text>
+                      </View>
+                      <View className="flex-row items-center gap-2">
+                        {item.role === 'Field Executive' ? (
+                          <View className={`px-3 py-1.5 rounded-lg border ${attendanceBadgeClass}`}>
+                            <Text className={`text-[10px] font-bold ${attendanceTextClass}`}>
+                              {attendanceLabel}
+                            </Text>
+                          </View>
+                        ) : null}
+                        <TouchableOpacity
+                          onPress={() => handleToggleStatus(item._id, item.isActive)}
+                          className={`px-3 py-1.5 rounded-lg border ${
+                            item.isActive
+                              ? 'bg-emerald-50 border-emerald-200'
+                              : 'bg-rose-50 border-rose-200'
+                          }`}
+                        >
+                          <Text className={`text-[10px] font-bold ${
+                            item.isActive ? 'text-emerald-600' : 'text-rose-600'
+                          }`}>
                             {item.isActive ? 'Active' : 'Suspended'}
                           </Text>
                         </TouchableOpacity>
                       </View>
                     </View>
                     <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-slate-100 justify-end">
+                      <TouchableOpacity
+                        onPress={() => openProfile(item._id)}
+                        className="bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex-row items-center"
+                      >
+                        <Ionicons name="document-text-outline" size={14} color="#d97706" style={{ marginRight: 4 }} />
+                        <Text className="text-[10px] text-amber-600 font-bold">Records</Text>
+                      </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => router.push({
                           pathname: '/Chat',
@@ -282,6 +558,95 @@ export default function UserManagementScreen() {
           </View>
         )}
       </View>
+
+      {/* Profile / Documents Modal */}
+      <Modal visible={showProfileModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowProfileModal(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Employee Records</Text>
+            <TouchableOpacity onPress={() => setShowProfileModal(false)}><Ionicons name="close" size={24} color="#0f172a"/></TouchableOpacity>
+          </View>
+          {loadingProfile && !employeeDetails ? (
+            <ActivityIndicator color="#0284c7" size="large" style={{marginTop:40}} />
+          ) : employeeDetails ? (
+            <ScrollView contentContainerStyle={styles.modalBody}>
+              <View style={styles.recordSection}>
+                <Text style={styles.sectionTitle}>Basic Information</Text>
+                <Text style={styles.recordText}>Name: {employeeDetails.name}</Text>
+                <Text style={styles.recordText}>Role: {employeeDetails.role}</Text>
+                <Text style={styles.recordText}>Email: {employeeDetails.email}</Text>
+              </View>
+              
+              <View style={styles.recordSection}>
+                <Text style={styles.sectionTitle}>Tenure & Records</Text>
+                <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between'}}>
+                  <View>
+                    <Text style={styles.recordText}>Joined: {employeeDetails.joiningDate ? new Date(employeeDetails.joiningDate).toLocaleDateString() : 'Not Set'}</Text>
+                    <Text style={styles.recordText}>Experience: {calculateYears(employeeDetails.joiningDate)}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.editBtn}>
+                    <Text style={styles.editBtnText}>Edit Date</Text>
+                  </TouchableOpacity>
+                </View>
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={employeeDetails.joiningDate ? new Date(employeeDetails.joiningDate) : new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={updateJoiningDate}
+                  />
+                )}
+              </View>
+
+              <View style={styles.recordSection}>
+                <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom: 12}}>
+                  <Text style={styles.sectionTitle}>Documents</Text>
+                  <TouchableOpacity onPress={uploadDocument} style={styles.uploadBtn}>
+                    <Ionicons name="cloud-upload-outline" size={16} color="#fff" />
+                    <Text style={styles.uploadBtnText}>Upload</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                {employeeDetails.documents && employeeDetails.documents.length > 0 ? (
+                  employeeDetails.documents.map((doc, idx) => (
+                    <View key={idx} style={styles.docCard}>
+                      <Ionicons name="document-outline" size={24} color="#64748b" />
+                      <View style={{flex:1, marginLeft: 12}}>
+                        <Text style={styles.docName}>{doc.name}</Text>
+                        <Text style={styles.docDate}>Uploaded: {new Date(doc.uploadedAt).toLocaleDateString()}</Text>
+                      </View>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.recordText}>No documents uploaded yet.</Text>
+                )}
+              </View>
+            </ScrollView>
+          ) : (
+            <View style={{alignItems: 'center', marginTop: 40}}>
+              <Text style={styles.recordText}>Failed to load employee records.</Text>
+            </View>
+          )}
+        </View>
+      </Modal>
+
     </AppLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  modalContainer: { flex: 1, backgroundColor: '#f8fafc' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a' },
+  modalBody: { padding: 20 },
+  recordSection: { backgroundColor: '#fff', padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1 },
+  sectionTitle: { fontSize: 14, fontWeight: '800', color: '#334155', marginBottom: 12 },
+  recordText: { fontSize: 13, color: '#475569', marginBottom: 6, fontWeight: '500' },
+  editBtn: { backgroundColor: '#e0f2fe', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  editBtnText: { color: '#0284c7', fontSize: 12, fontWeight: '700' },
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#0284c7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  uploadBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  docCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: '#e2e8f0' },
+  docName: { fontSize: 13, fontWeight: '700', color: '#0f172a' },
+  docDate: { fontSize: 11, color: '#64748b', marginTop: 2 }
+});
