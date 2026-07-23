@@ -263,11 +263,11 @@ export default function UserManagementScreen() {
 
       {/* Account Details Section */}
       <Text className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-3">Account Details</Text>
-      <View className={Platform.OS === 'web' ? "flex-row gap-4" : ""}>
+      <View className={Platform.OS === 'web' ? "flex-row gap-4 mb-4" : "mb-4"}>
         <View className="flex-1"><CustomInput label="Full Name *" value={name} onChangeText={setName} placeholder="E.g. John Doe" /></View>
         <View className="flex-1"><CustomInput label="Email Address *" value={email} onChangeText={setEmail} placeholder="john@fieldstaff.com" keyboardType="email-address" autoCapitalize="none" /></View>
       </View>
-      <View className={Platform.OS === 'web' ? "flex-row gap-4" : ""}>
+      <View className={Platform.OS === 'web' ? "flex-row gap-4 mb-4" : "mb-4"}>
         <View className="flex-1"><CustomInput label="Password *" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry /></View>
         <View className="flex-1"><CustomInput label="Phone Number *" value={phone} onChangeText={setPhone} placeholder="1234567890" keyboardType="phone-pad" /></View>
       </View>
@@ -327,13 +327,13 @@ export default function UserManagementScreen() {
       {/* KYC & Documents Section */}
       <Text className="text-xs font-bold text-sky-600 uppercase tracking-wider mb-3">KYC & Documents</Text>
 
-      <View className={Platform.OS === 'web' ? "flex-row gap-4" : ""}>
+      <View className={Platform.OS === 'web' ? "flex-row gap-4 mb-4" : "mb-4"}>
         <View className="flex-1"><CustomInput label="PAN Number" value={panNumber} onChangeText={setPanNumber} placeholder="ABCDE1234F" autoCapitalize="characters" /></View>
         <View className="flex-1"><CustomInput label="Aadhar Number" value={aadharNumber} onChangeText={setAadharNumber} placeholder="1234 5678 9012" keyboardType="numeric" /></View>
       </View>
 
       {experienceLevel === 'Experienced' && (
-        <View className={Platform.OS === 'web' ? "w-1/2 pr-2" : ""}><CustomInput label="PF Number *" value={pfNumber} onChangeText={setPfNumber} placeholder="Enter PF Number" /></View>
+        <View className={Platform.OS === 'web' ? "w-1/2 pr-2 mb-4" : "mb-4"}><CustomInput label="PF Number *" value={pfNumber} onChangeText={setPfNumber} placeholder="Enter PF Number" /></View>
       )}
 
       <Text className="text-[10px] font-bold uppercase tracking-wider mb-2 text-slate-500 mt-2">Upload Documents</Text>
