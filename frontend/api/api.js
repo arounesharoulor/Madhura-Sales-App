@@ -42,10 +42,11 @@ api.interceptors.response.use(
         }
         
         config.baseURL = API_FALLBACK_URL;
+        api.defaults.baseURL = API_FALLBACK_URL; // Update globally so future requests don't fail!
         console.warn(`Network error — retrying against production: ${API_FALLBACK_URL}${config.url}`);
 
         // Small delay to let Render wake up if it was cold
-        await new Promise((r) => setTimeout(r, 1500));
+        await new Promise((r) => setTimeout(r, 500));
         return api(config);
       }
 

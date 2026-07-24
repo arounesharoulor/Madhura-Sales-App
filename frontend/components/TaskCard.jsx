@@ -292,7 +292,7 @@ export default function TaskCard({ item, onRefresh }) {
 
           <Text style={styles.evidenceTitle}>Image Evidence (Optional)</Text>
           <Text style={styles.evidenceDesc}>
-            ⚠️ Uploading photo proof will automatically mark this task as <Text style={{fontWeight: '700', color: '#16a34a'}}>Completed</Text>. Notes only will keep it <Text style={{fontWeight: '700', color: '#d97706'}}>In Progress</Text>.
+            ⚠️ Uploading photo proof will automatically mark this task as <Text style={{fontWeight: '500', color: '#16a34a'}}>Completed</Text>. Notes only will keep it <Text style={{fontWeight: '500', color: '#d97706'}}>In Progress</Text>.
           </Text>
 
           {imageUri ? (
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '400',
     color: '#0f172a',
   },
   desc: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '400',
     textTransform: 'uppercase',
   },
   overdueBadge: {
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   overdueText: {
     fontSize: 9,
     color: '#ef4444',
-    fontWeight: '900',
+    fontWeight: '500',
   },
   metaRow: {
     flexDirection: 'row',
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   },
   historyHeader: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '400',
     color: '#334155',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -486,11 +486,11 @@ const styles = StyleSheet.create({
   historyDate: {
     fontSize: 10,
     color: '#64748b',
-    fontWeight: '600',
+    fontWeight: '400',
   },
   historyStatusText: {
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '400',
     textTransform: 'uppercase',
   },
   historyNotes: {
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   evidenceLabel: {
     fontSize: 10,
     color: '#64748b',
-    fontWeight: '600',
+    fontWeight: '400',
   },
   evidenceImage: {
     width: '100%',
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   toggleBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#475569',
   },
   toggleBtnTextActive: {
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '400',
     color: '#334155',
     marginBottom: 8,
   },
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
   },
   evidenceTitle: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '400',
     color: '#334155',
     marginTop: 12,
     marginBottom: 4,
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
   removePreviewText: {
     fontSize: 12,
     color: '#ef4444',
-    fontWeight: '700',
+    fontWeight: '500',
   },
   uploadRow: {
     flexDirection: 'row',
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
   },
   uploadBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#0284c7',
   },
   submitBtn: {
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     color: '#fff',
-    fontWeight: '800',
+    fontWeight: '400',
     fontSize: 13,
   },
   btnDisabled: {

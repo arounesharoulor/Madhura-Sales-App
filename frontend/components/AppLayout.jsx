@@ -529,9 +529,9 @@ const styles = StyleSheet.create({
     width: 48, height: 48, borderRadius: 14,
     backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center',
   },
-  mobileLogoText: { color: NAVY, fontWeight: '900', fontSize: 18 },
-  mobileBrand: { color: '#fff', fontWeight: '900', fontSize: 15, letterSpacing: 1.5 },
-  mobileSub:   { color: GOLD,  fontWeight: '600', fontSize: 9,  letterSpacing: 0.5 },
+  mobileLogoText: { color: NAVY, fontWeight: '500', fontSize: 18 },
+  mobileBrand: { color: '#fff', fontWeight: '500', fontSize: 15, letterSpacing: 1.5 },
+  mobileSub:   { color: GOLD,  fontWeight: '400', fontSize: 9,  letterSpacing: 0.5 },
   mobileMenuBtn: {
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: '#243454', alignItems: 'center', justifyContent: 'center',
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: NAVY, paddingHorizontal: 2,
   },
-  bellBadgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  bellBadgeText: { color: '#fff', fontSize: 8, fontWeight: '500' },
 
   // ── Overlay ──
   overlay: {
@@ -576,9 +576,9 @@ const styles = StyleSheet.create({
     width: 58, height: 58, borderRadius: 16,
     backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  logoMarkText: { color: NAVY, fontWeight: '900', fontSize: 22 },
-  logoTitle: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 2 },
-  logoSub:   { color: GOLD,  fontWeight: '600', fontSize: 9,  letterSpacing: 0.5, marginTop: 1 },
+  logoMarkText: { color: NAVY, fontWeight: '500', fontSize: 22 },
+  logoTitle: { color: '#fff', fontWeight: '500', fontSize: 14, letterSpacing: 2 },
+  logoSub:   { color: GOLD,  fontWeight: '400', fontSize: 9,  letterSpacing: 0.5, marginTop: 1 },
   sidebarOnlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e', flexShrink: 0 },
 
   userPill: {
@@ -589,15 +589,15 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  userAvatarText: { color: NAVY, fontWeight: '900', fontSize: 16 },
-  userPortalLabel: { fontSize: 8, color: GOLD, fontWeight: '800', letterSpacing: 1.5, marginBottom: 2 },
-  userName: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  userAvatarText: { color: NAVY, fontWeight: '500', fontSize: 16 },
+  userPortalLabel: { fontSize: 8, color: GOLD, fontWeight: '400', letterSpacing: 1.5, marginBottom: 2 },
+  userName: { color: '#fff', fontWeight: '500', fontSize: 13 },
 
   // ── Nav ──
   navScroll: { paddingBottom: 8 },
   navSection: { paddingTop: 20, paddingHorizontal: 12 },
   navSectionTitle: {
-    fontSize: 9, fontWeight: '800', color: '#5B7A9D',
+    fontSize: 9, fontWeight: '400', color: '#5B7A9D',
     letterSpacing: 1.5, textTransform: 'uppercase',
     marginBottom: 6, paddingLeft: 4,
   },
@@ -613,8 +613,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#2E4168',
   },
   navIconWrapActive: { backgroundColor: GOLD + '22', borderColor: GOLD + '55', position: 'relative' },
-  navItemText: { flex: 1, fontSize: 13, color: '#9EB4D0', fontWeight: '600' },
-  navItemTextActive: { color: '#fff', fontWeight: '700' },
+  navItemText: { flex: 1, fontSize: 13, color: '#9EB4D0', fontWeight: '400' },
+  navItemTextActive: { color: '#fff', fontWeight: '500' },
 
   // icon-corner badge (small red dot with number)
   navBadge: {
@@ -623,14 +623,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: NAVY, paddingHorizontal: 2,
   },
-  navBadgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  navBadgeText: { color: '#fff', fontSize: 8, fontWeight: '500' },
 
   // pill badge at right of nav row
   navBadgePill: {
     backgroundColor: '#ef4444', borderRadius: 99,
     paddingHorizontal: 7, paddingVertical: 2, minWidth: 20, alignItems: 'center',
   },
-  navBadgePillText: { color: '#fff', fontSize: 9, fontWeight: '900' },
+  navBadgePillText: { color: '#fff', fontSize: 9, fontWeight: '500' },
   navActiveBar: {
     position: 'absolute', right: 0, top: '25%', bottom: '25%',
     width: 3, borderRadius: 3, backgroundColor: GOLD,
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 12,
     borderRadius: 14, backgroundColor: '#2E1A1A',
   },
-  logoutText: { color: '#f87171', fontWeight: '700', fontSize: 13 },
+  logoutText: { color: '#f87171', fontWeight: '500', fontSize: 13 },
 
   // ── Main content ──
   main: { flex: 1, backgroundColor: '#F5F7FA' },
@@ -661,14 +661,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 12,
     borderRadius: 14, backgroundColor: '#1E3355', marginBottom: 8,
   },
-  sidebarBellText: { flex: 1, color: GOLD, fontWeight: '700', fontSize: 13 },
+  sidebarBellText: { flex: 1, color: GOLD, fontWeight: '500', fontSize: 13 },
   sidebarBellBadge: {
     position: 'absolute', top: -5, right: -5,
     minWidth: 15, height: 15, borderRadius: 8,
     backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: NAVY, paddingHorizontal: 2,
   },
-  sidebarBellBadgeText: { color: '#fff', fontSize: 7, fontWeight: '900' },
+  sidebarBellBadgeText: { color: '#fff', fontSize: 7, fontWeight: '500' },
 
   // Dashboard bell icon (top-right of main content)
   dashBellBtn: {
@@ -683,5 +683,5 @@ const styles = StyleSheet.create({
     borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
     borderWidth: 1.5, borderColor: '#fff', paddingHorizontal: 2,
   },
-  dashBellBadgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  dashBellBadgeText: { color: '#fff', fontSize: 8, fontWeight: '500' },
 });

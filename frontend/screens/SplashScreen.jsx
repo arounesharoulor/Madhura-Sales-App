@@ -16,6 +16,7 @@ export default function SplashScreen() {
   const router = useRouter();
   const fadeAnim = new Animated.Value(0);
   const slideAnim = new Animated.Value(30);
+  const scaleAnim = new Animated.Value(0.5); // Initial scale for logo
 
   useEffect(() => {
     Animated.parallel([
@@ -29,10 +30,17 @@ export default function SplashScreen() {
         duration: 800,
         useNativeDriver: false,
       }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: false,
+      }),
     ]).start();
 
     const checkAuth = async () => {
-      await new Promise(r => setTimeout(r, 1800));
+      // Wait for animations to complete before transitioning
+      await new Promise(r => setTimeout(r, 800));
       try {
         const token = await AsyncStorage.getItem('token');
         const userStr = await AsyncStorage.getItem('user');
@@ -56,7 +64,11 @@ export default function SplashScreen() {
       <View style={styles.container}>
         <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <View style={styles.logoWrap}>
-            <Image source={require('../assets/madhura.png')} style={styles.logoImage} resizeMode="contain" />
+            <Animated.Image 
+              source={require('../assets/madhura.png')} 
+              style={[styles.logoImage, { transform: [{ scale: scaleAnim }] }]} 
+              resizeMode="contain" 
+            />
           </View>
           <Text style={styles.appName}>Madhura CRM</Text>
           <Text style={styles.tagline}>Field Staff Management</Text>
@@ -91,7 +103,7 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 30,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#0f172a',
     letterSpacing: 0.5,
     marginBottom: 8,

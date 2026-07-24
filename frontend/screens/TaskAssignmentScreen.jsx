@@ -320,6 +320,11 @@ export default function TaskAssignmentScreen({ isComponent = false }) {
         {/* Page Header */}
         <View style={styles.pageHeader}>
           <View style={styles.pageHeaderLeft}>
+            {!isComponent && (
+              <TouchableOpacity onPress={() => router.push(['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) ? '/AdminDashboard' : '/Dashboard')} style={{ marginRight: 4 }}>
+                <Ionicons name="arrow-back" size={24} color="#0f172a" />
+              </TouchableOpacity>
+            )}
             <View style={styles.pageIconWrap}>
               <Ionicons name="clipboard" size={24} color="#0284c7" />
             </View>
@@ -480,7 +485,7 @@ export default function TaskAssignmentScreen({ isComponent = false }) {
                         size={14}
                         color={taskPriority === p.val ? '#fff' : p.color}
                       />
-                      <Text style={{ fontSize: 12, fontWeight: '900', color: taskPriority === p.val ? '#fff' : '#64748b' }}>
+                      <Text style={{ fontSize: 12, fontWeight: '500', color: taskPriority === p.val ? '#fff' : '#64748b' }}>
                         {p.label}
                       </Text>
                     </TouchableOpacity>
@@ -658,7 +663,7 @@ export default function TaskAssignmentScreen({ isComponent = false }) {
                         {item.dueDate && (
                           <View style={styles.taskMetaItem}>
                             <Ionicons name="calendar-outline" size={12} color={isOverdue ? '#dc2626' : '#94a3b8'} />
-                            <Text style={[styles.taskMetaText, isOverdue && { color: '#dc2626', fontWeight: '900' }]}>
+                            <Text style={[styles.taskMetaText, isOverdue && { color: '#dc2626', fontWeight: '500' }]}>
                               {isOverdue ? '⚠️ Overdue — ' : ''}
                               {new Date(item.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </Text>
@@ -684,7 +689,7 @@ export default function TaskAssignmentScreen({ isComponent = false }) {
                               style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, gap: 4 }}
                             >
                               <Ionicons name="create-outline" size={12} color="#0284c7" />
-                              <Text style={{ fontSize: 11, fontWeight: '900', color: '#0284c7' }}>Edit</Text>
+                              <Text style={{ fontSize: 11, fontWeight: '500', color: '#0284c7' }}>Edit</Text>
                             </TouchableOpacity>
                           )}
                         </View>
@@ -760,15 +765,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0f2fe',
     alignItems: 'center', justifyContent: 'center',
   },
-  pageTitle: { fontSize: 22, fontWeight: '900', color: '#0f172a' },
+  pageTitle: { fontSize: 22, fontWeight: '500', color: '#0f172a' },
   pageSubtitle: { fontSize: 13, color: '#64748b', marginTop: 2 },
   statsRow: { flexDirection: 'row', gap: 8 },
   statPill: {
     backgroundColor: '#fee2e2', borderRadius: 16,
     paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center',
   },
-  statPillNum: { fontSize: 18, fontWeight: '900', color: '#dc2626' },
-  statPillLabel: { fontSize: 10, color: '#b91c1c', fontWeight: '600', marginTop: 1 },
+  statPillNum: { fontSize: 18, fontWeight: '500', color: '#dc2626' },
+  statPillLabel: { fontSize: 10, color: '#b91c1c', fontWeight: '400', marginTop: 1 },
 
   tabBar: {
     flexDirection: 'row', gap: 10, marginBottom: 20,
@@ -780,7 +785,7 @@ const styles = StyleSheet.create({
     gap: 6, paddingVertical: 12, borderRadius: 16,
   },
   tabBtnActive: { backgroundColor: '#0284c7' },
-  tabBtnText: { fontSize: 13, fontWeight: '900', color: '#64748b' },
+  tabBtnText: { fontSize: 13, fontWeight: '500', color: '#64748b' },
   tabBtnTextActive: { color: '#fff' },
 
   card: {
@@ -789,13 +794,13 @@ const styles = StyleSheet.create({
     padding: 20, marginBottom: 16,
   },
   cardLabel: {
-    fontSize: 10, fontWeight: '900', color: '#94a3b8',
+    fontSize: 10, fontWeight: '500', color: '#94a3b8',
     letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4,
   },
   cardSubLabel: { fontSize: 12, color: '#64748b', marginBottom: 16 },
 
   fieldGroup: { marginBottom: 16 },
-  label: { fontSize: 12, fontWeight: '900', color: '#475569', marginBottom: 8 },
+  label: { fontSize: 12, fontWeight: '500', color: '#475569', marginBottom: 8 },
   inputWrap: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#f8fafc', borderRadius: 14,
@@ -815,7 +820,7 @@ const styles = StyleSheet.create({
   },
   dateIcon: { marginRight: 10 },
   dateWebInput: { flex: 1, color: '#0f172a', fontSize: 14, minHeight: 48 },
-  dateDisplayText: { fontSize: 12, color: '#0284c7', fontWeight: '600', marginLeft: 8 },
+  dateDisplayText: { fontSize: 12, color: '#0284c7', fontWeight: '400', marginLeft: 8 },
   dateNativeText: { flex: 1, fontSize: 14, color: '#0f172a' },
   webDateHint: { fontSize: 11, color: '#94a3b8', marginTop: 6, marginLeft: 4 },
 
@@ -833,9 +838,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center',
   },
   empAvatarSelected: { backgroundColor: '#0284c7' },
-  empAvatarText: { fontSize: 18, fontWeight: '900', color: '#475569' },
+  empAvatarText: { fontSize: 18, fontWeight: '500', color: '#475569' },
   empInfo: { flex: 1 },
-  empName: { fontSize: 15, fontWeight: '900', color: '#0f172a' },
+  empName: { fontSize: 15, fontWeight: '500', color: '#0f172a' },
   empNameSelected: { color: '#0284c7' },
   empEmail: { fontSize: 12, color: '#64748b', marginTop: 2 },
   empPhone: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
@@ -844,7 +849,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f1f5f9', borderRadius: 20,
     paddingHorizontal: 8, paddingVertical: 4,
   },
-  empTaskBadgeText: { fontSize: 10, color: '#64748b', fontWeight: '600' },
+  empTaskBadgeText: { fontSize: 10, color: '#64748b', fontWeight: '400' },
   statusBadge: {
     marginTop: 8,
     alignSelf: 'flex-start',
@@ -863,7 +868,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '500',
   },
   statusTextActive: { color: '#16a34a' },
   statusTextInactive: { color: '#dc2626' },
@@ -872,7 +877,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0284c7', alignItems: 'center', justifyContent: 'center',
   },
   emptyEmp: { alignItems: 'center', paddingVertical: 32 },
-  emptyEmpText: { fontSize: 15, fontWeight: '600', color: '#94a3b8', marginTop: 12 },
+  emptyEmpText: { fontSize: 15, fontWeight: '400', color: '#94a3b8', marginTop: 12 },
   emptyEmpSub: { fontSize: 12, color: '#cbd5e1', marginTop: 4 },
 
   summaryCard: {
@@ -881,7 +886,7 @@ const styles = StyleSheet.create({
     borderColor: '#bfdbfe', padding: 14, marginBottom: 16,
   },
   summaryText: { flex: 1, fontSize: 13, color: '#1e40af', lineHeight: 18 },
-  summaryBold: { fontWeight: '900' },
+  summaryBold: { fontWeight: '500' },
 
   assignBtn: {
     backgroundColor: '#0284c7', borderRadius: 18,
@@ -889,7 +894,7 @@ const styles = StyleSheet.create({
     gap: 10, height: 56, marginBottom: 32,
   },
   assignBtnDisabled: { opacity: 0.7 },
-  assignBtnText: { color: '#fff', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 },
+  assignBtnText: { color: '#fff', fontSize: 16, fontWeight: '500', letterSpacing: 0.5 },
 
   filterRow: {
     flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap',
@@ -900,7 +905,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   filterBtnActive: { backgroundColor: '#0284c7', borderColor: '#0284c7' },
-  filterBtnText: { fontSize: 12, fontWeight: '600', color: '#64748b' },
+  filterBtnText: { fontSize: 12, fontWeight: '400', color: '#64748b' },
   filterBtnTextActive: { color: '#fff' },
 
   taskHistCard: {
@@ -911,10 +916,10 @@ const styles = StyleSheet.create({
   taskHistCardOverdue: { borderColor: '#fca5a5', backgroundColor: '#fff5f5' },
   taskHistRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   taskStatusDot: { width: 10, height: 10, borderRadius: 5, marginTop: 5 },
-  taskHistTitle: { fontSize: 15, fontWeight: '900', color: '#0f172a', marginBottom: 3 },
+  taskHistTitle: { fontSize: 15, fontWeight: '500', color: '#0f172a', marginBottom: 3 },
   taskHistDesc: { fontSize: 12, color: '#64748b', lineHeight: 18 },
   taskStatusBadge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, marginLeft: 8 },
-  taskStatusText: { fontSize: 10, fontWeight: '900' },
+  taskStatusText: { fontSize: 10, fontWeight: '500' },
   taskHistMeta: { flexDirection: 'row', gap: 14, marginTop: 12, flexWrap: 'wrap' },
   taskMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   taskMetaText: { fontSize: 11, color: '#94a3b8', fontWeight: '500' },
@@ -930,7 +935,7 @@ const styles = StyleSheet.create({
   },
   adminHistoryTitle: {
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#334155',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -975,11 +980,11 @@ const styles = StyleSheet.create({
   adminHistDate: {
     fontSize: 11,
     color: '#64748b',
-    fontWeight: '600',
+    fontWeight: '400',
   },
   adminHistStatus: {
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '500',
     textTransform: 'uppercase',
   },
   adminHistNotes: {
@@ -995,7 +1000,7 @@ const styles = StyleSheet.create({
   adminEvidenceLabel: {
     fontSize: 11,
     color: '#64748b',
-    fontWeight: '600',
+    fontWeight: '400',
   },
   adminEvidenceImage: {
     width: '100%',

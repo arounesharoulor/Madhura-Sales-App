@@ -22,6 +22,7 @@ export default function ChatScreen() {
   const [text, setText] = useState('');
   const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('Employee');
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef(null);
 
@@ -47,6 +48,7 @@ export default function ChatScreen() {
         const parsed = JSON.parse(storedUser);
         setUserId(parsed.id);
         setUserName(parsed.name || '');
+        if (parsed.role) setUserRole(parsed.role);
       }
       fetchMessages();
     };
@@ -178,6 +180,9 @@ export default function ChatScreen() {
 
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.push(['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(userRole) ? '/AdminDashboard' : '/Dashboard')} style={{ marginRight: 12 }}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
         <View style={styles.headerAvatar}>
           <Text style={styles.headerAvatarText}>
             {partnerName ? getInitials(partnerName) : '👥'}
@@ -271,8 +276,8 @@ const styles = StyleSheet.create({
     width: 40, height: 40, borderRadius: 12,
     backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center',
   },
-  headerAvatarText: { color: NAVY, fontWeight: '900', fontSize: 14 },
-  headerTitle: { color: '#fff', fontWeight: '900', fontSize: 16 },
+  headerAvatarText: { color: NAVY, fontWeight: '500', fontSize: 14 },
+  headerTitle: { color: '#fff', fontWeight: '500', fontSize: 16 },
   onlineRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
   onlineDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#22c55e' },
   onlineText: { color: '#9EB4D0', fontSize: 11, fontWeight: '500' },
@@ -292,14 +297,14 @@ const styles = StyleSheet.create({
     backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
     marginRight: 8, flexShrink: 0,
   },
-  avatarText: { color: GOLD, fontWeight: '900', fontSize: 10 },
+  avatarText: { color: GOLD, fontWeight: '500', fontSize: 10 },
 
   bubbleWrap: { maxWidth: '75%' },
   bubbleWrapMe: { alignItems: 'flex-end' },
   bubbleWrapOther: { alignItems: 'flex-start' },
 
   senderName: {
-    fontSize: 11, fontWeight: '900', color: '#475569',
+    fontSize: 11, fontWeight: '500', color: '#475569',
     marginBottom: 3, marginLeft: 2,
   },
 
@@ -325,7 +330,7 @@ const styles = StyleSheet.create({
 
   // ── Empty State ──
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-  emptyTitle: { fontSize: 18, fontWeight: '900', color: '#334155', marginTop: 16 },
+  emptyTitle: { fontSize: 18, fontWeight: '500', color: '#334155', marginTop: 16 },
   emptyText: { fontSize: 13, color: '#94a3b8', marginTop: 6, textAlign: 'center', lineHeight: 20 },
 
   // ── Input Bar ──

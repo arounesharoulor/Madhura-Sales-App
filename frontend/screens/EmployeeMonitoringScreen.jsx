@@ -28,7 +28,7 @@ const LocationCard = ({ item, openInMap }) => {
             {item.employeeId ? `#${item.employeeId}  ·  ` : ''}{item.designation || 'Field Executive'}
           </Text>
           {(item.overdueTasks > 0 || item.overdueFollowUps > 0) && (
-            <Text style={{ fontSize: 11, color: '#dc2626', fontWeight: '900', marginTop: 3 }}>
+            <Text style={{ fontSize: 11, color: '#dc2626', fontWeight: '500', marginTop: 3 }}>
               ⚠️ {(item.overdueTasks || 0) + (item.overdueFollowUps || 0)} Overdue Item{((item.overdueTasks || 0) + (item.overdueFollowUps || 0)) > 1 ? 's' : ''}
             </Text>
           )}
@@ -203,9 +203,14 @@ export default function EmployeeMonitoringScreen({ isTab = false, userRole = 'Ad
       <View style={styles.container}>
         {!isTab && (
           <View style={styles.header}>
-            <View>
-              <Text style={styles.title}>Track Field Staff</Text>
-              <Text style={styles.subtitle}>Live GPS Monitoring & Timeline</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+              <TouchableOpacity onPress={() => router.push(['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(userRole) ? '/AdminDashboard' : '/Dashboard')} style={{ marginTop: 2 }}>
+                <Ionicons name="arrow-back" size={24} color="#0f172a" />
+              </TouchableOpacity>
+              <View>
+                <Text style={styles.title}>Track Field Staff</Text>
+                <Text style={styles.subtitle}>Live GPS Monitoring & Timeline</Text>
+              </View>
             </View>
             <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchLiveLocations(true)}>
               <Ionicons name="refresh" size={18} color="#0284c7" />
@@ -264,18 +269,18 @@ export default function EmployeeMonitoringScreen({ isTab = false, userRole = 'Ad
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 16, backgroundColor: '#f8fafc' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title: { fontSize: 22, fontWeight: '800', color: '#0f172a' },
+  title: { fontSize: 22, fontWeight: '400', color: '#0f172a' },
   subtitle: { fontSize: 13, color: '#64748b', marginTop: 2 },
   refreshBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#e0f2fe', alignItems: 'center', justifyContent: 'center' },
   
   analyticsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
   statBox: { flex: 1, backgroundColor: '#fff', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#e2e8f0', borderBottomWidth: 4, elevation: 1 },
-  statLabel: { fontSize: 11, color: '#64748b', fontWeight: '700', textTransform: 'uppercase' },
-  statValue: { fontSize: 24, fontWeight: '900', marginTop: 4 },
+  statLabel: { fontSize: 11, color: '#64748b', fontWeight: '500', textTransform: 'uppercase' },
+  statValue: { fontSize: 24, fontWeight: '500', marginTop: 4 },
 
   list: { paddingBottom: 32 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 80 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#334155', marginTop: 14 },
+  emptyTitle: { fontSize: 18, fontWeight: '500', color: '#334155', marginTop: 14 },
   emptyText: { fontSize: 13, color: '#94a3b8', marginTop: 4, textAlign: 'center' },
 
   card: {
@@ -286,18 +291,18 @@ const styles = StyleSheet.create({
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#e0f2fe', alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontWeight: '800', fontSize: 18, color: '#0284c7' },
-  cardName: { fontSize: 15, fontWeight: '700', color: '#0f172a' },
+  avatarText: { fontWeight: '400', fontSize: 18, color: '#0284c7' },
+  cardName: { fontSize: 15, fontWeight: '500', color: '#0f172a' },
   cardSub: { fontSize: 12, color: '#64748b', marginTop: 2 },
   
   chatBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#e0f2fe', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-  chatBtnText: { color: '#0284c7', fontSize: 12, fontWeight: '700' },
+  chatBtnText: { color: '#0284c7', fontSize: 12, fontWeight: '500' },
 
   badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99, borderWidth: 1 },
-  badgeText: { fontSize: 11, fontWeight: '700' },
+  badgeText: { fontSize: 11, fontWeight: '500' },
 
   mapRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, backgroundColor: '#f0f9ff', alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  mapText: { fontSize: 12, color: '#0284c7', fontWeight: '700' },
+  mapText: { fontSize: 12, color: '#0284c7', fontWeight: '500' },
   
   addressBox: { marginTop: 12, padding: 8, backgroundColor: '#f8fafc', borderRadius: 8, borderWidth: 1, borderColor: '#f1f5f9' },
   addressText: { fontSize: 13, color: '#475569', lineHeight: 18 },
@@ -307,11 +312,11 @@ const styles = StyleSheet.create({
 
   timelineContainer: { marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
   timelineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  timelineTitle: { fontSize: 13, fontWeight: '700', color: '#334155' },
+  timelineTitle: { fontSize: 13, fontWeight: '500', color: '#334155' },
   timelineItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
   timelineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#0284c7', marginTop: 5 },
   timelineContent: { flex: 1 },
   timelineTime: { fontSize: 11, color: '#64748b' },
-  timelineType: { fontWeight: '700', color: '#0f172a' },
+  timelineType: { fontWeight: '500', color: '#0f172a' },
   timelineDesc: { fontSize: 12, color: '#475569', marginTop: 2, lineHeight: 16 },
 });

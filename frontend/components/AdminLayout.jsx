@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
     width: 48, height: 48, borderRadius: 14,
     backgroundColor: '#0284c7', alignItems: 'center', justifyContent: 'center',
   },
-  mobileLogoText: { color: '#fff', fontWeight: '900', fontSize: 16 },
-  mobileBrand: { color: '#f8fafc', fontWeight: '700', fontSize: 18 },
+  mobileLogoText: { color: '#fff', fontWeight: '500', fontSize: 16 },
+  mobileBrand: { color: '#f8fafc', fontWeight: '500', fontSize: 18 },
   mobileMenuBtn: {
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: '#1e293b', alignItems: 'center', justifyContent: 'center',
@@ -258,15 +258,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#0284c7', alignItems: 'center', justifyContent: 'center',
     flexShrink: 0,
   },
-  sidebarAvatarText: { color: '#fff', fontWeight: '900', fontSize: 18 },
-  sidebarPortalLabel: { fontSize: 9, color: '#475569', fontWeight: '800', letterSpacing: 1.5, marginBottom: 2 },
-  sidebarName: { color: '#f8fafc', fontWeight: '800', fontSize: 15 },
+  sidebarAvatarText: { color: '#fff', fontWeight: '500', fontSize: 18 },
+  sidebarPortalLabel: { fontSize: 9, color: '#475569', fontWeight: '400', letterSpacing: 1.5, marginBottom: 2 },
+  sidebarName: { color: '#f8fafc', fontWeight: '400', fontSize: 15 },
   sidebarOnlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e', flexShrink: 0 },
 
   navScroll: { paddingBottom: 8 },
   navSection: { paddingTop: 20, paddingHorizontal: 12 },
   navSectionTitle: {
-    fontSize: 9, fontWeight: '800', color: '#334155',
+    fontSize: 9, fontWeight: '400', color: '#334155',
     letterSpacing: 1.5, textTransform: 'uppercase',
     marginBottom: 6, paddingLeft: 4,
   },
@@ -281,8 +281,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e293b', alignItems: 'center', justifyContent: 'center',
   },
   navIconWrapActive: { backgroundColor: '#0c2d4a' },
-  navItemText: { flex: 1, fontSize: 13, color: '#64748b', fontWeight: '600' },
-  navItemTextActive: { color: '#e2e8f0', fontWeight: '700' },
+  navItemText: { flex: 1, fontSize: 13, color: '#64748b', fontWeight: '400' },
+  navItemTextActive: { color: '#e2e8f0', fontWeight: '500' },
   navActiveBar: {
     position: 'absolute', right: 0, top: '25%', bottom: '25%',
     width: 3, borderRadius: 3, backgroundColor: '#0284c7',
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 12,
     borderRadius: 14, backgroundColor: '#1a0a0e',
   },
-  logoutText: { color: '#f43f5e', fontWeight: '700', fontSize: 13 },
+  logoutText: { color: '#f43f5e', fontWeight: '500', fontSize: 13 },
 
   // Main content
   main: { flex: 1, backgroundColor: '#f8fafc' },

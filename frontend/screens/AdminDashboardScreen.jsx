@@ -34,11 +34,13 @@ export default function AdminDashboardScreen() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const userRes = await api.get('/users');
-      const taskRes = await api.get('/tasks');
-      const meetingRes = await api.get('/meetings');
-      const clientRes = await api.get('/onboarding').catch(() => ({ data: { data: [] } }));
-      const notifRes = await api.get('/notifications').catch(() => ({ data: { data: [] } }));
+      const [userRes, taskRes, meetingRes, clientRes, notifRes] = await Promise.all([
+        api.get('/users'),
+        api.get('/tasks'),
+        api.get('/meetings'),
+        api.get('/onboarding').catch(() => ({ data: { data: [] } })),
+        api.get('/notifications').catch(() => ({ data: { data: [] } }))
+      ]);
       
       const tasks = taskRes.data.data;
       const pending = tasks.filter(t => t.status === 'Pending' || t.status === 'In Progress').length;

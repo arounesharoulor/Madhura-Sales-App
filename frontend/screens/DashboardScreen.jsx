@@ -22,8 +22,8 @@ function StatCard({ icon, label, value, color, bg, onPress }) {
         <Ionicons name={icon} size={14} color={color} />
       </View>
       <View>
-        <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginTop: 3 }}>{value}</Text>
-        <Text style={{ fontSize: 9, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
+        <Text style={{ fontSize: 20, fontWeight: '500', color: '#0f172a', marginTop: 3 }}>{value}</Text>
+        <Text style={{ fontSize: 9, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -109,7 +109,6 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    loadData();
     loadData(); // run on mount
     
   }, []);
@@ -163,12 +162,12 @@ export default function DashboardScreen() {
           {/* ── Greeting row ── */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <View>
-              <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600' }}>{greeting()},</Text>
-              <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', letterSpacing: -0.3 }}>
+              <Text style={{ fontSize: 11, color: '#94a3b8', fontWeight: '400' }}>{greeting()},</Text>
+              <Text style={{ fontSize: 20, fontWeight: '500', color: '#0f172a', letterSpacing: -0.3 }}>
                 {user.name || 'Agent'}
               </Text>
               <View style={{ backgroundColor: '#e0f2fe', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6, alignSelf: 'flex-start', marginTop: 3 }}>
-                <Text style={{ fontSize: 10, fontWeight: '900', color: '#0284c7' }}>
+                <Text style={{ fontSize: 10, fontWeight: '500', color: '#0284c7' }}>
                   {user.designation || 'Field Executive'}
                 </Text>
               </View>
@@ -193,7 +192,7 @@ export default function DashboardScreen() {
                     borderRadius: 8, backgroundColor: '#ef4444', alignItems: 'center', justifyContent: 'center',
                     borderWidth: 1.5, borderColor: '#fff', paddingHorizontal: 2,
                   }}>
-                    <Text style={{ color: '#fff', fontSize: 8, fontWeight: '900' }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                    <Text style={{ color: '#fff', fontSize: 8, fontWeight: '500' }}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -213,7 +212,7 @@ export default function DashboardScreen() {
               color={checkedIn ? '#16a34a' : '#ea580c'}
             />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, fontWeight: '900', color: checkedIn ? '#15803d' : '#c2410c' }}>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: checkedIn ? '#15803d' : '#c2410c' }}>
                 {checkedIn ? 'Checked In Today ✓' : 'Not Checked In Yet'}
               </Text>
               <Text style={{ fontSize: 10, color: '#94a3b8' }}>
@@ -224,7 +223,7 @@ export default function DashboardScreen() {
               onPress={() => router.push('/Attendance')}
               style={{ backgroundColor: checkedIn ? '#16a34a' : '#ea580c', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}
             >
-              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 11 }}>
+              <Text style={{ color: '#fff', fontWeight: '500', fontSize: 11 }}>
                 {checkedIn ? 'View' : 'Check In'}
               </Text>
             </TouchableOpacity>
@@ -237,10 +236,10 @@ export default function DashboardScreen() {
             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14,
           }}>
             <View>
-              <Text style={{ color: '#64748b', fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Text style={{ color: '#64748b', fontSize: 9, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1 }}>
                 Total Clients Onboarded
               </Text>
-              <Text style={{ color: '#fff', fontSize: 28, fontWeight: '900', marginTop: 1 }}>
+              <Text style={{ color: '#fff', fontSize: 28, fontWeight: '500', marginTop: 1 }}>
                 {metrics.totalClients}
               </Text>
             </View>
@@ -250,7 +249,7 @@ export default function DashboardScreen() {
           </TouchableOpacity>
 
           {/* ── Stats 3×2 compact grid ── */}
-          <Text style={{ fontSize: 10, fontWeight: '900', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+          <Text style={{ fontSize: 10, fontWeight: '500', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
             Today's Overview
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>

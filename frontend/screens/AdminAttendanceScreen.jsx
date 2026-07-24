@@ -433,7 +433,7 @@ export default function AdminAttendanceScreen() {
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, backgroundColor: item.executive?.earlyCheckoutLocked ? '#fef2f2' : '#f8fafc', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: item.executive?.earlyCheckoutLocked ? '#fecaca' : '#e2e8f0' }}
               >
                 <Ionicons name={item.executive?.earlyCheckoutLocked ? 'lock-closed' : 'lock-open'} size={14} color={item.executive?.earlyCheckoutLocked ? '#ef4444' : '#64748b'} />
-                <Text style={{ fontSize: 12, fontWeight: '900', color: item.executive?.earlyCheckoutLocked ? '#ef4444' : '#64748b' }}>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: item.executive?.earlyCheckoutLocked ? '#ef4444' : '#64748b' }}>
                   {item.executive?.earlyCheckoutLocked ? '🔒 Early Checkout Locked' : '🔓 Lock Early Checkout'}
                 </Text>
               </TouchableOpacity>
@@ -447,15 +447,21 @@ export default function AdminAttendanceScreen() {
             ) : null}
 
             {item.checkInLocation?.latitude ? (
-              <TouchableOpacity
-                style={styles.mapRow}
-                onPress={() => openInMap(item.checkInLocation.latitude, item.checkInLocation.longitude)}
-              >
-                <Ionicons name="location-outline" size={13} color="#0284c7" />
-                <Text style={styles.mapText}>
-                  {Number(item.checkInLocation.latitude).toFixed(4)}, {Number(item.checkInLocation.longitude).toFixed(4)} · View Map →
-                </Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, backgroundColor: '#f0f9ff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#bae6fd' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <Ionicons name="location" size={16} color="#0284c7" />
+                  <Text style={{ fontSize: 11, color: '#0369a1', fontWeight: '400' }} numberOfLines={1}>
+                    Lat: {Number(item.checkInLocation.latitude).toFixed(4)}, Lng: {Number(item.checkInLocation.longitude).toFixed(4)}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => openInMap(item.checkInLocation.latitude, item.checkInLocation.longitude)}
+                  style={{ backgroundColor: '#0ea5e9', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 10 }}
+                >
+                  <Ionicons name="map" size={12} color="#fff" />
+                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '500' }}>View Map</Text>
+                </TouchableOpacity>
+              </View>
             ) : null}
             
             {/* ── Employee Timeline ── */}
@@ -473,11 +479,11 @@ export default function AdminAttendanceScreen() {
                   <View style={{ padding: 12, paddingTop: 4 }}>
                     {item.timeline.map((event, idx) => (
                       <View key={idx} style={{ flexDirection: 'row', marginTop: 8 }}>
-                        <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', width: 65, marginTop: 1 }}>
+                        <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', width: 65, marginTop: 1 }}>
                           {new Date(event.time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                         <View style={{ flex: 1, paddingLeft: 10, borderLeftWidth: 2, borderLeftColor: '#cbd5e1' }}>
-                          <Text style={{ fontSize: 12, fontWeight: '900', color: '#334155' }}>{event.type}</Text>
+                          <Text style={{ fontSize: 12, fontWeight: '500', color: '#334155' }}>{event.type}</Text>
                           <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{event.description}</Text>
                         </View>
                       </View>
@@ -499,49 +505,47 @@ export default function AdminAttendanceScreen() {
       <View style={styles.container}>
 
         {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
-
+        <View style={{ marginBottom: 16 }}>
+          <View style={[styles.header, { marginBottom: 0 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')}>
-
                 <Ionicons name="arrow-back" size={24} color="#0f172a" />
-
               </TouchableOpacity>
-
               <Text style={styles.title}>Team Attendance</Text>
-
             </View>
-            {isFullAdmin && (
-              <Text style={styles.subtitle}>{leaveList.filter(isPending).length} leave{leaveList.filter(isPending).length !== 1 ? 's' : ''} pending approval</Text>
-            )}
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity style={styles.exportBtn} onPress={openSummaryModal} activeOpacity={0.8}>
-              <Ionicons name="eye-outline" size={16} color="#0284c7" />
-              <Text style={[styles.exportBtnText, { color: '#0284c7' }]}>View</Text>
-            </TouchableOpacity>
-            {isFullAdmin && (
-              <TouchableOpacity style={[styles.exportBtn, isExporting && { opacity: 0.7 }]} onPress={handleExportLog} disabled={isExporting}>
-                {isExporting ? (
-                  <ActivityIndicator size="small" color="#16a34a" />
-                ) : (
-                  <Ionicons name="download-outline" size={16} color="#16a34a" />
-                )}
-                <Text style={styles.exportBtnText}>{isExporting ? 'Exporting...' : 'Excel'}</Text>
+
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity style={styles.exportBtn} onPress={openSummaryModal} activeOpacity={0.8}>
+                <Ionicons name="eye-outline" size={16} color="#0284c7" />
+                <Text style={[styles.exportBtnText, { color: '#0284c7' }]}>View</Text>
               </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchAttendance(true)}>
-              <Ionicons name="refresh" size={18} color="#0284c7" />
-            </TouchableOpacity>
+              {isFullAdmin && (
+                <TouchableOpacity style={[styles.exportBtn, isExporting && { opacity: 0.7 }]} onPress={handleExportLog} disabled={isExporting}>
+                  {isExporting ? (
+                    <ActivityIndicator size="small" color="#16a34a" />
+                  ) : (
+                    <Ionicons name="download-outline" size={16} color="#16a34a" />
+                  )}
+                  <Text style={styles.exportBtnText}>{isExporting ? 'Exporting...' : 'Excel'}</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchAttendance(true)}>
+                <Ionicons name="refresh" size={18} color="#0284c7" />
+              </TouchableOpacity>
+            </View>
           </View>
+          {isFullAdmin && (
+            <Text style={[styles.subtitle, { paddingLeft: 36, marginTop: 4 }]}>
+              {leaveList.filter(isPending).length} leave{leaveList.filter(isPending).length !== 1 ? 's' : ''} pending approval
+            </Text>
+          )}
         </View>
 
         {/* Non-Admin View (Project Managers, Team Leads) */}
         {!isFullAdmin && (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
             <Ionicons name="people-outline" size={64} color="#bae6fd" style={{ marginBottom: 16 }} />
-            <Text style={{ fontSize: 18, color: '#334155', fontWeight: '900', marginBottom: 8 }}>Team Attendance Overview</Text>
+            <Text style={{ fontSize: 18, color: '#334155', fontWeight: '500', marginBottom: 8 }}>Team Attendance Overview</Text>
             <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 24 }}>
               Click the View button above or below to see a live summary of your team's attendance status today.
             </Text>
@@ -550,7 +554,7 @@ export default function AdminAttendanceScreen() {
               onPress={openSummaryModal}
             >
               <Ionicons name="eye-outline" size={18} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14 }}>View Live Summary</Text>
+              <Text style={{ color: '#fff', fontWeight: '500', fontSize: 14 }}>View Live Summary</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -767,7 +771,7 @@ export default function AdminAttendanceScreen() {
                   size={16}
                   color={selectedReason === r ? '#ef4444' : '#94a3b8'}
                 />
-                <Text style={[styles.reasonText, selectedReason === r && { color: '#ef4444', fontWeight: '900' }]}>
+                <Text style={[styles.reasonText, selectedReason === r && { color: '#ef4444', fontWeight: '500' }]}>
                   {r}
                 </Text>
               </TouchableOpacity>
@@ -816,7 +820,7 @@ export default function AdminAttendanceScreen() {
             {/* Modal Header */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', flexShrink: 0 }}>
               <View>
-                <Text style={{ fontSize: 18, fontWeight: '900', color: '#0f172a' }}>Team Attendance Summary</Text>
+                <Text style={{ fontSize: 18, fontWeight: '500', color: '#0f172a' }}>Team Attendance Summary</Text>
                 <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Live data · {summaryData.length} employees</Text>
               </View>
               <TouchableOpacity onPress={() => setShowSummaryModal(false)} style={{ backgroundColor: '#f1f5f9', borderRadius: 10, padding: 8 }}>
@@ -826,11 +830,11 @@ export default function AdminAttendanceScreen() {
 
             {/* Column Header */}
             <View style={{ flexDirection: 'row', backgroundColor: '#f8fafc', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e2e8f0', flexShrink: 0 }}>
-              <Text style={{ flex: 2, fontSize: 11, fontWeight: '900', color: '#475569', textTransform: 'uppercase' }}>Name / ID</Text>
-              <Text style={{ flex: 1, fontSize: 11, fontWeight: '900', color: '#475569', textTransform: 'uppercase' }}>Role</Text>
-              <Text style={{ width: 65, fontSize: 11, fontWeight: '900', color: '#22c55e', textAlign: 'center', textTransform: 'uppercase' }}>Present</Text>
-              <Text style={{ width: 55, fontSize: 11, fontWeight: '900', color: '#8b5cf6', textAlign: 'center', textTransform: 'uppercase' }}>Leave</Text>
-              <Text style={{ width: 55, fontSize: 11, fontWeight: '900', color: '#f59e0b', textAlign: 'center', textTransform: 'uppercase' }}>Early</Text>
+              <Text style={{ flex: 2, fontSize: 11, fontWeight: '500', color: '#475569', textTransform: 'uppercase' }}>Name / ID</Text>
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: '500', color: '#475569', textTransform: 'uppercase' }}>Role</Text>
+              <Text style={{ width: 65, fontSize: 11, fontWeight: '500', color: '#22c55e', textAlign: 'center', textTransform: 'uppercase' }}>Present</Text>
+              <Text style={{ width: 55, fontSize: 11, fontWeight: '500', color: '#8b5cf6', textAlign: 'center', textTransform: 'uppercase' }}>Leave</Text>
+              <Text style={{ width: 55, fontSize: 11, fontWeight: '500', color: '#f59e0b', textAlign: 'center', textTransform: 'uppercase' }}>Early</Text>
             </View>
 
             {/* Content */}
@@ -847,20 +851,20 @@ export default function AdminAttendanceScreen() {
                   {summaryData.map((s, idx) => (
                     <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', backgroundColor: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
                       <View style={{ flex: 2 }}>
-                        <Text style={{ fontSize: 13, fontWeight: '900', color: '#0f172a' }} numberOfLines={1}>{s.name}</Text>
+                        <Text style={{ fontSize: 13, fontWeight: '500', color: '#0f172a' }} numberOfLines={1}>{s.name}</Text>
                         <Text style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }} numberOfLines={1}>
                           {s.employeeId !== 'N/A' ? `ID: ${s.employeeId}` : s.address !== 'N/A' ? s.address : s.role}
                         </Text>
                       </View>
-                      <Text style={{ flex: 1, fontSize: 11, color: '#64748b', fontWeight: '600' }} numberOfLines={1}>{s.designation !== 'N/A' ? s.designation : s.role}</Text>
+                      <Text style={{ flex: 1, fontSize: 11, color: '#64748b', fontWeight: '400' }} numberOfLines={1}>{s.designation !== 'N/A' ? s.designation : s.role}</Text>
                       <View style={{ width: 65, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 16, fontWeight: '900', color: '#22c55e' }}>{s.present}</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#22c55e' }}>{s.present}</Text>
                       </View>
                       <View style={{ width: 55, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 16, fontWeight: '900', color: '#8b5cf6' }}>{s.leave}</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#8b5cf6' }}>{s.leave}</Text>
                       </View>
                       <View style={{ width: 55, alignItems: 'center' }}>
-                        <Text style={{ fontSize: 16, fontWeight: '900', color: '#f59e0b' }}>{s.earlyCheckout}</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '500', color: '#f59e0b' }}>{s.earlyCheckout}</Text>
                       </View>
                     </View>
                   ))}
@@ -876,7 +880,7 @@ export default function AdminAttendanceScreen() {
                 activeOpacity={0.8}
               >
                 <Ionicons name="download-outline" size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14 }}>Download as Excel</Text>
+                <Text style={{ color: '#fff', fontWeight: '500', fontSize: 14 }}>Download as Excel</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -888,26 +892,26 @@ export default function AdminAttendanceScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  container: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  title: { fontSize: 22, fontWeight: '900', color: '#0f172a' },
+  title: { fontSize: 22, fontWeight: '500', color: '#0f172a', letterSpacing: -0.5 },
   subtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
   refreshBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: '#e0f2fe', alignItems: 'center', justifyContent: 'center' },
   exportBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 40, borderRadius: 12, backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0' },
-  exportBtnText: { color: '#16a34a', fontWeight: '900', fontSize: 13 },
+  exportBtnText: { color: '#16a34a', fontWeight: '500', fontSize: 13 },
 
   tabs: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 14, padding: 4, marginBottom: 14, gap: 4 },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 10, gap: 5 },
   tabActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 },
-  tabText: { fontSize: 11, fontWeight: '600', color: '#64748b' },
-  tabTextActive: { color: '#0284c7', fontWeight: '900' },
+  tabText: { fontSize: 11, fontWeight: '400', color: '#64748b' },
+  tabTextActive: { color: '#0284c7', fontWeight: '500' },
 
   filterRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 12, height: 44, marginBottom: 14, gap: 8 },
   filterInput: { flex: 1, color: '#0f172a', fontSize: 14 },
 
   list: { paddingBottom: 32 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 80 },
-  emptyTitle: { fontSize: 18, fontWeight: '900', color: '#334155', marginTop: 14 },
+  emptyTitle: { fontSize: 18, fontWeight: '500', color: '#334155', marginTop: 14 },
   emptyText: { fontSize: 13, color: '#94a3b8', marginTop: 4, textAlign: 'center' },
 
   card: {
@@ -917,47 +921,47 @@ const styles = StyleSheet.create({
   },
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontWeight: '900', fontSize: 18 },
-  cardName: { fontSize: 15, fontWeight: '900', color: '#0f172a' },
+  avatarText: { fontWeight: '500', fontSize: 18 },
+  cardName: { fontSize: 15, fontWeight: '500', color: '#0f172a' },
   cardSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, borderWidth: 1 },
-  badgeText: { fontSize: 10, fontWeight: '900' },
+  badgeText: { fontSize: 10, fontWeight: '500' },
 
   divider: { height: 1, backgroundColor: '#f1f5f9', marginVertical: 12 },
 
   timeRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 12 },
   timeBlock: { alignItems: 'center', gap: 3 },
-  timeLabel: { fontSize: 9, color: '#94a3b8', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 },
-  timeVal: { fontSize: 13, fontWeight: '900', color: '#0f172a' },
+  timeLabel: { fontSize: 9, color: '#94a3b8', fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.5 },
+  timeVal: { fontSize: 13, fontWeight: '500', color: '#0f172a' },
 
   infoBox: { borderRadius: 10, padding: 10, borderWidth: 1, marginBottom: 8 },
-  infoLabel: { fontSize: 11, fontWeight: '900', color: '#475569', marginBottom: 4 },
+  infoLabel: { fontSize: 11, fontWeight: '500', color: '#475569', marginBottom: 4 },
   infoText: { fontSize: 12, color: '#334155', lineHeight: 18 },
 
   mapRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 6 },
-  mapText: { fontSize: 11, color: '#0284c7', fontWeight: '600' },
+  mapText: { fontSize: 11, color: '#0284c7', fontWeight: '400' },
 
   actionRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 12 },
   approveBtn: { backgroundColor: '#16a34a' },
   rejectBtn: { backgroundColor: '#ef4444' },
-  actionBtnText: { color: '#fff', fontWeight: '900', fontSize: 13 },
+  actionBtnText: { color: '#fff', fontWeight: '500', fontSize: 13 },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalBox: { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: 40 },
-  modalTitle: { fontSize: 20, fontWeight: '900', color: '#0f172a', marginBottom: 4 },
+  modalTitle: { fontSize: 20, fontWeight: '500', color: '#0f172a', marginBottom: 4 },
   modalSubtitle: { fontSize: 13, color: '#64748b', marginBottom: 16 },
-  modalLabel: { fontSize: 11, fontWeight: '900', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  modalLabel: { fontSize: 11, fontWeight: '500', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
   reasonBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 8 },
   reasonBtnActive: { borderColor: '#fca5a5', backgroundColor: '#fef2f2' },
   reasonText: { fontSize: 13, color: '#334155' },
   customReasonInput: { borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 12, padding: 12, marginTop: 8, fontSize: 14, color: '#0f172a', minHeight: 80, textAlignVertical: 'top' },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
   cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#e2e8f0', alignItems: 'center' },
-  cancelBtnText: { fontWeight: '900', color: '#334155', fontSize: 14 },
+  cancelBtnText: { fontWeight: '500', color: '#334155', fontSize: 14 },
   confirmRejectBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14, borderRadius: 14, backgroundColor: '#ef4444' },
-  confirmRejectText: { color: '#fff', fontWeight: '900', fontSize: 14 },
+  confirmRejectText: { color: '#fff', fontWeight: '500', fontSize: 14 },
   modalContent: { backgroundColor: '#fff', borderRadius: 20, padding: 16, overflow: 'hidden' },
   modalHeader: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 },
 });

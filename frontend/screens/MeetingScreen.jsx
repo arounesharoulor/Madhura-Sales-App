@@ -510,7 +510,7 @@ export default function MeetingScreen() {
                   <Image source={{ uri: imageUri }} style={s.previewImage} resizeMode="cover" />
                   <TouchableOpacity onPress={() => setImageUri(null)} style={s.removeBtn}>
                     <Ionicons name="close" size={14} color="#dc2626" />
-                    <Text style={{ color: '#dc2626', fontSize: 10, fontWeight: '900' }}>Remove</Text>
+                    <Text style={{ color: '#dc2626', fontSize: 10, fontWeight: '500' }}>Remove</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -601,10 +601,10 @@ export default function MeetingScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
   headerBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
-  pageTitle: { fontSize: 20, fontWeight: '900', color: NAVY },
+  pageTitle: { fontSize: 20, fontWeight: '500', color: NAVY },
   pageSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
   addBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: NAVY, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, elevation: 3 },
-  addBtnText: { color: '#fff', fontWeight: '900', fontSize: 12 },
+  addBtnText: { color: '#fff', fontWeight: '500', fontSize: 12 },
 
   // Form header
   formHeader: {
@@ -619,14 +619,14 @@ const s = StyleSheet.create({
     backgroundColor: '#f1f5f9',
     alignItems: 'center', justifyContent: 'center',
   },
-  formTitle: { fontSize: 16, fontWeight: '900', color: NAVY },
+  formTitle: { fontSize: 16, fontWeight: '500', color: NAVY },
   formSub: { fontSize: 11, color: '#94a3b8', marginTop: 1 },
 
   gpsBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f8fafc', borderRadius: 10, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0' },
-  gpsText: { fontSize: 12, color: '#64748b', fontWeight: '600' },
+  gpsText: { fontSize: 12, color: '#64748b', fontWeight: '400' },
 
   fieldWrap: { marginBottom: 14 },
-  label: { fontSize: 10, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
+  label: { fontSize: 10, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 14, height: 48 },
   inputArea: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', paddingHorizontal: 14, paddingTop: 14, paddingBottom: 14, minHeight: 100, textAlignVertical: 'top', color: '#0f172a', fontSize: 13 },
   inputText: { flex: 1, color: '#0f172a', fontSize: 13 },
@@ -634,7 +634,7 @@ const s = StyleSheet.create({
   toggle: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4 },
   toggleOption: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: 8 },
   toggleOptionActive: { backgroundColor: NAVY },
-  toggleText: { fontSize: 12, fontWeight: '900', color: '#64748b' },
+  toggleText: { fontSize: 12, fontWeight: '500', color: '#64748b' },
 
   pickerWrap: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', height: 50, justifyContent: 'center', overflow: 'hidden' },
 
@@ -642,20 +642,20 @@ const s = StyleSheet.create({
   previewImage: { width: '100%', height: 160, borderRadius: 12 },
   removeBtn: { position: 'absolute', top: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#fecaca', elevation: 2 },
   photoBtn: { borderWidth: 2, borderStyle: 'dashed', borderColor: '#cbd5e1', borderRadius: 12, paddingVertical: 20, alignItems: 'center', gap: 6 },
-  photoBtnText: { color: '#0284c7', fontWeight: '900', fontSize: 12 },
+  photoBtnText: { color: '#0284c7', fontWeight: '500', fontSize: 12 },
 
   submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: NAVY, borderRadius: 14, paddingVertical: 14, marginBottom: 10, elevation: 4 },
-  submitBtnText: { color: '#fff', fontWeight: '900', fontSize: 14 },
+  submitBtnText: { color: '#fff', fontWeight: '500', fontSize: 14 },
   cancelBtn: { alignItems: 'center', paddingVertical: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0', backgroundColor: '#fff', marginBottom: 20 },
-  cancelBtnText: { color: '#64748b', fontWeight: '600', fontSize: 13 },
+  cancelBtnText: { color: '#64748b', fontWeight: '400', fontSize: 13 },
 
   tabs: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: 14 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
   tabActive: { backgroundColor: '#fff', elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4 },
-  tabText: { fontSize: 11, fontWeight: '600', color: '#64748b' },
-  tabTextActive: { color: NAVY, fontWeight: '900' },
+  tabText: { fontSize: 11, fontWeight: '400', color: '#64748b' },
+  tabTextActive: { color: NAVY, fontWeight: '500' },
 
   emptyWrap: { alignItems: 'center', paddingTop: 60, gap: 8 },
-  emptyText: { fontSize: 14, fontWeight: '900', color: '#94a3b8' },
+  emptyText: { fontSize: 14, fontWeight: '500', color: '#94a3b8' },
   emptySub: { fontSize: 11, color: '#cbd5e1' },
 });

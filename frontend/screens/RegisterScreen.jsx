@@ -215,7 +215,7 @@ export default function RegisterScreen() {
                 }}
               >
                 <Ionicons name={opt.icon} size={16} color={isActive ? '#F5A623' : '#64748b'} />
-                <Text style={{ fontSize: 13, fontWeight: '900', color: isActive ? '#fff' : '#64748b' }}>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: isActive ? '#fff' : '#64748b' }}>
                   {opt.label}
                 </Text>
               </TouchableOpacity>
@@ -242,7 +242,7 @@ export default function RegisterScreen() {
                     backgroundColor: isActive ? '#1B2B4B' : 'transparent',
                   }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '900', color: isActive ? '#fff' : '#64748b' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '500', color: isActive ? '#fff' : '#64748b' }}>
                     {lvl}
                   </Text>
                 </TouchableOpacity>
@@ -372,7 +372,7 @@ export default function RegisterScreen() {
                   backgroundColor: form.designation === d ? '#1B2B4B' : '#f1f5f9',
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '900', color: form.designation === d ? '#fff' : '#64748b' }}>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: form.designation === d ? '#fff' : '#64748b' }}>
                   {d}
                 </Text>
               </TouchableOpacity>
@@ -466,7 +466,7 @@ export default function RegisterScreen() {
 
       {/* Back link */}
       <TouchableOpacity onPress={goBack} style={{ alignItems: 'center', marginTop: 12 }}>
-        <Text style={{ color: '#64748b', fontSize: 13, fontWeight: '600' }}>← Back to Step 1</Text>
+        <Text style={{ color: '#64748b', fontSize: 13, fontWeight: '400' }}>← Back to Step 1</Text>
       </TouchableOpacity>
     </View>
   );
@@ -601,7 +601,7 @@ export default function RegisterScreen() {
                 router.replace('/AdminDashboard');
               }}
             >
-              <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '600' }}>Skip for now</Text>
+              <Text style={{ color: '#94a3b8', fontSize: 13, fontWeight: '400' }}>Skip for now</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -618,8 +618,8 @@ const styles = StyleSheet.create({
   webContainer: { flex: 1, flexDirection: 'row' },
   webLeftPane: { flex: 1, backgroundColor: '#1B2B4B', justifyContent: 'center', alignItems: 'center', padding: 60 },
   webLeftContent: { maxWidth: 420 },
-  webLeftTitle: { fontSize: 40, fontWeight: '900', color: '#fff', letterSpacing: 3, marginBottom: 4 },
-  webLeftBrand: { fontSize: 13, fontWeight: '900', color: '#F5A623', letterSpacing: 1.5, marginBottom: 20 },
+  webLeftTitle: { fontSize: 40, fontWeight: '500', color: '#fff', letterSpacing: 3, marginBottom: 4 },
+  webLeftBrand: { fontSize: 13, fontWeight: '500', color: '#F5A623', letterSpacing: 1.5, marginBottom: 20 },
   webLeftSubtitle: { fontSize: 15, color: '#9EB4D0', lineHeight: 24, marginBottom: 28 },
   webFeatureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   webFeatureText: { fontSize: 14, color: '#D4E3F5', fontWeight: '500', marginLeft: 10 },
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
   // Header — compact
   header: { alignItems: 'center', marginBottom: 18 },
   logoImage: { width: 58, height: 58, marginBottom: 10, borderRadius: 14 },
-  title: { fontSize: 20, fontWeight: '900', color: '#0f172a', marginBottom: 3 },
+  title: { fontSize: 20, fontWeight: '500', color: '#0f172a', marginBottom: 3 },
   subtitle: { fontSize: 12, color: '#64748b', textAlign: 'center' },
 
   // Card
@@ -654,16 +654,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#e2e8f0', alignItems: 'center', justifyContent: 'center',
   },
   stepDotActive: { backgroundColor: '#1B2B4B' },
-  stepDotText: { fontSize: 11, fontWeight: '900', color: '#94a3b8' },
+  stepDotText: { fontSize: 11, fontWeight: '500', color: '#94a3b8' },
   stepLine: { width: 32, height: 2, backgroundColor: '#e2e8f0', marginHorizontal: 6 },
   stepLineActive: { backgroundColor: '#F5A623' },
-  stepLabel: { fontSize: 13, fontWeight: '900', color: '#0f172a' },
+  stepLabel: { fontSize: 13, fontWeight: '500', color: '#0f172a' },
   stepSub: { fontSize: 11, color: '#94a3b8', marginTop: 1 },
   divider: { height: 1, backgroundColor: '#f1f5f9', marginVertical: 14 },
 
   // Fields
   fieldWrap: { marginBottom: 13 },
-  label: { fontSize: 10, fontWeight: '900', color: '#64748b', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 },
+  label: { fontSize: 10, fontWeight: '500', color: '#64748b', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 },
   inputContainer: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#f8fafc', borderRadius: 12,
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
   icon: { marginRight: 8 },
   input: { flex: 1, color: '#0f172a', fontSize: 14, height: '100%', outlineWidth: 0, outlineColor: 'transparent' },
   eyeBtn: { padding: 4 },
-  errorText: { color: '#ef4444', fontSize: 11, fontWeight: '600', marginTop: 4, paddingLeft: 2 },
+  errorText: { color: '#ef4444', fontSize: 11, fontWeight: '400', marginTop: 4, paddingLeft: 2 },
 
   // Role toggle
   roleToggle: {
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
   },
   roleOption: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   roleOptionActive: { backgroundColor: '#1B2B4B' },
-  roleOptionText: { color: '#475569', fontSize: 13, fontWeight: '900' },
+  roleOptionText: { color: '#475569', fontSize: 13, fontWeight: '500' },
   roleOptionTextActive: { color: '#fff' },
 
   // Buttons
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
     marginTop: 4, borderBottomWidth: 3, borderBottomColor: '#F5A623',
     elevation: 5,
   },
-  nextBtnText: { color: '#fff', fontSize: 14, fontWeight: '900', letterSpacing: 0.4 },
+  nextBtnText: { color: '#fff', fontSize: 14, fontWeight: '500', letterSpacing: 0.4 },
   registerBtn: {
     backgroundColor: '#1B2B4B', borderRadius: 12,
     height: 48, alignItems: 'center', justifyContent: 'center',
@@ -702,19 +702,19 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   btnDisabled: { opacity: 0.7 },
-  registerBtnText: { color: '#fff', fontSize: 14, fontWeight: '900', letterSpacing: 0.4 },
+  registerBtnText: { color: '#fff', fontSize: 14, fontWeight: '500', letterSpacing: 0.4 },
 
   // Server error
   serverErrorBox: {
     backgroundColor: '#fee2e2', borderColor: '#fca5a5',
     borderWidth: 1, borderRadius: 10, padding: 10, marginBottom: 12,
   },
-  serverErrorText: { color: '#b91c1c', fontSize: 12, fontWeight: '600' },
+  serverErrorText: { color: '#b91c1c', fontSize: 12, fontWeight: '400' },
 
   // Sign in
   signinRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 18 },
   signinLabel: { color: '#64748b', fontSize: 13 },
-  signinLink: { color: '#F5A623', fontSize: 13, fontWeight: '900' },
+  signinLink: { color: '#F5A623', fontSize: 13, fontWeight: '500' },
 
   // Modal
   modalOverlay: {
@@ -730,11 +730,11 @@ const styles = StyleSheet.create({
     width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF8EC',
     alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  modalTitle: { fontSize: 20, fontWeight: '900', color: '#0f172a', marginBottom: 8 },
+  modalTitle: { fontSize: 20, fontWeight: '500', color: '#0f172a', marginBottom: 8 },
   modalSub: { fontSize: 13, color: '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 18 },
   modalBtn: {
     backgroundColor: '#1B2B4B', borderRadius: 14, width: '100%', height: 48,
     alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: '#F5A623',
   },
-  modalBtnText: { color: '#fff', fontSize: 14, fontWeight: '900' },
+  modalBtnText: { color: '#fff', fontSize: 14, fontWeight: '500' },
 });

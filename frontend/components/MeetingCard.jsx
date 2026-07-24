@@ -36,7 +36,7 @@ function DateTimePickerField({ label, value, onChange, placeholder }) {
   if (Platform.OS === 'web') {
     return (
       <View style={{ marginBottom: 12 }}>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</Text>
+        <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 46 }}>
           <Ionicons name="calendar-outline" size={16} color="#64748b" style={{ marginRight: 8 }} />
           <input
@@ -53,7 +53,7 @@ function DateTimePickerField({ label, value, onChange, placeholder }) {
 
   return (
     <View style={{ marginBottom: 12 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</Text>
+      <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</Text>
       <TouchableOpacity onPress={() => setShowPicker('date')} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14, paddingHorizontal: 14, height: 46 }}>
         <Ionicons name="calendar-outline" size={16} color="#64748b" style={{ marginRight: 8 }} />
         <Text style={[{ flex: 1, fontSize: 13 }, value ? { color: '#0f172a' } : { color: '#94a3b8' }]}>{value ? fmt(value) : placeholder}</Text>
@@ -374,13 +374,13 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                       <View style={{ position: 'relative' }}>
                         <Image source={{ uri: imageUri }} style={{ width: '100%', height: 120, borderRadius: 8 }} />
                         <TouchableOpacity onPress={() => setImageUri(null)} style={{ position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(255,255,255,0.8)', padding: 4, borderRadius: 4 }}>
-                          <Text style={{ color: '#dc2626', fontSize: 10, fontWeight: 'bold' }}>Remove</Text>
+                          <Text style={{ color: '#dc2626', fontSize: 10, fontWeight: '400' }}>Remove</Text>
                         </TouchableOpacity>
                       </View>
                     ) : (
                       <TouchableOpacity onPress={handleCaptureImage} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e0f2fe', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#bae6fd' }}>
                         <Ionicons name="camera-outline" size={16} color="#0284c7" style={{ marginRight: 6 }} />
-                        <Text style={{ color: '#0284c7', fontSize: 12, fontWeight: '600' }}>Add Photo Evidence</Text>
+                        <Text style={{ color: '#0284c7', fontSize: 12, fontWeight: '400' }}>Add Photo Evidence</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -392,7 +392,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                 </View>
 
                 <View style={{ marginTop: 12 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 6 }}>Update Meeting Status</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#0f172a', marginBottom: 6 }}>Update Meeting Status</Text>
                   <View style={{ flexDirection: 'row', gap: 8 }}>
                     {['Scheduled', 'Completed', 'Cancelled'].map(s => (
                       <TouchableOpacity 
@@ -400,7 +400,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                         onPress={() => setStatusSelection(s)}
                         style={{ flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: statusSelection === s ? '#0284c7' : '#e2e8f0', backgroundColor: statusSelection === s ? '#e0f2fe' : '#f8fafc' }}
                       >
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: statusSelection === s ? '#0284c7' : '#64748b' }}>{s}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '500', color: statusSelection === s ? '#0284c7' : '#64748b' }}>{s}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -415,14 +415,14 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                     {saving ? (
                       <ActivityIndicator size="small" color="#fff" />
                     ) : (
-                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>
+                      <Text style={{ color: '#fff', fontWeight: '400', fontSize: 13 }}>
                         {statusSelection === 'Completed' ? 'Complete & Notify' : 'Update Details'}
                       </Text>
                     )}
                   </TouchableOpacity>
                   {(item.status === 'Completed' || item.status === 'Cancelled') && (
                     <TouchableOpacity onPress={() => setIsEditing(false)} style={{ padding: 12, backgroundColor: '#f1f5f9', borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ color: '#475569', fontWeight: 'bold', fontSize: 13 }}>Cancel</Text>
+                      <Text style={{ color: '#475569', fontWeight: '400', fontSize: 13 }}>Cancel</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -431,13 +431,13 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
               <View>
                 {item.clientRequirement ? (
                   <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Client Requirement</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: '#0f172a', marginBottom: 4 }}>Client Requirement</Text>
                     <Text style={styles.followUpText}>{item.clientRequirement}</Text>
                   </View>
                 ) : null}
                 {item.meetingFollowUp ? (
                   <View style={{ marginBottom: 12 }}>
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a', marginBottom: 4 }}>Follow-Up Note</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: '#0f172a', marginBottom: 4 }}>Follow-Up Note</Text>
                     <Text style={styles.followUpText}>{item.meetingFollowUp}</Text>
                   </View>
                 ) : (
@@ -445,7 +445,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                 )}
                 
                 <TouchableOpacity onPress={() => setIsEditing(true)} style={{ backgroundColor: '#f8fafc', padding: 10, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0', marginTop: 8 }}>
-                  <Text style={{ color: '#64748b', fontWeight: 'bold', fontSize: 12 }}>Edit Meeting Details</Text>
+                  <Text style={{ color: '#64748b', fontWeight: '400', fontSize: 12 }}>Edit Meeting Details</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -461,7 +461,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
               style={{ backgroundColor: '#10b981', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12, flexDirection: 'row', justifyContent: 'center', gap: 6 }}
             >
               <Ionicons name="person-add-outline" size={16} color="#fff" />
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>Onboard Client</Text>
+              <Text style={{ color: '#fff', fontWeight: '400', fontSize: 13 }}>Onboard Client</Text>
             </TouchableOpacity>
           )}
 
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   },
   clientName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#0f172a',
     marginBottom: 2,
   },
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#64748b',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   mapBtnText: {
     fontSize: 9,
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '500',
   },
   photoWrap: {
     marginBottom: 10,
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
   },
   joinBannerLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#2563eb',
   },
   joinBtn: {
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
   },
   joinBtnText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#fff',
   },
   // Full link banner inside expanded section
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
   },
   linkBannerTitle: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#1d4ed8',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
   },
   linkBannerBtnText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#fff',
   },
 });

@@ -18,12 +18,19 @@ export default function ProposalScreen() {
 
   return (
     <AppLayout currentScreen="Proposal" role={role} scrollable={true}>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
-        <Ionicons name="briefcase-outline" size={48} color="#94a3b8" />
-        <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a' }}>Proposal Management</Text>
-        <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center' }}>
-          Proposal document generation and tracking will be implemented here.
-        </Text>
+      <View style={{ flex: 1, minHeight: 400 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24, paddingHorizontal: 16 }}>
+          <TouchableOpacity onPress={() => router.push(['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(role) ? '/AdminDashboard' : '/Dashboard')}>
+            <Ionicons name="arrow-back" size={24} color="#0f172a" />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 20, fontWeight: '500', color: '#0f172a' }}>Proposal Generation</Text>
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <Ionicons name="briefcase-outline" size={48} color="#94a3b8" />
+          <Text style={{ fontSize: 14, color: '#64748b', textAlign: 'center' }}>
+            Proposal document generation and tracking will be implemented here.
+          </Text>
+        </View>
       </View>
     </AppLayout>
   );

@@ -240,14 +240,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginBottom: 16,
   },
-  title: { fontSize: 22, fontWeight: '900', color: '#0f172a' },
-  subtitle: { fontSize: 12, color: '#0284c7', fontWeight: '600', marginTop: 2 },
+  title: { fontSize: 22, fontWeight: '500', color: '#0f172a' },
+  subtitle: { fontSize: 12, color: '#0284c7', fontWeight: '400', marginTop: 2 },
   markAllBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: '#eff6ff', borderRadius: 10,
     paddingHorizontal: 10, paddingVertical: 7,
   },
-  markAllText: { fontSize: 11, fontWeight: '900', color: '#0284c7' },
+  markAllText: { fontSize: 11, fontWeight: '500', color: '#0284c7' },
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   emptyIcon: {
     backgroundColor: '#f1f5f9', borderRadius: 20, padding: 20, marginBottom: 4,
   },
-  emptyTitle: { fontSize: 16, fontWeight: '900', color: '#334155' },
+  emptyTitle: { fontSize: 16, fontWeight: '500', color: '#334155' },
   emptyText: { fontSize: 13, color: '#94a3b8', textAlign: 'center' },
 
   card: {
@@ -275,14 +275,14 @@ const styles = StyleSheet.create({
   },
   cardContent: { flex: 1 },
   cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  cardTitle: { fontSize: 13, fontWeight: '900', color: '#0f172a', flex: 1, marginRight: 8 },
-  cardTime: { fontSize: 10, color: '#94a3b8', fontWeight: '600', flexShrink: 0 },
+  cardTitle: { fontSize: 13, fontWeight: '500', color: '#0f172a', flex: 1, marginRight: 8 },
+  cardTime: { fontSize: 10, color: '#94a3b8', fontWeight: '400', flexShrink: 0 },
   cardMessage: { fontSize: 12, color: '#475569', lineHeight: 18, marginBottom: 8 },
   cardMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   typeBadge: {
     paddingHorizontal: 7, paddingVertical: 2, borderRadius: 20,
   },
-  typeBadgeText: { fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.5 },
+  typeBadgeText: { fontSize: 9, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.5 },
   unreadDot: {
     width: 8, height: 8, borderRadius: 4, backgroundColor: '#3b82f6',
   },

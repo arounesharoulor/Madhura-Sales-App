@@ -392,14 +392,14 @@ const styles = StyleSheet.create({
   },
   webLeftTitle: {
     fontSize: 42,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#fff',
     marginBottom: 4,
     letterSpacing: 3,
   },
   webLeftBrand: {
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#F5A623',
     letterSpacing: 1.5,
     marginBottom: 28,
@@ -474,12 +474,12 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: 36,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#F5A623',
   },
   brandName: {
     fontSize: 26,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#0f172a',
     letterSpacing: 0.5,
     marginBottom: 6,
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#0f172a',
     marginBottom: 6,
   },
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '500',
     color: '#64748b',
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#ef4444',
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '400',
     marginTop: 6,
     paddingLeft: 4,
   },
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
   forgotText: {
     color: '#F5A623',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '500',
   },
   signInBtn: {
     backgroundColor: '#1B2B4B',
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   signInText: {
     color: '#ffffff',
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '500',
     letterSpacing: 0.5,
   },
   divider: {
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
     color: '#64748b',
     paddingHorizontal: 16,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   createBtn: {
     backgroundColor: '#f8fafc',
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
   createBtnText: {
     color: '#475569',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   roleGroup: {
     marginBottom: 20,
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   roleOptionText: {
     color: '#64748b',
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: '500',
   },
   roleOptionTextActive: {
     color: '#ffffff',

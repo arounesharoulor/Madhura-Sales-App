@@ -111,11 +111,11 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}>
         <ScrollView style={{ backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28 }} contentContainerStyle={{ padding: 24, paddingBottom: 48 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <Text style={{ fontSize: 17, fontWeight: '900', color: '#0f172a' }}>Update Follow-up</Text>
+            <Text style={{ fontSize: 17, fontWeight: '500', color: '#0f172a' }}>Update Follow-up</Text>
             <TouchableOpacity onPress={onClose}><Ionicons name="close" size={22} color="#64748b" /></TouchableOpacity>
           </View>
 
-          <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Update Status</Text>
+          <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Update Status</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
             {['Called', 'Visited', 'Call Not Picked Up', 'Client Busy', 'Other', 'Completed', 'Cancelled'].map(s => {
               const sc = STATUS_CONFIG[s];
@@ -126,7 +126,7 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
                     flexDirection: 'row', alignItems: 'center', gap: 6 }}
                 >
                   <Ionicons name={sc.icon} size={13} color={status === s ? '#fff' : sc.text} />
-                  <Text style={{ fontSize: 11, fontWeight: '900', color: status === s ? '#fff' : sc.text }}>{s}</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '500', color: status === s ? '#fff' : sc.text }}>{s}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -137,16 +137,16 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
             <View style={{ backgroundColor: '#faf5ff', borderRadius: 16, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#e9d5ff' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                 <Ionicons name="shield-checkmark-outline" size={15} color="#7c3aed" />
-                <Text style={{ fontSize: 12, fontWeight: '900', color: '#7c3aed' }}>Visit Proof Required</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#7c3aed' }}>Visit Proof Required</Text>
               </View>
 
               {/* Live Location */}
-              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', marginBottom: 6 }}>📍 Live Location <Text style={{ color: '#ef4444' }}>*</Text></Text>
+              <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', marginBottom: 6 }}>📍 Live Location <Text style={{ color: '#ef4444' }}>*</Text></Text>
               {location ? (
                 <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#e9d5ff', marginBottom: 12 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <Ionicons name="checkmark-circle" size={16} color="#16a34a" />
-                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#16a34a' }}>Location Captured</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '500', color: '#16a34a' }}>Location Captured</Text>
                     <TouchableOpacity onPress={() => setLocation(null)} style={{ marginLeft: 'auto' }}>
                       <Ionicons name="close-circle" size={18} color="#ef4444" />
                     </TouchableOpacity>
@@ -155,7 +155,7 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
                   <TouchableOpacity onPress={() => Linking.openURL(`https://maps.google.com/?q=${location.latitude},${location.longitude}`)}
                     style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
                     <Ionicons name="map-outline" size={12} color="#0284c7" />
-                    <Text style={{ fontSize: 10, color: '#0284c7', fontWeight: '600' }}>View on Map</Text>
+                    <Text style={{ fontSize: 10, color: '#0284c7', fontWeight: '400' }}>View on Map</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -163,16 +163,16 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
                   style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
                     backgroundColor: '#7c3aed', borderRadius: 10, paddingVertical: 10, marginBottom: 12, opacity: fetchingLoc ? 0.6 : 1 }}>
                   {fetchingLoc ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="location" size={16} color="#fff" />}
-                  <Text style={{ fontSize: 12, fontWeight: '900', color: '#fff' }}>{fetchingLoc ? 'Detecting...' : 'Capture Live Location'}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#fff' }}>{fetchingLoc ? 'Detecting...' : 'Capture Live Location'}</Text>
                 </TouchableOpacity>
               )}
 
               {/* Proof Upload */}
-              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', marginBottom: 6 }}>📎 Photo / Document Proof <Text style={{ color: '#ef4444' }}>*</Text></Text>
+              <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', marginBottom: 6 }}>📎 Photo / Document Proof <Text style={{ color: '#ef4444' }}>*</Text></Text>
               {attachment ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e9d5ff' }}>
                   <Ionicons name={attachment.mimeType?.startsWith('image') ? 'image' : 'document-text'} size={20} color="#7c3aed" />
-                  <Text style={{ flex: 1, fontSize: 11, color: '#334155', fontWeight: '600' }} numberOfLines={1}>{attachment.name || 'File Attached'}</Text>
+                  <Text style={{ flex: 1, fontSize: 11, color: '#334155', fontWeight: '400' }} numberOfLines={1}>{attachment.name || 'File Attached'}</Text>
                   <TouchableOpacity onPress={() => setAttachment(null)}><Ionicons name="close-circle" size={20} color="#ef4444" /></TouchableOpacity>
                 </View>
               ) : (
@@ -180,19 +180,19 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
                   <TouchableOpacity onPress={handlePickCamera}
                     style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#fff', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e9d5ff' }}>
                     <Ionicons name="camera-outline" size={16} color="#7c3aed" />
-                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#7c3aed' }}>Camera</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '500', color: '#7c3aed' }}>Camera</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handlePickDocument}
                     style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#fff', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e9d5ff' }}>
                     <Ionicons name="document-attach-outline" size={16} color="#7c3aed" />
-                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#7c3aed' }}>Document</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '500', color: '#7c3aed' }}>Document</Text>
                   </TouchableOpacity>
                 </View>
               )}
             </View>
           )}
 
-          <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Remarks</Text>
+          <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Remarks</Text>
           <TextInput value={remarks} onChangeText={setRemarks} placeholder="Add remarks or notes..."
             placeholderTextColor="#94a3b8" multiline
             style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#e2e8f0', borderRadius: 14,
@@ -202,22 +202,22 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
           {/* Generic attachment for non-Visited statuses */}
           {status !== 'Visited' && (
             <>
-              <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Attachment (Optional)</Text>
+              <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Attachment (Optional)</Text>
               {attachment ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, backgroundColor: '#f8fafc', padding: 10, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
                   <Ionicons name={attachment.mimeType?.startsWith('image') ? 'image' : 'document-text'} size={20} color="#64748b" />
-                  <Text style={{ flex: 1, fontSize: 11, color: '#334155', fontWeight: '600' }} numberOfLines={1}>{attachment.name || 'File Attached'}</Text>
+                  <Text style={{ flex: 1, fontSize: 11, color: '#334155', fontWeight: '400' }} numberOfLines={1}>{attachment.name || 'File Attached'}</Text>
                   <TouchableOpacity onPress={() => setAttachment(null)}><Ionicons name="close-circle" size={20} color="#ef4444" /></TouchableOpacity>
                 </View>
               ) : (
                 <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
                   <TouchableOpacity onPress={handlePickCamera} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#f1f5f9', paddingVertical: 10, borderRadius: 12 }}>
                     <Ionicons name="camera-outline" size={16} color="#64748b" />
-                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b' }}>Camera</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b' }}>Camera</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handlePickDocument} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: '#f1f5f9', paddingVertical: 10, borderRadius: 12 }}>
                     <Ionicons name="document-attach-outline" size={16} color="#64748b" />
-                    <Text style={{ fontSize: 11, fontWeight: '900', color: '#64748b' }}>Document</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b' }}>Document</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -229,7 +229,7 @@ function UpdateModal({ visible, item, onClose, onSaved }) {
             {saving ? <ActivityIndicator color="#fff" /> : (
               <>
                 <Ionicons name={status === 'Visited' ? 'location' : 'checkmark-circle'} size={16} color="#fff" />
-                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14 }}>Save Update</Text>
+                <Text style={{ color: '#fff', fontWeight: '500', fontSize: 14 }}>Save Update</Text>
               </>
             )}
           </TouchableOpacity>
@@ -307,7 +307,14 @@ export default function FollowupScreen({ isComponent = false }) {
     <>
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <Text style={{ fontSize: 22, fontWeight: '900', color: '#0f172a' }}>Follow-ups</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            {!isComponent && (
+              <TouchableOpacity onPress={() => router.push('/Dashboard')}>
+                <Ionicons name="arrow-back" size={24} color="#0f172a" />
+              </TouchableOpacity>
+            )}
+            <Text style={{ fontSize: 22, fontWeight: '500', color: '#0f172a' }}>Follow-ups</Text>
+          </View>
           <TouchableOpacity onPress={fetchData} style={{ backgroundColor: '#eff6ff', borderRadius: 12, padding: 8 }}>
             <Ionicons name="refresh" size={18} color="#0284c7" />
           </TouchableOpacity>
@@ -344,7 +351,7 @@ export default function FollowupScreen({ isComponent = false }) {
                     }}>
                       <Text style={{ 
                         fontSize: 10, 
-                        fontWeight: '900', 
+                        fontWeight: '500', 
                         color: isActive ? '#0284c7' : '#94a3b8' 
                       }}>{counts[tab]}</Text>
                     </View>
@@ -373,7 +380,7 @@ export default function FollowupScreen({ isComponent = false }) {
                 <View style={{ backgroundColor: '#f1f5f9', borderRadius: 20, padding: 20 }}>
                   <Ionicons name="alarm-outline" size={40} color="#cbd5e1" />
                 </View>
-                <Text style={{ fontSize: 15, fontWeight: '900', color: '#94a3b8' }}>No follow-ups found</Text>
+                <Text style={{ fontSize: 15, fontWeight: '500', color: '#94a3b8' }}>No follow-ups found</Text>
               </View>
             )}
             renderItem={({ item }) => {
@@ -394,7 +401,7 @@ export default function FollowupScreen({ isComponent = false }) {
                       paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start',
                     }}>
                       <Ionicons name={overdue ? 'warning' : 'alarm'} size={11} color={overdue ? '#e11d48' : '#d97706'} />
-                      <Text style={{ fontSize: 10, fontWeight: '900', color: overdue ? '#e11d48' : '#d97706' }}>
+                      <Text style={{ fontSize: 10, fontWeight: '500', color: overdue ? '#e11d48' : '#d97706' }}>
                         {overdue ? 'OVERDUE' : 'DUE TODAY'}
                       </Text>
                     </View>
@@ -402,12 +409,12 @@ export default function FollowupScreen({ isComponent = false }) {
 
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                     <View style={{ flex: 1, marginRight: 8 }}>
-                      <Text style={{ fontSize: 15, fontWeight: '900', color: '#0f172a' }}>{item.clientName}</Text>
+                      <Text style={{ fontSize: 15, fontWeight: '500', color: '#0f172a' }}>{item.clientName}</Text>
                       {item.companyName ? <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{item.companyName}</Text> : null}
                     </View>
                     <View style={{ backgroundColor: sc.bg, borderRadius: 10, borderWidth: 1, borderColor: sc.border, paddingHorizontal: 8, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                       <Ionicons name={sc.icon} size={10} color={sc.text} />
-                      <Text style={{ fontSize: 9, fontWeight: '900', color: sc.text, textTransform: 'uppercase' }}>{item.status}</Text>
+                      <Text style={{ fontSize: 9, fontWeight: '500', color: sc.text, textTransform: 'uppercase' }}>{item.status}</Text>
                     </View>
                   </View>
 
@@ -416,7 +423,7 @@ export default function FollowupScreen({ isComponent = false }) {
                     {item.followUpDate && (
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         <Ionicons name="calendar-outline" size={13} color="#0284c7" />
-                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#0284c7' }}>
+                        <Text style={{ fontSize: 11, fontWeight: '400', color: '#0284c7' }}>
                           Follow-up: {new Date(item.followUpDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </Text>
                       </View>
@@ -426,7 +433,7 @@ export default function FollowupScreen({ isComponent = false }) {
                         onPress={() => Linking.openURL(`https://maps.google.com/?q=${item.visitLocation.latitude},${item.visitLocation.longitude}`)}
                         style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#faf5ff', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5, alignSelf: 'flex-start' }}>
                         <Ionicons name="location" size={12} color="#7c3aed" />
-                        <Text style={{ fontSize: 10, fontWeight: '900', color: '#7c3aed' }}>
+                        <Text style={{ fontSize: 10, fontWeight: '500', color: '#7c3aed' }}>
                           {item.visitLocation.address ? item.visitLocation.address.substring(0, 40) + '…' : 'Visit Location Logged'}
                         </Text>
                         <Ionicons name="open-outline" size={10} color="#7c3aed" />
@@ -441,7 +448,7 @@ export default function FollowupScreen({ isComponent = false }) {
                         style={{ backgroundColor: '#eff6ff', borderRadius: 12, paddingVertical: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
                       >
                         <Ionicons name="create-outline" size={14} color="#0284c7" />
-                        <Text style={{ fontSize: 12, fontWeight: '900', color: '#0284c7' }}>Update Status</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '500', color: '#0284c7' }}>Update Status</Text>
                       </TouchableOpacity>
                     </View>
                   )}

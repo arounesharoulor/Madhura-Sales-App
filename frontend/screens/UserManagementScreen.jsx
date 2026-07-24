@@ -590,16 +590,16 @@ export default function UserManagementScreen() {
 const styles = StyleSheet.create({
   modalContainer: { flex: 1, backgroundColor: '#f8fafc' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-  modalTitle: { fontSize: 18, fontWeight: '800', color: '#0f172a' },
+  modalTitle: { fontSize: 18, fontWeight: '400', color: '#0f172a' },
   modalBody: { padding: 20 },
   recordSection: { backgroundColor: '#fff', padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#f1f5f9', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 1 },
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: '#334155', marginBottom: 12 },
+  sectionTitle: { fontSize: 14, fontWeight: '400', color: '#334155', marginBottom: 12 },
   recordText: { fontSize: 13, color: '#475569', marginBottom: 6, fontWeight: '500' },
   editBtn: { backgroundColor: '#e0f2fe', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  editBtnText: { color: '#0284c7', fontSize: 12, fontWeight: '700' },
+  editBtnText: { color: '#0284c7', fontSize: 12, fontWeight: '500' },
   uploadBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#0284c7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  uploadBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  uploadBtnText: { color: '#fff', fontSize: 12, fontWeight: '500' },
   docCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: '#e2e8f0' },
-  docName: { fontSize: 13, fontWeight: '700', color: '#0f172a' },
+  docName: { fontSize: 13, fontWeight: '500', color: '#0f172a' },
   docDate: { fontSize: 11, color: '#64748b', marginTop: 2 }
 });
