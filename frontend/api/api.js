@@ -62,6 +62,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
+      const { router } = require('expo-router');
+      if (router) {
+        try {
+          router.replace('/Login');
+        } catch (e) {}
+      }
     }
 
     return Promise.reject(error);
