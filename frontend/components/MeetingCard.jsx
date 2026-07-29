@@ -19,15 +19,15 @@ const TYPE_COLORS = {
 };
 
 function fmt(dateStr) {
-  if (!dateStr) return null;
+  if (!dateStr) return '';
   try {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
+    if (isNaN(d.getTime())) return '';
     return d.toLocaleString('en-IN', {
       day: 'numeric', month: 'short', year: 'numeric',
       hour: '2-digit', minute: '2-digit', hour12: true,
     });
-  } catch { return dateStr; }
+  } catch { return ''; }
 }
 
 function DateTimePickerField({ label, value, onChange, placeholder }) {
@@ -174,23 +174,19 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
 
   return (
     <View style={styles.card}>
-      {/* ── Header Row ── */}
       <TouchableOpacity
         onPress={() => setExpanded(v => !v)}
         activeOpacity={0.85}
         style={styles.headerRow}
       >
-        {/* Icon */}
         <View style={[styles.iconWrap, { backgroundColor: typeStyle.bg }]}>
           <Ionicons name={typeStyle.icon} size={20} color={typeStyle.text} />
         </View>
 
-        {/* Info */}
         <View style={styles.headerInfo}>
           <Text style={styles.clientName} numberOfLines={1}>{item.clientName}</Text>
           <Text style={styles.companyName} numberOfLines={1}>{item.companyName}</Text>
 
-          {/* Date row */}
           <View style={styles.dateRow}>
             <Ionicons name="time-outline" size={11} color="#94a3b8" />
             <Text style={styles.dateText}>
@@ -201,13 +197,10 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
           </View>
         </View>
 
-        {/* Badges */}
         <View style={styles.badgeCol}>
-          {/* Meeting Type badge */}
           <View style={[styles.badge, { backgroundColor: typeStyle.bg, borderColor: typeStyle.text + '30' }]}>
             <Text style={[styles.badgeText, { color: typeStyle.text }]}>{item.meetingType || 'In-Person'}</Text>
           </View>
-          {/* Status badge */}
           <View style={[styles.badge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border, marginTop: 4 }]}>
             <Text style={[styles.badgeText, { color: statusStyle.text }]}>{item.status || 'Completed'}</Text>
           </View>
@@ -220,7 +213,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
         </View>
       </TouchableOpacity>
 
-      {/* ── Quick Join Banner (visible without expanding, for admin on scheduled online meetings) ── */}
       {item.meetingType === 'Online' && item.onlineMeetingLink && item.status === 'Scheduled' && (
         <TouchableOpacity
           onPress={() => Linking.openURL(item.onlineMeetingLink)}
@@ -238,26 +230,21 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
         </TouchableOpacity>
       )}
 
-      {/* ── Expandable Details ── */}
       {expanded && (
         <View style={styles.expandedBody}>
-          {/* Divider */}
           <View style={styles.divider} />
 
-          {/* Notes */}
           <View style={styles.detailRow}>
             <Ionicons name="document-text-outline" size={14} color="#64748b" />
             <Text style={styles.detailLabel}>Notes</Text>
           </View>
           <Text style={styles.notesText}>{item.notes}</Text>
 
-          {/* Phone */}
           <View style={styles.detailRow}>
             <Ionicons name="call-outline" size={14} color="#64748b" />
             <Text style={styles.detailValue}>{item.phone}</Text>
           </View>
 
-          {/* Executive (admin view) */}
           {isAdmin && item.executive?.name && (
             <View style={styles.detailRow}>
               <Ionicons name="person-outline" size={14} color="#64748b" />
@@ -265,7 +252,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </View>
           )}
 
-          {/* Online meeting link — full styled banner */}
           {item.meetingType === 'Online' && item.onlineMeetingLink ? (
             <View style={styles.linkBanner}>
               <View style={styles.linkBannerTop}>
@@ -284,7 +270,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </View>
           ) : null}
 
-          {/* GPS Location */}
           {item.location?.latitude ? (
             <TouchableOpacity onPress={openMap} style={styles.locationRow}>
               <Ionicons name="location" size={14} color="#16a34a" />
@@ -299,7 +284,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </TouchableOpacity>
           ) : null}
 
-          {/* Next Follow-up date */}
           {item.nextFollowUpDate ? (
             <View style={styles.detailRow}>
               <Ionicons name="calendar-outline" size={14} color="#f97316" />
@@ -309,7 +293,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </View>
           ) : null}
 
-          {/* Reminder */}
           {item.reminderAt ? (
             <View style={styles.detailRow}>
               <Ionicons name="alarm-outline" size={14} color="#8b5cf6" />
@@ -319,7 +302,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </View>
           ) : null}
 
-          {/* Photo evidence — expandable */}
           {(item.photoUrl || item.photo?.contentType) ? (
             <View style={styles.photoWrap}>
               <View style={styles.detailRow}>
@@ -340,7 +322,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             </View>
           ) : null}
 
-          {/* Meeting Follow-up note */}
           <View style={styles.followUpSection}>
             <View style={styles.detailRow}>
               <Ionicons name="chatbubble-ellipses-outline" size={14} color="#0284c7" />
@@ -367,7 +348,6 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
                   style={{ backgroundColor: '#fff', borderRadius: 8, padding: 10, fontSize: 12, minHeight: 60, marginTop: 10, borderWidth: 1, borderColor: '#e2e8f0', textAlignVertical: 'top' }}
                 />
 
-                {/* If there's no photo yet, let them add one during update */}
                 {!item.photoUrl && !item.photo?.contentType && (
                   <View style={{ marginTop: 10 }}>
                     {imageUri ? (

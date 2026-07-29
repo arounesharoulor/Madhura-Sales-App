@@ -1,0 +1,26 @@
+const mongoose = require('mongoose');
+
+const taxInvoiceItemSchema = new mongoose.Schema({
+  sl_no: { type: Number, required: true },
+  description: { type: String, required: true },
+  uom: { type: String, default: 'Lumpsum' },
+  quantity: { type: Number, required: true },
+  total_amount: { type: Number, required: true }
+});
+
+const taxInvoiceSchema = new mongoose.Schema({
+  client_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  client_name: { type: String, default: '' },
+  client_company: { type: String, default: '' },
+  client_address: { type: String, default: '' },
+  client_gstin: { type: String, default: '' },
+  service_no: { type: String, default: '' },
+  client_code: { type: String, default: '' },
+  invoice_no: { type: String, required: true, unique: true },
+  running_bill_no: { type: String, default: '' },
+  bill_date: { type: Date, required: true },
+  advance_amount: { type: Number, default: 0 },
+  items: [taxInvoiceItemSchema]
+}, { timestamps: true });
+
+module.exports = mongoose.model('TaxInvoice', taxInvoiceSchema);

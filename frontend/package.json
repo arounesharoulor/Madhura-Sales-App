@@ -29,6 +29,8 @@
     "expo-sharing": "~56.0.22",
     "expo-splash-screen": "~56.0.13",
     "expo-status-bar": "~56.0.4",
+    "html2pdf.js": "^0.14.0",
+    "lucide-react": "^1.26.0",
     "nativewind": "^4.2.5",
     "postcss": "^8.4.31",
     "react": "19.2.3",

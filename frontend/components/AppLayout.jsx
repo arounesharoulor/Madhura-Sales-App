@@ -54,6 +54,8 @@ const allAdminNavSections = [
       { title: 'Projects',          screen: 'Project',                  icon: 'laptop-outline',    iconActive: 'laptop' },
       { title: 'Quotations',        screen: 'Quotation',                icon: 'document-text-outline', iconActive: 'document-text' },
       { title: 'Log Client Visit',  screen: 'Meeting',                  icon: 'location-outline',  iconActive: 'location' },
+      { title: 'Proforma Invoices', screen: 'ProformaInvoice',          icon: 'receipt-outline',   iconActive: 'receipt' },
+      { title: 'Tax Invoices',      screen: 'Invoice',                  icon: 'wallet-outline',    iconActive: 'wallet' },
     ],
   },
   {
@@ -80,6 +82,8 @@ const employeeNavSections = [
       { title: 'Client Onboarding',screen: 'ClientOnboarding',icon: 'briefcase-outline',     iconActive: 'briefcase' },
       { title: 'Projects',         screen: 'Project',         icon: 'laptop-outline',        iconActive: 'laptop' },
       { title: 'Quotations',       screen: 'Quotation',       icon: 'document-text-outline', iconActive: 'document-text' },
+      { title: 'Proforma Invoices', screen: 'ProformaInvoice',          icon: 'receipt-outline',   iconActive: 'receipt' },
+      { title: 'Tax Invoices',      screen: 'Invoice',                  icon: 'wallet-outline',    iconActive: 'wallet' },
     ],
   },
   {
