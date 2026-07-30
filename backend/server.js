@@ -47,6 +47,10 @@ const onboardingRoutes = require('./routes/onboardingRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const quotationRoutes = require('./routes/quotationRoutes');
 const leadRoutes = require('./routes/leadRoutes');
+const crmClientRoutes = require('./routes/crmClientRoutes');
+const crmQuotationRoutes = require('./routes/crmQuotationRoutes');
+const performaInvoiceRoutes = require('./routes/performaInvoiceRoutes');
+const madhuraInvoiceRoutes = require('./routes/madhuraInvoiceRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -65,6 +69,10 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/quotations', quotationRoutes);
 app.use('/api/leads', leadRoutes);
+app.use('/api/client', crmClientRoutes);
+app.use('/api/crm-quotations', crmQuotationRoutes);
+app.use('/api/performainvoice', performaInvoiceRoutes);
+app.use('/api/madhura-invoice', madhuraInvoiceRoutes);
 
 app.get('/', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected';
