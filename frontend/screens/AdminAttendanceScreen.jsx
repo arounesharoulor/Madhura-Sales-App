@@ -55,6 +55,7 @@ export default function AdminAttendanceScreen() {
   const [searchDate, setSearchDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [mainTab, setMainTab] = useState('Check-In');   // 'Check-In' | 'Check-Out' | 'Leaves' | 'Location'
+  const [roleTab, setRoleTab] = useState('Employee');   // 'Employee' | 'Admin'
 
   // Reject modal state
   const [rejectModal, setRejectModal] = useState(false);
@@ -276,7 +277,15 @@ export default function AdminAttendanceScreen() {
   };
 
   // Derived lists
-  const safeRecords = records || [];
+  const isMD = userRole === 'Managing Director MD';
+  const displayRecords = (records || []).filter((r) => {
+    if (!isMD) return true;
+    const rRole = r.executive?.role || 'Field Executive';
+    if (roleTab === 'Employee') return rRole === 'Field Executive';
+    return rRole !== 'Field Executive';
+  });
+
+  const safeRecords = displayRecords;
 
   const isLeaveRecord = (item) => item.status === 'Pending Leave' || item.status === 'On Leave' || item.status === 'Rejected Leave' || !!item.leaveType;
 
@@ -555,6 +564,24 @@ export default function AdminAttendanceScreen() {
             >
               <Ionicons name="eye-outline" size={18} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '500', fontSize: 14 }}>View Live Summary</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Role Tabs (Managing Director Only) */}
+        {isFullAdmin && isMD && (
+          <View style={{ flexDirection: 'row', backgroundColor: '#e2e8f0', borderRadius: 12, padding: 4, marginBottom: 12, marginHorizontal: 20 }}>
+            <TouchableOpacity 
+              style={{ flex: 1, paddingVertical: 8, alignItems: 'center', backgroundColor: roleTab === 'Employee' ? '#fff' : 'transparent', borderRadius: 8, shadowColor: roleTab === 'Employee' ? '#000' : 'transparent', shadowOpacity: 0.1, shadowRadius: 2, elevation: roleTab === 'Employee' ? 2 : 0 }}
+              onPress={() => setRoleTab('Employee')}
+            >
+              <Text style={{ fontSize: 13, fontWeight: roleTab === 'Employee' ? 'bold' : '500', color: roleTab === 'Employee' ? '#0f172a' : '#64748b' }}>Employee Attendance</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={{ flex: 1, paddingVertical: 8, alignItems: 'center', backgroundColor: roleTab === 'Admin' ? '#fff' : 'transparent', borderRadius: 8, shadowColor: roleTab === 'Admin' ? '#000' : 'transparent', shadowOpacity: 0.1, shadowRadius: 2, elevation: roleTab === 'Admin' ? 2 : 0 }}
+              onPress={() => setRoleTab('Admin')}
+            >
+              <Text style={{ fontSize: 13, fontWeight: roleTab === 'Admin' ? 'bold' : '500', color: roleTab === 'Admin' ? '#0f172a' : '#64748b' }}>Admin Attendance</Text>
             </TouchableOpacity>
           </View>
         )}

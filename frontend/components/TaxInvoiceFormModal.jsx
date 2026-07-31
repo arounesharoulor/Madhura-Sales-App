@@ -1,5 +1,5 @@
 import React from "react";
-import { PlusCircle, X, RefreshCw } from "lucide-react";
+import { PlusCircle, X, RefreshCw, Eye } from "lucide-react";
 
 const UOM_OPTIONS = ["Lumpsum", "Nos", "Units", "Pieces", "Sets", "Meters", "Kg", "Liters", "Hours"];
 const SERVICE_TYPES = ["CRM", "WEBSITE", "DM", "POSTERS"];
@@ -385,7 +385,7 @@ export default function TaxInvoiceFormModal({
                   Saving...
                 </>
               ) : (
-                <>👁️ Save & Preview</>
+                <><Eye size={16} /> Save & Preview</>
               )}
             </button>
           </div>

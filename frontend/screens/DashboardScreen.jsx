@@ -84,11 +84,12 @@ export default function DashboardScreen() {
       }
 
       const safeAttendance  = Array.isArray(attendance) ? attendance : [];
-      const presentDays     = safeAttendance.filter(a => a.checkInStatus === 'Approved').length;
+      const presentDays     = safeAttendance.filter(a => a.status === 'Checked In' || a.status === 'Checked Out').length;
+      const leaveDays       = safeAttendance.filter(a => a.status === 'On Leave').length;
       const totalWorkingDays = safeAttendance.length || 1;
       const attendancePct   = Math.round((presentDays / totalWorkingDays) * 100);
 
-      const todayAttendance = safeAttendance.find(a => new Date(a.createdAt).toDateString() === todayStr);
+      const todayAttendance = safeAttendance.find(a => new Date(a.date).toDateString() === todayStr);
       setCheckedIn(!!todayAttendance);
 
       setMetrics({
@@ -100,6 +101,8 @@ export default function DashboardScreen() {
         followUpStatuses: followUpStatuses.length > 0 ? followUpStatuses.join(', ') : '0 Follow-ups',
         totalClients: onboardingRes.data.data?.length || 0,
         attendancePct,
+        totalCheckIns: presentDays,
+        totalLeaves: leaveDays,
       });
     } catch (e) {
       console.error(e);
@@ -261,7 +264,7 @@ export default function DashboardScreen() {
               color="#d97706" bg="#fffbeb" 
               onPress={() => router.push('/Followup')} 
             />
-            <StatCard icon="stats-chart" label="Attendance"     value={`${metrics.attendancePct}%`} color="#0891b2" bg="#ecfeff" onPress={() => router.push('/Attendance')} />
+            <StatCard icon="stats-chart" label={`${metrics.totalLeaves} Leaves`}     value={`${metrics.totalCheckIns} CheckIns`} color="#0891b2" bg="#ecfeff" onPress={() => router.push('/Attendance')} />
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
             <StatCard icon="clipboard"      label="Pending"     value={metrics.pendingTasks}    color="#e11d48" bg="#fff1f2" onPress={() => router.push('/Task')} />

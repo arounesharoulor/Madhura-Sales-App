@@ -18,11 +18,11 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
-router.post('/checkin', authorize('Field Executive'), checkIn);
-router.put('/checkout', authorize('Field Executive'), checkOut);
-router.post('/leave', authorize('Field Executive'), requestLeave);
-router.get('/today', authorize('Field Executive'), getTodayAttendance);
-router.get('/my', authorize('Field Executive'), getMyAttendance);
+router.post('/checkin', authorize('Field Executive', 'Admin', 'HR', 'Project Manager', 'Team Lead', 'Managing Director MD'), checkIn);
+router.put('/checkout', authorize('Field Executive', 'Admin', 'HR', 'Project Manager', 'Team Lead', 'Managing Director MD'), checkOut);
+router.post('/leave', authorize('Field Executive', 'Admin', 'HR', 'Project Manager', 'Team Lead', 'Managing Director MD'), requestLeave);
+router.get('/today', authorize('Field Executive', 'Admin', 'HR', 'Project Manager', 'Team Lead', 'Managing Director MD'), getTodayAttendance);
+router.get('/my', authorize('Field Executive', 'Admin', 'HR', 'Project Manager', 'Team Lead', 'Managing Director MD'), getMyAttendance);
 router.get('/export', authorize('Admin', 'Manager'), exportAttendanceLog);
 router.get('/summary', authorize('Admin', 'Manager'), getAttendanceSummary);
 router.get('/', authorize('Admin', 'Manager'), getAllAttendance);

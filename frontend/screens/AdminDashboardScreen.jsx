@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const [adminName, setAdminName] = useState('');
-  const [stats, setStats] = useState({ users: 0, pendingTasks: 0, completedTasks: 0, meetings: 0, clients: 0 });
+  const [stats, setStats] = useState({ users: 0, pendingTasks: 0, completedTasks: 0, meetings: 0, clients: 0, myCheckIns: 0, myLeaves: 0 });
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showTaskForm, setShowTaskForm] = useState(false);
@@ -39,12 +39,17 @@ export default function AdminDashboardScreen() {
         api.get('/tasks'),
         api.get('/meetings'),
         api.get('/onboarding').catch(() => ({ data: { data: [] } })),
-        api.get('/notifications').catch(() => ({ data: { data: [] } }))
+        api.get('/notifications').catch(() => ({ data: { data: [] } })),
+        api.get('/attendance/my').catch(() => ({ data: { data: [] } }))
       ]);
       
       const tasks = taskRes.data.data;
       const pending = tasks.filter(t => t.status === 'Pending' || t.status === 'In Progress').length;
       const completed = tasks.filter(t => t.status === 'Completed').length;
+
+      const myAtt = notifRes_2?.data?.data || [];
+      const checkIns = myAtt.filter(a => a.status === 'Checked In' || a.status === 'Checked Out').length;
+      const leaves = myAtt.filter(a => a.status === 'On Leave').length;
 
       setStats({
         users: userRes.data.count,
@@ -52,6 +57,8 @@ export default function AdminDashboardScreen() {
         completedTasks: completed,
         meetings: meetingRes.data.data.length,
         clients: clientRes.data.data ? clientRes.data.data.length : 0,
+        myCheckIns: checkIns,
+        myLeaves: leaves,
       });
 
       const notifs = notifRes.data.data || [];
@@ -199,63 +206,121 @@ export default function AdminDashboardScreen() {
           </View>
         </View>
 
-        {/* New Professional Clients Banner */}
-        <View className="bg-slate-900 rounded-3xl p-6 flex-row items-center justify-between mb-6 shadow-sm">
-          <View>
-            <Text className="text-slate-400 text-xs font-medium uppercase tracking-widest">Total Clients Onboarded</Text>
-            <Text className="text-white text-3xl font-bold mt-1">{stats.clients}</Text>
+        {/* Personal Overview (Single Card) */}
+        <View className="bg-white border border-slate-100 rounded-2xl p-4 mb-6 shadow-sm flex-row items-center justify-around">
+          <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} className="items-center">
+            <Text className="text-[10px] font-bold uppercase text-slate-500 mb-1">My Check-Ins</Text>
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="finger-print" size={20} color="#1B2B4B" />
+              <Text className="text-2xl font-bold text-slate-800">{stats.myCheckIns}</Text>
+            </View>
+          </TouchableOpacity>
+          <View className="w-[1px] h-10 bg-slate-200"></View>
+          <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} className="items-center">
+            <Text className="text-[10px] font-bold uppercase text-slate-500 mb-1">My Leaves</Text>
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="umbrella" size={20} color="#1B2B4B" />
+              <Text className="text-2xl font-bold text-slate-800">{stats.myLeaves}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Group 1: Workforce Overview */}
+        <Text className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-500">
+          Workforce Overview
+        </Text>
+        <View className="flex-row flex-wrap justify-between mb-4">
+          <View className="w-[48%] bg-white border border-slate-100 p-4 rounded-xl shadow-sm flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
+              <Ionicons name="people" size={20} color="#1B2B4B" />
+            </View>
+            <View>
+              <Text className="text-xl font-bold text-slate-800">{stats.users}</Text>
+              <Text className="text-[10px] font-semibold mt-0.5 text-slate-500 uppercase">Total Users</Text>
+            </View>
           </View>
-          <View className="bg-slate-800 rounded-2xl p-4 border border-slate-700">
-            <Ionicons name="briefcase" size={32} color="#38bdf8" />
+          <View className="w-[48%] bg-white border border-slate-100 p-4 rounded-xl shadow-sm flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
+              <Ionicons name="location" size={20} color="#1B2B4B" />
+            </View>
+            <View>
+              <Text className="text-xl font-bold text-slate-800">{stats.clients}</Text>
+              <Text className="text-[10px] font-semibold mt-0.5 text-slate-500 uppercase">Clients</Text>
+            </View>
           </View>
         </View>
 
-        {/* Stats Grid */}
-        <View className="flex-row flex-wrap justify-between mb-6">
-          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
-            <Text className="text-3xl font-semibold text-sky-600">{stats.users}</Text>
-            <Text className="text-xs font-medium mt-1 text-slate-500">Total Users</Text>
+        {/* Group 2: Task & Operations */}
+        <Text className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-500">
+          Task & Operations
+        </Text>
+        <View className="flex-row flex-wrap justify-between mb-4">
+          <View className="w-[48%] bg-white border border-slate-100 p-4 rounded-xl mb-3 shadow-sm flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
+              <Ionicons name="time" size={20} color="#1B2B4B" />
+            </View>
+            <View>
+              <Text className="text-xl font-bold text-slate-800">{stats.pendingTasks}</Text>
+              <Text className="text-[10px] font-semibold mt-0.5 text-slate-500 uppercase">Pending</Text>
+            </View>
           </View>
-          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
-            <Text className="text-3xl font-semibold text-amber-600">{stats.pendingTasks}</Text>
-            <Text className="text-xs font-medium mt-1 text-slate-500">Pending Tasks</Text>
+          <View className="w-[48%] bg-white border border-slate-100 p-4 rounded-xl mb-3 shadow-sm flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
+              <Ionicons name="checkmark-circle" size={20} color="#1B2B4B" />
+            </View>
+            <View>
+              <Text className="text-xl font-bold text-slate-800">{stats.completedTasks}</Text>
+              <Text className="text-[10px] font-semibold mt-0.5 text-slate-500 uppercase">Completed</Text>
+            </View>
           </View>
-          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
-            <Text className="text-3xl font-semibold text-emerald-600">{stats.completedTasks}</Text>
-            <Text className="text-xs font-medium mt-1 text-slate-500">Completed Tasks</Text>
-          </View>
-          <View className="w-[48%] bg-white border border-slate-100 p-5 rounded-2xl mb-4 shadow-sm">
-            <Text className="text-3xl font-semibold text-indigo-600">{stats.meetings}</Text>
-            <Text className="text-xs font-medium mt-1 text-slate-500">Logged Meetings</Text>
+          <View className="w-[100%] bg-white border border-slate-100 p-4 rounded-xl mb-3 shadow-sm flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-full bg-slate-50 items-center justify-center">
+              <Ionicons name="calendar" size={20} color="#1B2B4B" />
+            </View>
+            <View>
+              <Text className="text-xl font-bold text-slate-800">{stats.meetings}</Text>
+              <Text className="text-[10px] font-semibold mt-0.5 text-slate-500 uppercase">Logged Meetings</Text>
+            </View>
           </View>
         </View>
+
+
 
         {/* Actions section */}
         <Text className="text-xs font-bold uppercase tracking-wider mb-4 text-slate-500">
           Management Controls
         </Text>
-
         <View className="space-y-3 mb-6">
+          <TouchableOpacity onPress={() => router.push('/Attendance')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
+            <View className="flex-row items-center gap-3">
+              <Ionicons name="finger-print-outline" size={20} color="#1B2B4B" />
+              <Text className="text-slate-800 font-medium text-sm">Mark My Attendance</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/UserManagement')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-800 font-medium text-sm">User Management & Roster</Text>
-            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
+            <View className="flex-row items-center gap-3">
+              <Ionicons name="people-outline" size={20} color="#1B2B4B" />
+              <Text className="text-slate-800 font-medium text-sm">User Management & Roster</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
           </TouchableOpacity>
-
           <TouchableOpacity onPress={() => router.push('/Reports')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-800 font-medium text-sm">Activity & Visit Reports</Text>
-            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
+            <View className="flex-row items-center gap-3">
+              <Ionicons name="document-text-outline" size={20} color="#1B2B4B" />
+              <Text className="text-slate-800 font-medium text-sm">Activity & Visit Reports</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => router.push('/Chat')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-800 font-medium text-sm">Live Team Chat Room</Text>
-            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity onPress={() => router.push('/AdminAttendance')} className="p-4 bg-white border border-slate-100 rounded-2xl flex-row justify-between items-center shadow-sm">
-            <Text className="text-slate-800 font-medium text-sm">View Attendance Log</Text>
-            <Text className="text-sky-500 font-medium text-xs">GO →</Text>
+            <View className="flex-row items-center gap-3">
+              <Ionicons name="list-outline" size={20} color="#1B2B4B" />
+              <Text className="text-slate-800 font-medium text-sm">View Attendance Log</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
           </TouchableOpacity>
         </View>
+
 
         {/* Task Assigning Form Panel */}
         <TouchableOpacity

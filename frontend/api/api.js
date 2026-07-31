@@ -29,29 +29,18 @@ api.interceptors.response.use(
 
     // Only retry on network errors (no HTTP response received)
     if (!error.response && config && config.url) {
-      // First retry: try the production fallback URL (handles emulator→physical
-      // switch or Render cold-start on the first call)
-      if (!config._retried && config.baseURL !== API_FALLBACK_URL) {
+      // First retry: handle Render cold-starts or brief network blips
+      if (!config._retried) {
         config._retried = true;
-        
-        // Axios might have made config.url absolute during the first try.
-        // We need to strip the old baseURL so the new API_FALLBACK_URL is applied.
-        if (config.url.startsWith('http')) {
-          const relativeUrl = config.url.replace(config.baseURL, '');
-          config.url = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`;
-        }
-        
-        config.baseURL = API_FALLBACK_URL;
-        api.defaults.baseURL = API_FALLBACK_URL; // Update globally so future requests don't fail!
-        console.warn(`Network error — retrying against production: ${API_FALLBACK_URL}${config.url}`);
+        console.warn(`Network error — retrying request: ${config.baseURL || ''}${config.url}`);
 
-        // Small delay to let Render wake up if it was cold
-        await new Promise((r) => setTimeout(r, 500));
+        // Small delay before retrying
+        await new Promise((r) => setTimeout(r, 1000));
         return api(config);
       }
 
       // All retries exhausted — surface a clean error
-      console.error('API unreachable after retry. Check your internet connection.', {
+      console.error('API unreachable after retry. Check your internet connection or backend status.', {
         url: config.url,
         method: config.method,
         baseURL: config.baseURL,

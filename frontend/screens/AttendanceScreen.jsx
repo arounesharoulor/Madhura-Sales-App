@@ -122,6 +122,7 @@ export default function AttendanceScreen() {
   const [earlyCheckoutReason, setEarlyCheckoutReason] = useState('');
   const [showEarlyModal, setShowEarlyModal] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState('');
   const [isLiveLocationShared, setIsLiveLocationShared] = useState(true);
   const [showTimeline, setShowTimeline] = useState(false);
 
@@ -130,6 +131,7 @@ export default function AttendanceScreen() {
     AsyncStorage.getItem('user').then((s) => {
       if (!s) return;
       const user = JSON.parse(s);
+      setRole(user.role || 'Field Executive');
       if (user.role === 'Admin' || user.role === 'Manager') {
         setIsAdmin(true);
       }

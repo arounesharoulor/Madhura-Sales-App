@@ -146,7 +146,27 @@ export default function AdminDashboardPremium() {
             </TouchableOpacity>
           </View>
 
-          {/* ── KPI Stats (HR only sees attendance stats; others see all) ── */}
+          {/* Personal Overview (Single Card) */}
+          <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#e2e8f0', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', elevation: 2 }}>
+            <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>My Check-Ins</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="finger-print" size={20} color="#1B2B4B" />
+                <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{metrics.myCheckIns}</Text>
+              </View>
+            </TouchableOpacity>
+            <View style={{ width: 1, height: 40, backgroundColor: '#e2e8f0' }}></View>
+            <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>My Leaves</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="umbrella" size={20} color="#1B2B4B" />
+                <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{metrics.myLeaves}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Group 1: Workforce Overview */}
+          <Text style={{ fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5, marginBottom: 10 }}>Workforce Overview</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between', marginBottom: 20 }}>
             {(isHR || isMD) && (
               <StatCard label="Checked In Today" value={metrics.checkedIn} icon="log-in" color="#10b981" onPress={() => router.push('/AdminAttendance')} />
@@ -157,12 +177,19 @@ export default function AdminDashboardPremium() {
             {!isHR && (
               <StatCard label="Total Staff" value={metrics.totalEmployees} icon="people" color="#6366f1" onPress={() => router.push('/UserManagement')} />
             )}
-            {!isHR && (
-              <StatCard label="Open Tasks" value={metrics.openTasks} icon="clipboard" color="#f43f5e" onPress={() => router.push('/TaskAssignment')} />
-            )}
             <StatCard label="Total Clients" value={metrics.totalClients} icon="briefcase" color="#7c3aed" onPress={() => router.push('/ClientOnboarding')} />
-            <StatCard label="Visits Today" value={metrics.clientVisitsToday} icon="location" color="#0ea5e9" onPress={() => router.push('/Meeting')} />
           </View>
+
+          {/* Group 2: Task & Operations */}
+          {!isHR && (
+            <>
+              <Text style={{ fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5, marginBottom: 10 }}>Task & Operations</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between', marginBottom: 20 }}>
+                <StatCard label="Open Tasks" value={metrics.openTasks} icon="clipboard" color="#f43f5e" onPress={() => router.push('/TaskAssignment')} />
+                <StatCard label="Visits Today" value={metrics.clientVisitsToday} icon="location" color="#0ea5e9" onPress={() => router.push('/Meeting')} />
+              </View>
+            </>
+          )}
 
           {/* ── HR Pending Approvals ── */}
           {(isHR || isMD) && (

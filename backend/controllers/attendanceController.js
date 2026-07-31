@@ -337,10 +337,16 @@ exports.requestLeave = async (req, res, next) => {
 // @access  Private/Admin
 exports.approveAttendance = async (req, res, next) => {
   try {
-    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name');
+    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name role');
     if (!attendance) {
       res.status(404);
       throw new Error('Attendance record not found');
+    }
+
+    const executiveRole = attendance.executive?.role || 'Field Executive';
+    if (['Admin', 'HR', 'Managing Director MD'].includes(executiveRole) && req.user.role !== 'Managing Director MD') {
+      res.status(403);
+      throw new Error('Only Super Admin can approve attendance for Admins or HRs.');
     }
 
     // Safe executive ID — works whether populated or just ObjectId
@@ -399,11 +405,16 @@ exports.approveAttendance = async (req, res, next) => {
 // @access  Private/Admin
 exports.rejectAttendance = async (req, res, next) => {
   try {
-    const { feedback } = req.body;
-    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name');
+    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name role');
     if (!attendance) {
       res.status(404);
       throw new Error('Attendance record not found');
+    }
+
+    const executiveRole = attendance.executive?.role || 'Field Executive';
+    if (['Admin', 'HR', 'Managing Director MD'].includes(executiveRole) && req.user.role !== 'Managing Director MD') {
+      res.status(403);
+      throw new Error('Only Super Admin can reject attendance for Admins or HRs.');
     }
 
     // Safe executive ID — works whether populated or just ObjectId
@@ -465,10 +476,16 @@ exports.rejectAttendance = async (req, res, next) => {
 // @access  Private/Admin
 exports.holdAttendance = async (req, res, next) => {
   try {
-    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name');
+    const attendance = await Attendance.findById(req.params.id).populate('executive', 'name role');
     if (!attendance) {
       res.status(404);
       throw new Error('Attendance record not found');
+    }
+
+    const executiveRole = attendance.executive?.role || 'Field Executive';
+    if (['Admin', 'HR', 'Managing Director MD'].includes(executiveRole) && req.user.role !== 'Managing Director MD') {
+      res.status(403);
+      throw new Error('Only Super Admin can hold attendance for Admins or HRs.');
     }
 
     let action = '';
