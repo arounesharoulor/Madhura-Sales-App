@@ -206,24 +206,26 @@ export default function AdminDashboardScreen() {
           </View>
         </View>
 
-        {/* Personal Overview (Single Card) */}
-        <View className="bg-white border border-slate-100 rounded-2xl p-4 mb-6 shadow-sm flex-row items-center justify-around">
-          <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} className="items-center">
-            <Text className="text-[10px] font-bold uppercase text-slate-500 mb-1">My Check-Ins</Text>
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="finger-print" size={20} color="#1B2B4B" />
-              <Text className="text-2xl font-bold text-slate-800">{stats.myCheckIns}</Text>
-            </View>
-          </TouchableOpacity>
-          <View className="w-[1px] h-10 bg-slate-200"></View>
-          <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} className="items-center">
-            <Text className="text-[10px] font-bold uppercase text-slate-500 mb-1">My Leaves</Text>
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="umbrella" size={20} color="#1B2B4B" />
-              <Text className="text-2xl font-bold text-slate-800">{stats.myLeaves}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+        {/* Personal Overview (Single Card) - Hidden for Super Admin */}
+        {!isMD && (
+          <View className="bg-white border border-slate-100 rounded-2xl p-4 mb-6 shadow-sm flex-row items-center justify-around">
+            <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} className="items-center">
+              <Text className="text-[10px] font-bold uppercase text-slate-500 mb-1">My Check-Ins</Text>
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="finger-print" size={20} color="#1B2B4B" />
+                <Text className="text-2xl font-bold text-slate-800">{stats.myCheckIns}</Text>
+              </View>
+            </TouchableOpacity>
+            <View className="w-[1px] h-10 bg-slate-200"></View>
+            <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} className="items-center">
+              <Text className="text-[10px] font-bold uppercase text-slate-500 mb-1">My Leaves</Text>
+              <View className="flex-row items-center gap-2">
+                <Ionicons name="umbrella" size={20} color="#1B2B4B" />
+                <Text className="text-2xl font-bold text-slate-800">{stats.myLeaves}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Group 1: Workforce Overview */}
         <Text className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-500">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import AppLayout from "../components/AppLayout";
-import { Plus, Search, Download, X, Edit2, Trash2, Mail, RefreshCw, Eye } from "lucide-react";
+import { Plus, Search, Download, X, Edit2, Trash2, Mail, RefreshCw, Eye, FileText } from "lucide-react";
 import api from "../api/api";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import InvoiceTemplate from "../components/invoicetemplate.web";
@@ -430,10 +430,15 @@ export default function ProformaInvoiceScreenWeb() {
 
   return (
     <AppLayout currentScreen="ProformaInvoice" role={role} scrollable={true}>
-      <div className="p-6 max-w-7xl mx-auto w-full">
+      <div 
+        className="p-6 max-w-7xl mx-auto w-full"
+        style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif' }}
+      >
         {/* Header Section */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">Proforma Invoices</h2>
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <FileText size={24} /> Proforma Invoices
+          </h2>
           <div className="flex gap-2">
             <button onClick={() => setOpen(true)} className="bg-[#1B2B4B] hover:bg-[#243454] text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"><Plus size={16} /> Create PI</button>
             <button onClick={openMailModal} className="border text-gray-700 bg-white hover:bg-gray-50 px-4 py-2 rounded-lg font-semibold flex items-center gap-2"><Mail size={16} /> Send Email</button>

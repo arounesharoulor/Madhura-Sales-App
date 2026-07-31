@@ -26,6 +26,7 @@ function InfoRow({ icon, label, value }) {
 }
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');

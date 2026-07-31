@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import AppLayout from "../components/AppLayout";
-import { Search, Plus, X, Edit2, Trash2, Download, Eye, FileText, RefreshCw, ArrowLeft } from "lucide-react";
+import { Search, Plus, X, Edit2, Trash2, Download, Eye, FileText, RefreshCw, ArrowLeft, MapPin, Phone, Globe, Mail } from "lucide-react";
 import api from "../api/api";
 import html2pdf from "html2pdf.js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -78,7 +78,7 @@ const InvoicePreview = React.forwardRef(function InvoicePreview(
           <img src={madhuraLogo} alt="Madhura" style={{ height: "60px", objectFit: "contain" }} />
           <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", color: "#002060", fontSize: "8pt", lineHeight: "1.4" }}>
             <div style={{ background: "#002060", color: "#fff", borderRadius: "50%", width: "22px", height: "22px", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "2px", flexShrink: 0 }}>
-              <span style={{ fontSize: "10pt" }}>📍</span>
+              <MapPin size={12} color="#fff" />
             </div>
             <div>
               <strong style={{ fontSize: "8.5pt", textTransform: "uppercase", letterSpacing: "0.5px" }}>Corporate Office</strong><br />
@@ -211,12 +211,12 @@ const InvoicePreview = React.forwardRef(function InvoicePreview(
       </div>
 
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex", height: "38px", fontFamily: "'Times New Roman', Times, serif", fontWeight: "bold", fontSize: "10pt", boxSizing: "border-box" }}>
-        <div style={{ background: "#002060", color: "#fff", width: "35%", display: "flex", alignItems: "center", justifyContent: "center", clipPath: "polygon(0 0, 92% 0, 100% 100%, 0% 100%)", paddingRight: "15px" }}>
-          <span style={{ marginRight: "6px", fontSize: "11pt" }}>📞</span> +91 90036 63660
+        <div style={{ background: "#002060", color: "#fff", width: "35%", display: "flex", alignItems: "center", justifyContent: "center", clipPath: "polygon(0 0, 92% 0, 100% 100%, 0% 100%)", paddingRight: "15px", gap: "6px" }}>
+          <Phone size={14} color="#fff" /> +91 90036 63660
         </div>
         <div style={{ background: "#f9b233", color: "#000", width: "65%", display: "flex", alignItems: "center", justifyContent: "space-around", paddingLeft: "10px" }}>
-          <span>🌐 www.madhuratech.com</span>
-          <span>✉ biz@madhuratech.com</span>
+          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Globe size={14} color="#000" /> www.madhuratech.com</span>
+          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Mail size={14} color="#000" /> biz@madhuratech.com</span>
         </div>
       </div>
     </div>
@@ -491,7 +491,10 @@ export default function InvoiceScreenWeb() {
 
   return (
     <AppLayout currentScreen="Invoice" role={role} scrollable={true}>
-      <div className="p-6 max-w-7xl mx-auto w-full">
+      <div 
+        className="p-6 max-w-7xl mx-auto w-full"
+        style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif' }}
+      >
         {/* Title and Controls */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">

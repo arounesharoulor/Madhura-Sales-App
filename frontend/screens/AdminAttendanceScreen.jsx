@@ -34,7 +34,7 @@ const STATUS_CONFIG = {
   'Pending Check-Out': { color: '#3b82f6', bg: '#eff6ff', label: 'Pending Check-Out', icon: 'time-outline' },
   'Checked Out':       { color: '#64748b', bg: '#f8fafc', label: 'Checked Out',        icon: 'log-out-outline' },
   'Pending Leave':     { color: '#a855f7', bg: '#faf5ff', label: 'Leave Pending',      icon: 'time-outline' },
-  'On Leave':          { color: '#8b5cf6', bg: '#f5f3ff', label: 'On Leave',           icon: 'umbrella-outline' },
+  'On Leave':          { color: '#8b5cf6', bg: '#f5f3ff', label: 'Leave Accepted',       icon: 'umbrella-outline' },
   'Rejected Check-In': { color: '#ef4444', bg: '#fef2f2', label: 'Check-In Rejected',  icon: 'close-circle-outline' },
   'Rejected Check-Out':{ color: '#ef4444', bg: '#fef2f2', label: 'Check-Out Rejected', icon: 'close-circle-outline' },
   'Rejected Leave':    { color: '#ef4444', bg: '#fef2f2', label: 'Leave Rejected',     icon: 'close-circle-outline' },
@@ -277,12 +277,15 @@ export default function AdminAttendanceScreen() {
   };
 
   // Derived lists
-  const isMD = userRole === 'Managing Director MD';
+  const isMD = userRole === 'Managing Director MD' || userRole === 'Super Admin';
   const displayRecords = (records || []).filter((r) => {
-    if (!isMD) return true;
     const rRole = r.executive?.role || 'Field Executive';
-    if (roleTab === 'Employee') return rRole === 'Field Executive';
-    return rRole !== 'Field Executive';
+    if (isMD) {
+      if (roleTab === 'Employee') return rRole === 'Field Executive';
+      return rRole !== 'Field Executive';
+    }
+    // HR or others only see Field Executive
+    return rRole === 'Field Executive';
   });
 
   const safeRecords = displayRecords;

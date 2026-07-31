@@ -16,6 +16,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+let Audio;
+try {
+  Audio = require('expo-av').Audio;
+} catch (e) {}
 import * as Location from 'expo-location';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
@@ -213,6 +217,14 @@ export default function AttendanceScreen() {
     try {
       const fullReason = `[${leaveCriteria}] ${leaveReason.trim()}`;
       await api.post('/attendance/leave', { leaveType, leaveReason: fullReason, leaveDate });
+      try {
+        if (Audio) {
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' }
+          );
+          await sound.playAsync();
+        }
+      } catch (err) {}
       Toast.show({
         type: 'success',
         text1: '☂️ Leave Request Submitted',
@@ -300,6 +312,14 @@ export default function AttendanceScreen() {
         latitude,
         longitude,
       });
+      try {
+        if (Audio) {
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' }
+          );
+          await sound.playAsync();
+        }
+      } catch (err) {}
       Toast.show({
         type: 'success',
         text1: '✅ Checked In',
@@ -345,6 +365,14 @@ export default function AttendanceScreen() {
           longitude,
           earlyCheckoutReason: validReason || '',
         });
+        try {
+          if (Audio) {
+            const { sound } = await Audio.Sound.createAsync(
+              { uri: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg' }
+            );
+            await sound.playAsync();
+          }
+        } catch (err) {}
         Toast.show({
           type: isEarly ? 'error' : 'info',
           text1: isEarly ? '⚠️ Early Check-Out Submitted' : '👋 Checked Out',
@@ -364,6 +392,7 @@ export default function AttendanceScreen() {
 
         // Render cold-start — server waking up, retry once after 2.5s
         if (!retrying && (!err.response || status === 404 || status === 503)) {
+
           Toast.show({
             type: 'info',
             text1: '⏳ Server is waking up…',
@@ -584,7 +613,7 @@ export default function AttendanceScreen() {
               <View style={styles.statusText}>
                 <Text style={styles.statusLabel}>Today's Status</Text>
                 <Text style={[styles.statusValue, { color: statusColor }]}>
-                  {currentStatus === 'None' ? 'Not Checked In' : currentStatus}
+                  {currentStatus === 'None' ? 'Not Checked In' : (currentStatus === 'On Leave' ? 'Leave Accepted' : (currentStatus === 'Rejected Leave' ? 'Leave Rejected' : currentStatus))}
                 </Text>
               </View>
             </View>
@@ -940,7 +969,10 @@ export default function AttendanceScreen() {
         ) : (
           <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
             {history.map((item) => {
-              const cfg = STATUS_COLORS[item.status] ? { color: STATUS_COLORS[item.status], label: item.status } : { color: '#94a3b8', label: item.status };
+              let dispLabel = item.status;
+              if (dispLabel === 'On Leave') dispLabel = 'Leave Accepted';
+              if (dispLabel === 'Rejected Leave') dispLabel = 'Leave Rejected';
+              const cfg = STATUS_COLORS[item.status] ? { color: STATUS_COLORS[item.status], label: dispLabel } : { color: '#94a3b8', label: dispLabel };
               return (
                 <View key={item._id} style={[{ backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 12, borderLeftWidth: 4, borderWidth: 1, borderColor: '#f1f5f9', elevation: 1 }, { borderLeftColor: cfg.color }]}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>

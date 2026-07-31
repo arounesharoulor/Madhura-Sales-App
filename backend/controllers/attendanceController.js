@@ -390,6 +390,17 @@ exports.approveAttendance = async (req, res, next) => {
       console.error('Notification creation failed (non-fatal):', notifErr.message);
     }
 
+    // Notify other admins
+    try {
+      await notifyAdmins(
+        req.io,
+        req.user.id,
+        action,
+        `The ${action.toLowerCase()} for ${attendance.executive?.name || 'Employee'} on ${attendance.date} has been approved by ${req.user.name}.`,
+        'Success'
+      );
+    } catch (err) {}
+
     // Real-time: push approval to employee and all admins
     if (req.io) req.io.to(executiveId.toString()).emit('attendance_updated', { attendanceId: attendance._id, action });
     await emitAttendanceUpdate(req.io, { attendanceId: attendance._id, executiveId: executiveId.toString(), action });
@@ -460,6 +471,17 @@ exports.rejectAttendance = async (req, res, next) => {
     } catch (notifErr) {
       console.error('Notification creation failed (non-fatal):', notifErr.message);
     }
+
+    // Notify other admins
+    try {
+      await notifyAdmins(
+        req.io,
+        req.user.id,
+        action,
+        `The ${action.toLowerCase()} request for ${attendance.executive?.name || 'Employee'} on ${attendance.date} has been rejected by ${req.user.name}.`,
+        'Warning'
+      );
+    } catch (err) {}
 
     // Real-time: push rejection to employee and all admins
     if (req.io) req.io.to(executiveId.toString()).emit('attendance_updated', { attendanceId: attendance._id, action });

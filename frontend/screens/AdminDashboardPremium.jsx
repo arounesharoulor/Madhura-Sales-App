@@ -146,24 +146,26 @@ export default function AdminDashboardPremium() {
             </TouchableOpacity>
           </View>
 
-          {/* Personal Overview (Single Card) */}
-          <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#e2e8f0', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', elevation: 2 }}>
-            <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>My Check-Ins</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="finger-print" size={20} color="#1B2B4B" />
-                <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{metrics.myCheckIns}</Text>
-              </View>
-            </TouchableOpacity>
-            <View style={{ width: 1, height: 40, backgroundColor: '#e2e8f0' }}></View>
-            <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>My Leaves</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="umbrella" size={20} color="#1B2B4B" />
-                <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{metrics.myLeaves}</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
+          {/* Personal Overview (Single Card) - Hidden for Super Admin */}
+          {!isMD && (
+            <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: '#e2e8f0', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', elevation: 2 }}>
+              <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>My Check-Ins</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="finger-print" size={20} color="#1B2B4B" />
+                  <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{metrics.myCheckIns}</Text>
+                </View>
+              </TouchableOpacity>
+              <View style={{ width: 1, height: 40, backgroundColor: '#e2e8f0' }}></View>
+              <TouchableOpacity onPress={() => router.push('/Attendance')} activeOpacity={0.7} style={{ alignItems: 'center' }}>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', marginBottom: 4 }}>My Leaves</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="umbrella" size={20} color="#1B2B4B" />
+                  <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>{metrics.myLeaves}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Group 1: Workforce Overview */}
           <Text style={{ fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', color: '#64748b', letterSpacing: 0.5, marginBottom: 10 }}>Workforce Overview</Text>

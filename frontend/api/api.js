@@ -39,8 +39,8 @@ api.interceptors.response.use(
         return api(config);
       }
 
-      // All retries exhausted — surface a clean error
-      console.error('API unreachable after retry. Check your internet connection or backend status.', {
+      // All retries exhausted — surface a clean error as warning to prevent redbox overlay
+      console.warn('API unreachable after retry. Check your internet connection or backend status.', {
         url: config.url,
         method: config.method,
         baseURL: config.baseURL,
