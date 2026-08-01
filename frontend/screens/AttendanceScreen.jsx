@@ -260,7 +260,7 @@ export default function AttendanceScreen() {
     try {
       setLoading(true);
       const res = await api.get('/attendance/today');
-      let record = res.data.data;
+      let record = res?.data?.data || null;
       if (record) {
         if (record.status === 'Pending Check-In') record.status = 'Checked In';
         if (record.status === 'Pending Check-Out') record.status = 'Checked Out';
@@ -271,7 +271,7 @@ export default function AttendanceScreen() {
     } catch (err) {
       // 403 means this user is not a Field Executive — silently ignore
       if (err?.response?.status !== 403) {
-        console.error('Attendance fetch error:', err.message);
+        console.warn('Attendance fetch error:', err.message);
       }
     } finally {
       setLoading(false);
