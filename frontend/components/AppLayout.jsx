@@ -56,6 +56,7 @@ const allAdminNavSections = [
       { title: 'Log Client Visit',  screen: 'Meeting',                  icon: 'location-outline',  iconActive: 'location' },
       { title: 'Proforma Invoices', screen: 'ProformaInvoice',          icon: 'receipt-outline',   iconActive: 'receipt' },
       { title: 'Tax Invoices',      screen: 'Invoice',                  icon: 'wallet-outline',    iconActive: 'wallet' },
+      { title: 'Payment Receipts',  screen: 'PaymentReceipt',           icon: 'card-outline',      iconActive: 'card' },
     ],
   },
   {
@@ -84,6 +85,7 @@ const employeeNavSections = [
       { title: 'Quotations',       screen: 'Quotation',       icon: 'document-text-outline', iconActive: 'document-text' },
       { title: 'Proforma Invoices', screen: 'ProformaInvoice',          icon: 'receipt-outline',   iconActive: 'receipt' },
       { title: 'Tax Invoices',      screen: 'Invoice',                  icon: 'wallet-outline',    iconActive: 'wallet' },
+      { title: 'Payment Receipts',  screen: 'PaymentReceipt',           icon: 'card-outline',      iconActive: 'card' },
     ],
   },
   {
