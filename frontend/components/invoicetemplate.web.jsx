@@ -260,31 +260,38 @@ const Invoice = ({ performaInvoiceId, quotationId }) => {
               top: "52%",
               left: "50%",
               transform: "translate(-50%, -50%) rotate(-12deg)",
-              opacity: "0.15",
+              opacity: "0.08",
               pointerEvents: "none",
-              zIndex: "0"
+              zIndex: "0",
+              fontSize: "72px",
+              color: "#22c55e",
+              fontWeight: "900",
+              lineHeight: "1"
             }}>
-              <svg width="85" height="85" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              ✔
             </div>
             <div style={{ width: "85%", paddingTop: "6px", textAlign: "center", position: "relative", zIndex: "1" }}>
               <div style={{
                 display: "inline-block",
-                border: "1.5px solid #22c55e",
-                borderRadius: "4px",
-                padding: "3px 8px",
-                marginBottom: "5px",
-                backgroundColor: "#f0fdf4",
+                marginBottom: "6px",
                 whiteSpace: "nowrap"
               }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: "4px" }}>
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+                <span style={{
+                  color: "#22c55e",
+                  fontWeight: "900",
+                  marginRight: "5px",
+                  fontSize: "9pt",
+                  display: "inline-block",
+                  verticalAlign: "middle",
+                  lineHeight: "1",
+                  position: "relative",
+                  top: "-1px"
+                }}>✔</span>
                 <span style={{
                   fontSize: "7pt", color: "#166534", fontWeight: "800",
                   textTransform: "uppercase", letterSpacing: "0.3px",
-                  display: "inline-block", verticalAlign: "middle"
+                  display: "inline-block", verticalAlign: "middle",
+                  lineHeight: "1"
                 }}>Digitally Signed</span>
               </div>
               <p style={{ fontSize: "7pt", color: "#166534", fontWeight: "700", margin: "0" }}>By Accounts Team</p>
