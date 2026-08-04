@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-import api from '../api/api';
+import api from '../services/api';
 import AppLayout from '../components/AppLayout';
 import { connectSocket } from '../utils/socket';
 

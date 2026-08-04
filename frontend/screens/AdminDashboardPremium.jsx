@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../api/api';
+import api from '../services/api';
 import { useSocketRefresh } from '../hooks/useSocketRefresh';
 import AppLayout from '../components/AppLayout';
 

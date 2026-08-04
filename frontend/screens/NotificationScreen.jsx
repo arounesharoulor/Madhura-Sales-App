@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../api/api';
+import api from '../services/api';
 import { connectSocket } from '../utils/socket';
 import AppLayout from '../components/AppLayout';
 

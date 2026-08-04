@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput,
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
-import api from '../api/api';
+import api from '../services/api';
 import Toast from 'react-native-toast-message';
 
 // Select field

@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../api/api';
+import api from '../services/api';
 import { API_URL } from '../utils/constants';
 
 // Helper component to render secure images from buffer

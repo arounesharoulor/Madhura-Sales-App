@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { disconnectSocket } from './socket';
-import api from '../api/api';
+import api from '../services/api';
 
 /**
  * Centralized logout utility.

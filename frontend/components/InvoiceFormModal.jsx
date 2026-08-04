@@ -1,7 +1,7 @@
 import React from "react";
 import { PlusCircle, MinusCircle, X } from "lucide-react";
 import { calculateItemTotal, calculateTotals } from "../utils/invoicecal";
-import api from "../api/api";
+import api from "../services/api";
 
 const UOM_OPTIONS = ["Nos", "Units", "Pieces", "Boxes", "Sets", "Meters", "Kg", "Liters"];
 const TAX_OPTIONS = [{ value: "GST18", label: "GST 18%" }, { value: "GST5", label: "GST 5%" }, { value: "CUSTOM", label: "Custom GST" }];

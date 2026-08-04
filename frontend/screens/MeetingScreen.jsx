@@ -11,7 +11,7 @@ import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
 import AppLayout from '../components/AppLayout';
 import MeetingCard from '../components/MeetingCard';
-import api from '../api/api';
+import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams } from 'expo-router';
 

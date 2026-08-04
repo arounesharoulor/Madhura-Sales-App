@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import AppLayout from '../components/AppLayout';
-import api from '../api/api';
+import api from '../services/api';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -247,6 +247,28 @@ export default function UserManagementScreen() {
     );
   };
 
+  const handleApproveUser = async (userId) => {
+    Alert.alert(
+      'Approve User',
+      'Are you sure you want to approve this account?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Approve',
+          onPress: async () => {
+            try {
+              await api.put(`/users/${userId}/approve`);
+              Alert.alert('Success', 'User approved successfully');
+              fetchUsers();
+            } catch (e) {
+              Alert.alert('Error', e.response?.data?.message || 'Failed to approve user');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderAddFormContent = () => (
     <>
       {Platform.OS === 'web' && (
@@ -466,6 +488,15 @@ export default function UserManagementScreen() {
                       </View>
                     </View>
                     <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-slate-100 justify-end">
+                      {!item.isApproved && ['HR', 'Managing Director MD', 'Admin'].includes(userRole) && (
+                        <TouchableOpacity
+                          onPress={() => handleApproveUser(item._id)}
+                          className="bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex-row items-center"
+                        >
+                          <Ionicons name="checkmark-circle-outline" size={14} color="#059669" style={{ marginRight: 4 }} />
+                          <Text className="text-[10px] text-emerald-700 font-bold">Approve</Text>
+                        </TouchableOpacity>
+                      )}
                       {['HR', 'Managing Director MD'].includes(userRole) && (
                         <TouchableOpacity
                           onPress={() => openProfile(item._id)}

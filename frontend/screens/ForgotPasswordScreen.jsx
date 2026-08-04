@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import Header from '../components/Header';
-import api from '../api/api';
+import api from '../services/api';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');

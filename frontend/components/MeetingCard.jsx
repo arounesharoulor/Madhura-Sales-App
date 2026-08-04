@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, Image, Linking, StyleSheet, Platform, TextInput, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../api/api';
+import api from '../services/api';
 import Toast from 'react-native-toast-message';
 import * as ImagePicker from 'expo-image-picker';
 

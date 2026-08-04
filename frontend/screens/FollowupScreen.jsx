@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Location from 'expo-location';
 import Toast from 'react-native-toast-message';
-import api from '../api/api';
+import api from '../services/api';
 import AppLayout from '../components/AppLayout';
 import { connectSocket, getSocket } from '../utils/socket';
 

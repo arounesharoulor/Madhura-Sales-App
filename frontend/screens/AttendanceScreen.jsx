@@ -24,7 +24,7 @@ import * as Location from 'expo-location';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../api/api';
+import api from '../services/api';
 import { useSocketRefresh } from '../hooks/useSocketRefresh';
 import AppLayout from '../components/AppLayout';
 

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AppLayout from '../components/AppLayout';
-import api from '../api/api';
+import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PaymentReceiptScreen() {

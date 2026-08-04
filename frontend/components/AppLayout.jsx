@@ -8,7 +8,7 @@ import { connectSocket, disconnectSocket } from '../utils/socket';
 import Toast from 'react-native-toast-message';
 import * as Location from 'expo-location';
 import { performLogout } from '../utils/logout';
-import api from '../api/api';
+import api from '../services/api';
 
 // ── Brand Tokens ──────────────────────────────────────────────────
 const NAVY   = '#1B2B4B';   // Madhura deep navy

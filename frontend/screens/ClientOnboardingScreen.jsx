@@ -8,7 +8,7 @@ import * as Location from 'expo-location';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
-import api from '../api/api';
+import api from '../services/api';
 import { useLocalSearchParams, router } from 'expo-router';
 
 const BUSINESS_TYPES = ['Retailer', 'Distributor', 'Wholesaler', 'Dealer', 'Corporate', 'Other'];

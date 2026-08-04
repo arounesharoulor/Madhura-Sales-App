@@ -19,7 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../api/api';
+import api from '../services/api';
 import Toast from 'react-native-toast-message';
 
 export default function RegisterScreen() {
@@ -149,17 +149,21 @@ export default function RegisterScreen() {
       
       Toast.show({
         type: 'success',
-        text1: '🎉 Account Created!',
-        text2: `Welcome, ${user.name}!`,
-        visibilityTime: 3000,
+        text1: '🎉 Registration Submitted!',
+        text2: `Your account is pending admin approval.`,
+        visibilityTime: 4000,
       });
 
       if (['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(user.role)) {
         setShowAdminEmpIdModal(true);
       } else {
         setTimeout(() => {
-          router.replace('/Dashboard');
-        }, 1500);
+          Alert.alert(
+            'Account Pending',
+            'Your account has been created successfully but requires admin approval before you can log in. You will be notified once approved.',
+            [{ text: 'OK', onPress: () => router.replace('/Login') }]
+          );
+        }, 1000);
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Something went wrong.';
@@ -181,7 +185,11 @@ export default function RegisterScreen() {
       console.log('Failed to save Admin Employee ID:', error);
     } finally {
       setShowAdminEmpIdModal(false);
-      router.replace('/AdminDashboard');
+      Alert.alert(
+        'Account Pending',
+        'Your admin account requires approval by a Managing Director or HR before you can log in. You will be notified once approved.',
+        [{ text: 'OK', onPress: () => router.replace('/Login') }]
+      );
     }
   };
 
@@ -299,7 +307,10 @@ export default function RegisterScreen() {
             <TextInput
               style={styles.input}
               value={form.phone}
-              onChangeText={v => update('phone', v)}
+              onChangeText={v => {
+                const numOnly = v.replace(/\D/g, '');
+                update('phone', numOnly);
+              }}
               placeholder="10-digit"
               placeholderTextColor="#94a3b8"
               keyboardType="phone-pad"
@@ -322,14 +333,16 @@ export default function RegisterScreen() {
               style={styles.input}
               value={form.employeeId}
               onChangeText={v => {
-                update('employeeId', v);
-                if (v.length > 5) {
+                const numOnly = v.replace(/\D/g, '');
+                update('employeeId', numOnly);
+                if (numOnly.length > 5) {
                   setErrors(prev => ({ ...prev, employeeId: 'Employee ID must be exactly 5 digits' }));
                 }
               }}
               placeholder="5-digit ID (e.g. 32629)"
               placeholderTextColor="#94a3b8"
               keyboardType="numeric"
+              maxLength={5}
               onFocus={() => setFocusedField('employeeId')}
               onBlur={() => setFocusedField(null)}
             />

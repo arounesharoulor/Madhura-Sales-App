@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import api from '../api/api';
+import api from '../services/api';
 import { connectSocket, getSocket } from '../utils/socket';
 import AppLayout from '../components/AppLayout';
 

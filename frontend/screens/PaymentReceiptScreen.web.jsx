@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import AppLayout from "../components/AppLayout";
 import { Plus, Search, Download, X, Edit2, Trash2, Mail, RefreshCw, Eye } from "lucide-react";
-import api from "../api/api";
+import api from "../services/api";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReceiptTemplate from "../components/receipttemplate.web";
 

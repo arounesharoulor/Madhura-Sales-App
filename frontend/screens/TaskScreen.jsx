@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import Toast from 'react-native-toast-message';
-import api from '../api/api';
+import api from '../services/api';
 import { connectSocket, getSocket } from '../utils/socket';
 import AppLayout from '../components/AppLayout';
 

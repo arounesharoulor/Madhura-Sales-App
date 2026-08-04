@@ -11,7 +11,7 @@ import * as Sharing from 'expo-sharing';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 import AppLayout from '../components/AppLayout';
-import api from '../api/api';
+import api from '../services/api';
 import { useRouter } from 'expo-router';
 
 // Cross-platform DatePicker

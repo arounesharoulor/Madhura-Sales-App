@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Location from 'expo-location';
 import AppLayout from '../components/AppLayout';
-import api from '../api/api';
+import api from '../services/api';
 
 
 

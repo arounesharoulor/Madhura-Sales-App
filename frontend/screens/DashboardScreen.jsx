@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../api/api';
+import api from '../services/api';
 import { connectSocket } from '../utils/socket';
 import { useSocketRefresh } from '../hooks/useSocketRefresh';
 import * as Location from 'expo-location';

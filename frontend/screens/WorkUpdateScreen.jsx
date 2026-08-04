@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLayout from '../components/AppLayout';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
-import api from '../api/api';
+import api from '../services/api';
 
 export default function WorkUpdateScreen() {
   const router = useRouter();

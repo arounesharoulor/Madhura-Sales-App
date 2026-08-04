@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import api from '../api/api';
+import api from '../services/api';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -103,7 +103,13 @@ export default function LoginScreen() {
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'Network error occurred. Please try again.';
-      Alert.alert('Login Failed', msg);
+      if (msg.includes('pending admin approval')) {
+        Alert.alert('Account Pending', msg);
+      } else if (msg.includes('already logged in')) {
+        Alert.alert('Simultaneous Login Blocked', msg);
+      } else {
+        Alert.alert('Login Failed', msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -202,14 +208,16 @@ export default function LoginScreen() {
                   style={styles.input}
                   value={employeeId}
                   onChangeText={t => { 
-                    setEmployeeId(t); 
-                    if(t.length > 5) {
+                    const numOnly = t.replace(/\D/g, '');
+                    setEmployeeId(numOnly); 
+                    if(numOnly.length > 5) {
                       setErrors(e => ({ ...e, employeeId: 'Employee ID must be exactly 5 digits' }));
                     } else if(errors.employeeId) {
                       setErrors(e => ({ ...e, employeeId: null })); 
                     }
                   }}
                   keyboardType="numeric"
+                  maxLength={5}
                   placeholder="5-digit ID (e.g. 32629)"
                   placeholderTextColor="#64748b"
                   onFocus={() => setFocusedField('employeeId')}

@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import api from '../api/api';
+import api from '../services/api';
 import AppLayout from '../components/AppLayout';
 import { EvidenceImage } from '../components/TaskCard';
 import { useSocketRefresh } from '../hooks/useSocketRefresh';
