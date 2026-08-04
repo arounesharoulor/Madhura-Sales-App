@@ -39,6 +39,7 @@ const STATIC_SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL ||
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SOCKET_URL ||
   Constants.manifest?.extra?.EXPO_PUBLIC_SOCKET_URL;
 
+<<<<<<< HEAD
 const getDevHost = () => {
   // Use LOCAL_HOST (the Expo packager's LAN IP) for all devices, including emulators.
   // Expo automatically whitelists LOCAL_HOST for cleartext HTTP traffic on Android,
@@ -53,23 +54,21 @@ const DEV_SOCKET_URL = `http://${DEV_HOST}:5005`;
 
 const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
 
+=======
+>>>>>>> 148334830f1b97b668aff62bfedccc8ae35ac086
 // Resolution order:
-// 1. Explicit env override (EXPO_PUBLIC_API_URL) - overridden if it points to production render during local dev
+// 1. Explicit env override (EXPO_PUBLIC_API_URL)
 // 2. Android emulator → 10.0.2.2
 // 3. iOS simulator → 127.0.0.1
 // 4. Web dev (localhost) → local IP
 // 5. Physical device in DEV mode → local IP
 // 6. Everything else (production build) → Render production
-export const API_URL = (isDev && STATIC_API_URL && STATIC_API_URL.includes('onrender.com'))
-  ? DEV_API_URL
-  : (STATIC_API_URL || (isDev ? DEV_API_URL : PRODUCTION_API_URL));
+export const API_URL = STATIC_API_URL || PRODUCTION_API_URL;
 
 // Fallback is always the live production server
 export const API_FALLBACK_URL = PRODUCTION_API_URL;
 
-export const SOCKET_URL = (isDev && STATIC_SOCKET_URL && STATIC_SOCKET_URL.includes('onrender.com'))
-  ? DEV_SOCKET_URL
-  : (STATIC_SOCKET_URL || (isDev ? DEV_SOCKET_URL : PRODUCTION_SOCKET_URL));
+export const SOCKET_URL = STATIC_SOCKET_URL || PRODUCTION_SOCKET_URL;
 
 export const THEME = {
   primary: '#0284c7',       // sky-600
