@@ -39,7 +39,6 @@ const STATIC_SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL ||
   Constants.expoConfig?.extra?.EXPO_PUBLIC_SOCKET_URL ||
   Constants.manifest?.extra?.EXPO_PUBLIC_SOCKET_URL;
 
-<<<<<<< HEAD
 const getDevHost = () => {
   // Use LOCAL_HOST (the Expo packager's LAN IP) for all devices, including emulators.
   // Expo automatically whitelists LOCAL_HOST for cleartext HTTP traffic on Android,
@@ -53,9 +52,6 @@ const DEV_API_URL = `http://${DEV_HOST}:5005/api`;
 const DEV_SOCKET_URL = `http://${DEV_HOST}:5005`;
 
 const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
-
-=======
->>>>>>> 148334830f1b97b668aff62bfedccc8ae35ac086
 // Resolution order:
 // 1. Explicit env override (EXPO_PUBLIC_API_URL)
 // 2. Android emulator → 10.0.2.2
