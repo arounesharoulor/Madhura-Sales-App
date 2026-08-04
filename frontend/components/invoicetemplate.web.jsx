@@ -270,22 +270,21 @@ const Invoice = ({ performaInvoiceId, quotationId }) => {
             </div>
             <div style={{ width: "85%", paddingTop: "6px", textAlign: "center", position: "relative", zIndex: "1" }}>
               <div style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "4px",
+                display: "inline-block",
                 border: "1.5px solid #22c55e",
                 borderRadius: "4px",
                 padding: "3px 8px",
                 marginBottom: "5px",
-                backgroundColor: "#f0fdf4"
+                backgroundColor: "#f0fdf4",
+                whiteSpace: "nowrap"
               }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle", marginRight: "4px" }}>
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 <span style={{
                   fontSize: "7pt", color: "#166534", fontWeight: "800",
-                  textTransform: "uppercase", letterSpacing: "0.3px"
+                  textTransform: "uppercase", letterSpacing: "0.3px",
+                  display: "inline-block", verticalAlign: "middle"
                 }}>Digitally Signed</span>
               </div>
               <p style={{ fontSize: "7pt", color: "#166534", fontWeight: "700", margin: "0" }}>By Accounts Team</p>
