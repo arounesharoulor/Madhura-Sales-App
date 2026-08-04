@@ -71,3 +71,4 @@ export const THEME = {
   backgroundDark: '#0f172a', // slate-900
   backgroundLight: '#f8fafc', // slate-50
 };
+
