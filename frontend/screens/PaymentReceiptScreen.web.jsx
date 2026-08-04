@@ -265,97 +265,92 @@ export default function PaymentReceiptScreenWeb() {
     <AppLayout currentScreen="PaymentReceipt" role={role}>
       <div className="p-6 max-w-7xl mx-auto">
         {/* Header Dashboard section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
-              Payment Receipts
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">Manage and generate official payment receipt documents.</p>
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Mail className="text-[#1B2B4B]" /> Payment Receipts
+          </h1>
           <button
             onClick={openCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl flex items-center gap-2 shadow-lg shadow-blue-500/20 transition duration-150 ease-in-out"
+            className="bg-[#1B2B4B] hover:bg-[#243454] text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 shadow"
           >
-            <Plus size={18} /> Create Receipt
+            <Plus size={18} /> New Receipt
           </button>
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center gap-4 mb-6">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search by receipt no, client company, or invoice no..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white text-sm transition"
-            />
-          </div>
-          <button onClick={fetchReceipts} className="p-2.5 text-gray-400 hover:text-blue-500 bg-gray-50 hover:bg-gray-100 rounded-xl border transition">
+        <div className="bg-white p-4 rounded-xl shadow mb-6 border flex gap-3 items-center">
+          <Search className="text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by receipt no, client company, or invoice no..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full text-sm outline-none text-gray-700 bg-transparent"
+          />
+          <button onClick={fetchReceipts} className="p-1 text-gray-400 hover:text-[#1B2B4B] transition ml-auto">
             <RefreshCw size={18} />
           </button>
         </div>
 
-        {/* List Grid view */}
+        {/* List Grid view / Table */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-          </div>
+          <div className="text-center py-10"><RefreshCw className="animate-spin inline-block text-gray-400" size={32} /></div>
         ) : filteredReceipts.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl border border-gray-100 text-center text-gray-500 shadow-sm">
+          <div className="bg-white p-10 rounded-xl border text-center text-gray-500 shadow-sm">
             No payment receipts found matching your criteria.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredReceipts.map(r => (
-              <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start gap-2 mb-3">
-                    <span className="font-bold text-gray-900 text-base">{r.receipt_no}</span>
-                    <span className="text-xs text-gray-400 whitespace-nowrap bg-gray-50 px-2 py-1 rounded">
-                      {new Date(r.receipt_date).toLocaleDateString("en-IN")}
-                    </span>
-                  </div>
-
-                  <h3 className="font-bold text-gray-800 text-md mb-2">{r.client_company || r.client_name}</h3>
-                  <div className="text-xs text-gray-500 space-y-1">
-                    <div><span className="font-medium text-gray-400">Invoice:</span> {r.invoice_no}</div>
-                    <div><span className="font-medium text-gray-400">Service:</span> {r.service_no}</div>
-                    <div><span className="font-medium text-gray-400">Paid via:</span> {r.payment_method}</div>
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between">
-                  <div className="text-lg font-black text-emerald-600">
-                    ₹{Number(r.total_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => { setViewId(r.id); setReceiptNo(r.receipt_no); setShowReceipt(true); }}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                      title="View Template"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    <button
-                      onClick={() => openEdit(r.id)}
-                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                      title="Edit"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-xl shadow border overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-600 uppercase text-xs font-bold border-b">
+                  <th className="p-4">Receipt No</th>
+                  <th className="p-4">Client Company</th>
+                  <th className="p-4">Receipt Date</th>
+                  <th className="p-4">Invoice No</th>
+                  <th className="p-4">Payment Method</th>
+                  <th className="p-4">Amount</th>
+                  <th className="p-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredReceipts.map(r => (
+                  <tr key={r.id} className="border-b hover:bg-gray-50 transition">
+                    <td className="p-4 font-semibold text-gray-700">{r.receipt_no}</td>
+                    <td className="p-4 font-semibold text-gray-800">{r.client_company || r.client_name}</td>
+                    <td className="p-4 text-gray-600">{new Date(r.receipt_date).toLocaleDateString("en-IN")}</td>
+                    <td className="p-4 text-gray-600">{r.invoice_no}</td>
+                    <td className="p-4 text-gray-600">{r.payment_method}</td>
+                    <td className="p-4 font-bold text-emerald-600">
+                      ₹{Number(r.total_amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="p-4 flex gap-2 justify-center">
+                      <button
+                        onClick={() => { setViewId(r.id); setReceiptNo(r.receipt_no); setShowReceipt(true); }}
+                        className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg"
+                        title="Preview Print"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button
+                        onClick={() => openEdit(r.id)}
+                        className="p-2 hover:bg-yellow-50 text-yellow-600 rounded-lg"
+                        title="Edit"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="p-2 hover:bg-red-50 text-red-500 rounded-lg"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
