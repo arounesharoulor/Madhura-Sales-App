@@ -105,6 +105,10 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

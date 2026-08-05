@@ -167,8 +167,16 @@ export default function RegisterScreen() {
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Something went wrong.';
-      setServerError(msg);
-      Alert.alert('Registration Failed', msg);
+      if (msg.toLowerCase().includes('email')) {
+        setErrors(prev => ({ ...prev, email: msg }));
+        setStep(1);
+      } else if (msg.toLowerCase().includes('employee') || msg.toLowerCase().includes('id')) {
+        setErrors(prev => ({ ...prev, employeeId: msg }));
+        setStep(1);
+      } else {
+        setServerError(msg);
+        Alert.alert('Registration Failed', msg);
+      }
     } finally {
       setLoading(false);
     }

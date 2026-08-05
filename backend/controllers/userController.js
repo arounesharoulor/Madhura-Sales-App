@@ -166,6 +166,37 @@ exports.toggleUserStatus = async (req, res, next) => {
   }
 };
 
+// @desc    Approve a newly registered user
+// @route   PUT /api/users/:id/approve
+// @access  Private/Admin
+exports.approveUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (user.isApproved) {
+      res.status(400);
+      throw new Error('User is already approved');
+    }
+
+    user.isApproved = true;
+    user.isActive = true; // Ensure active upon approval
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'User approved successfully',
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Update employee tenure/joining date
 // @route   PUT /api/users/:id/record
 // @access  Private/Admin

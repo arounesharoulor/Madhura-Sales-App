@@ -113,26 +113,24 @@ exports.register = async (req, res, next) => {
       },
     });
 
-    // Notify all admins when a new Field Executive registers
-    if (normalizedRole === 'Field Executive') {
-      try {
-        const Notification = require('../models/Notification');
-        const admins = await User.find({ role: 'Admin', isActive: true }).select('_id');
-        await Promise.all(
-          admins.map(async (admin) => {
-            const notif = await Notification.create({
-              recipient: admin._id,
-              sender: user._id,
-              title: 'New Employee Registered',
-              message: `${user.name} (ID: ${user.employeeId}, ${user.designation}) has registered and joined the platform.`,
-              type: 'Alert',
-            });
-            if (req.io) req.io.to(admin._id.toString()).emit('notification', notif);
-          })
-        );
-      } catch (notifErr) {
-        console.error('Failed to notify admins on registration:', notifErr.message);
-      }
+    // Notify admins/MD when a new user registers
+    try {
+      const Notification = require('../models/Notification');
+      const admins = await User.find({ role: { $in: ['Admin', 'Managing Director MD'] }, isActive: true }).select('_id');
+      await Promise.all(
+        admins.map(async (admin) => {
+          const notif = await Notification.create({
+            recipient: admin._id,
+            sender: user._id,
+            title: 'New Account Pending Approval',
+            message: `${user.name} (${user.role}${user.employeeId ? ' - ID: ' + user.employeeId : ''}) has registered and requires approval.`,
+            type: 'Alert',
+          });
+          if (req.io) req.io.to(admin._id.toString()).emit('notification', notif);
+        })
+      );
+    } catch (notifErr) {
+      console.error('Failed to notify admins on registration:', notifErr.message);
     }
   } catch (error) {
     next(error);
@@ -162,14 +160,29 @@ exports.login = async (req, res, next) => {
       user = await User.findOne({ employeeId, role: 'Field Executive' }).select('+password');
     }
 
-    if (!user || !(await user.matchPassword(password))) {
+    if (!user) {
       res.status(401);
-      throw new Error('Invalid credentials');
+      throw new Error(role === 'Field Executive' ? 'Invalid Employee ID' : 'Invalid email ID');
+    }
+
+    if (!(await user.matchPassword(password))) {
+      res.status(401);
+      throw new Error('Invalid password');
     }
 
     if (!user.isActive) {
       res.status(403);
       throw new Error('Your account is deactivated. Please contact admin.');
+    }
+
+    if (!user.isApproved) {
+      res.status(403);
+      throw new Error('Your account is pending admin approval.');
+    }
+
+    if (user.activeSessionToken) {
+      res.status(403);
+      throw new Error('Account is already logged in on another device.');
     }
 
     const token = generateToken(user._id);

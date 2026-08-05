@@ -107,6 +107,10 @@ export default function LoginScreen() {
         Alert.alert('Account Pending', msg);
       } else if (msg.includes('already logged in')) {
         Alert.alert('Simultaneous Login Blocked', msg);
+      } else if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('employee')) {
+        setErrors(prev => ({ ...prev, [role === 'Admin' ? 'email' : 'employeeId']: msg }));
+      } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
+        setErrors(prev => ({ ...prev, password: msg }));
       } else {
         Alert.alert('Login Failed', msg);
       }
