@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const taxInvoiceItemSchema = new mongoose.Schema({
   sl_no: { type: Number, required: true },
   description: { type: String, required: true },
+  sac_code: { type: String, default: '' },
   uom: { type: String, default: 'Lumpsum' },
   quantity: { type: Number, required: true },
   total_amount: { type: Number, required: true }

@@ -12,7 +12,7 @@ import signatureImage from "../assets/sign.png";
 const SERVICE_TYPES = ["CRM", "WEBSITE", "DM", "POSTERS"];
 const UOM_OPTIONS = ["Lumpsum", "Nos", "Units", "Pieces", "Sets", "Meters", "Kg", "Liters", "Hours"];
 
-const emptyItem = (sl) => ({ sl_no: sl, description: "", uom: "Lumpsum", quantity: 1, total_amount: 0 });
+const emptyItem = (sl) => ({ sl_no: sl, description: "", sac_code: "", uom: "Lumpsum", quantity: 1, total_amount: 0 });
 
 const emptyHeader = () => ({
   client_id: "", client_name: "", client_company: "", client_address: "",
@@ -128,7 +128,8 @@ const InvoicePreview = React.forwardRef(function InvoicePreview(
           <thead>
             <tr style={{ borderBottom: "1.5px solid #000" }}>
               <th style={{ width: "8%", borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center", fontWeight: "bold" }}>SL.NO</th>
-              <th style={{ width: "42%", borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "center", fontWeight: "bold" }}>DESCRIPTION</th>
+              <th style={{ width: "32%", borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "center", fontWeight: "bold" }}>DESCRIPTION</th>
+              <th style={{ width: "10%", borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center", fontWeight: "bold" }}>SAC/HSN CODE</th>
               <th style={{ width: "15%", borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center", fontWeight: "bold" }}>UOM</th>
               <th style={{ width: "12%", borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center", fontWeight: "bold" }}>QTY</th>
               <th style={{ width: "23%", padding: "5px 8px", textAlign: "center", fontWeight: "bold" }}>TOTAL AMOUNT IN INR</th>
@@ -139,6 +140,7 @@ const InvoicePreview = React.forwardRef(function InvoicePreview(
               <tr key={i} style={{ borderBottom: "1px solid #000" }}>
                 <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}>{it.sl_no}</td>
                 <td style={{ borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "left" }}>{it.description}</td>
+                <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}>{it.sac_code || ""}</td>
                 <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}>{it.uom || "Lumpsum"}</td>
                 <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}>{it.quantity}</td>
                 <td style={{ padding: "5px 8px", textAlign: "center", fontWeight: "bold" }}>{fmtNum(it.total_amount)}/-</td>
@@ -146,39 +148,39 @@ const InvoicePreview = React.forwardRef(function InvoicePreview(
             ))}
             <tr style={{ borderBottom: "1px solid #000", fontWeight: "bold" }}>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}></td>
-              <td style={{ borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "left", textTransform: "uppercase" }}>TOTAL (EXCLUSIVE OF TAX)</td>
+              <td colSpan="2" style={{ borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "left", textTransform: "uppercase" }}>TOTAL (EXCLUSIVE OF TAX)</td>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}></td>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}></td>
               <td style={{ padding: "5px 8px", textAlign: "center" }}>{fmtNum(subtotal)}/-</td>
             </tr>
             <tr style={{ borderBottom: "1px solid #000" }}>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}></td>
-              <td style={{ borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "left", fontWeight: "bold" }}>CGST</td>
+              <td colSpan="2" style={{ borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "left", fontWeight: "bold" }}>CGST</td>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}></td>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}>9%</td>
               <td style={{ padding: "5px 8px", textAlign: "center", fontWeight: "bold" }}>{fmtNum(cgst)}/-</td>
             </tr>
             <tr style={{ borderBottom: "1px solid #000" }}>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}></td>
-              <td style={{ borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "left", fontWeight: "bold" }}>SGST</td>
+              <td colSpan="2" style={{ borderRight: "1.5px solid #000", padding: "5px 8px", textAlign: "left", fontWeight: "bold" }}>SGST</td>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}></td>
               <td style={{ borderRight: "1.5px solid #000", padding: "5px 4px", textAlign: "center" }}>9%</td>
               <td style={{ padding: "5px 8px", textAlign: "center", fontWeight: "bold" }}>{fmtNum(sgst)}/-</td>
             </tr>
             <tr style={{ borderBottom: "1.5px solid #000", fontWeight: "bold" }}>
-              <td colSpan="4" style={{ borderRight: "1.5px solid #000", padding: "5px 12px", textAlign: "center", textTransform: "uppercase" }}>TOTAL (INCLUSIVE OF TAX)</td>
+              <td colSpan="5" style={{ borderRight: "1.5px solid #000", padding: "5px 12px", textAlign: "center", textTransform: "uppercase" }}>TOTAL (INCLUSIVE OF TAX)</td>
               <td style={{ padding: "5px 8px", textAlign: "center" }}>{fmtNum(grandTotal)}/-</td>
             </tr>
             <tr style={{ borderBottom: "1.5px solid #000", fontWeight: "bold" }}>
-              <td colSpan="4" style={{ borderRight: "1.5px solid #000", padding: "5px 12px", textAlign: "center", textTransform: "uppercase" }}>ADVANCE AMOUNT RECEIVED</td>
+              <td colSpan="5" style={{ borderRight: "1.5px solid #000", padding: "5px 12px", textAlign: "center", textTransform: "uppercase" }}>ADVANCE AMOUNT RECEIVED</td>
               <td style={{ padding: "5px 8px", textAlign: "center" }}>{fmtNum(advance)}/-</td>
             </tr>
             <tr style={{ borderBottom: "1.5px solid #000", fontWeight: "bold" }}>
-              <td colSpan="4" style={{ borderRight: "1.5px solid #000", padding: "5px 12px", textAlign: "center", textTransform: "uppercase" }}>NET PAYABLE AMOUNT</td>
+              <td colSpan="5" style={{ borderRight: "1.5px solid #000", padding: "5px 12px", textAlign: "center", textTransform: "uppercase" }}>NET PAYABLE AMOUNT</td>
               <td style={{ padding: "5px 8px", textAlign: "center" }}>{fmtNum(netPayable)}/-</td>
             </tr>
             <tr style={{ fontWeight: "bold" }}>
-              <td colSpan="5" style={{ padding: "5px 12px", textAlign: "center", textTransform: "uppercase", fontSize: "9pt", letterSpacing: "0.5px" }}>
+              <td colSpan="6" style={{ padding: "5px 12px", textAlign: "center", textTransform: "uppercase", fontSize: "9pt", letterSpacing: "0.5px" }}>
                 {amtWords}
               </td>
             </tr>
@@ -344,7 +346,7 @@ export default function InvoiceScreenWeb() {
         advance_amount: h.advance_amount || "",
       };
       const loadedItems = rows.filter(r => r.sl_no != null).map(r => ({
-        sl_no: r.sl_no, description: r.description || "",
+        sl_no: r.sl_no, description: r.description || "", sac_code: r.sac_code || "",
         uom: r.uom || "Lumpsum", quantity: r.quantity || 1,
         total_amount: r.total_amount || "",
       }));
@@ -411,7 +413,7 @@ export default function InvoiceScreenWeb() {
       const svMatch = (h.service_no || "").match(/MT\/([^/]+)\/INV/);
       if (svMatch) setServiceType(svMatch[1]);
       const loaded = rows.filter(r => r.sl_no != null).map(r => ({
-        sl_no: r.sl_no, description: r.description || "",
+        sl_no: r.sl_no, description: r.description || "", sac_code: r.sac_code || "",
         uom: r.uom || "Lumpsum", quantity: r.quantity || 1,
         total_amount: Number(r.total_amount) || 0,
       }));
@@ -447,6 +449,7 @@ export default function InvoiceScreenWeb() {
         items: items.map(item => ({
           sl_no: item.sl_no,
           description: item.description,
+          sac_code: item.sac_code,
           uom: item.uom,
           quantity: item.quantity,
           total_amount: item.total_amount,

@@ -279,7 +279,7 @@ export default function TaxInvoiceFormModal({
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                     <div className="md:col-span-2">
                       <label className="block text-xs font-semibold text-gray-600 mb-1">
                         Description <span className="text-red-500">*</span>
@@ -291,6 +291,16 @@ export default function TaxInvoiceFormModal({
                         placeholder="Item description"
                         className="border border-gray-300 rounded-lg px-3 py-2 outline-none text-sm w-full bg-white"
                         required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-600 mb-1">SAC/HSN Code</label>
+                      <input
+                        type="text"
+                        value={item.sac_code || ""}
+                        onChange={e => updateItem(i, "sac_code", e.target.value)}
+                        placeholder="SAC/HSN Code"
+                        className="border border-gray-300 rounded-lg px-3 py-2 outline-none text-sm w-full bg-white"
                       />
                     </div>
                     <div>

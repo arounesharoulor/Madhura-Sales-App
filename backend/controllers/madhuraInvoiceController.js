@@ -100,6 +100,7 @@ exports.getInvoiceById = async (req, res, next) => {
       advance_amount: inv.advance_amount,
       sl_no: item.sl_no,
       description: item.description,
+      sac_code: item.sac_code,
       uom: item.uom,
       quantity: item.quantity,
       total_amount: item.total_amount
@@ -140,6 +141,7 @@ exports.createInvoice = async (req, res, next) => {
       items: items.map(item => ({
         sl_no: Number(item.sl_no),
         description: item.description,
+        sac_code: item.sac_code || '',
         uom: item.uom || 'Lumpsum',
         quantity: Number(item.quantity) || 1,
         total_amount: Number(item.total_amount) || 0
@@ -193,6 +195,7 @@ exports.updateInvoice = async (req, res, next) => {
     dbInvoice.items = items.map(item => ({
       sl_no: Number(item.sl_no),
       description: item.description,
+      sac_code: item.sac_code || '',
       uom: item.uom || 'Lumpsum',
       quantity: Number(item.quantity) || 1,
       total_amount: Number(item.total_amount) || 0
