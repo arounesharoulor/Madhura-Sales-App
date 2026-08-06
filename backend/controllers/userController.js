@@ -258,3 +258,67 @@ exports.uploadEmployeeDocument = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update employee ID
+// @route   PUT /api/users/:id/employeeId
+// @access  Private/Admin
+exports.updateEmployeeId = async (req, res, next) => {
+  try {
+    const { employeeId } = req.body;
+    if (!employeeId) {
+      res.status(400);
+      throw new Error('Please provide an Employee ID');
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    const existingUser = await User.findOne({ employeeId });
+    if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+      res.status(400);
+      throw new Error('This Employee ID is already assigned to another user');
+    }
+
+    user.employeeId = employeeId;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Employee ID updated successfully',
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete (or Reject) a user
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (user.role === 'Super Admin' && req.user.role !== 'Super Admin') {
+      res.status(403);
+      throw new Error('Not authorized to delete a Super Admin');
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted/rejected successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

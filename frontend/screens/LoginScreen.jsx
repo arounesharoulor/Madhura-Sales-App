@@ -153,6 +153,7 @@ export default function LoginScreen() {
       contentContainerStyle={[styles.scroll, isWeb && styles.scrollWeb]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      automaticallyAdjustKeyboardInsets={true}
     >
       {/* Background Glows for Mobile */}
       {!isWeb && (
@@ -384,15 +385,9 @@ export default function LoginScreen() {
           </View>
         </View>
       ) : (
-        Platform.OS === 'ios' ? (
-          <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-            {FormContent}
-          </KeyboardAvoidingView>
-        ) : (
-          <View style={{ flex: 1 }}>
-            {FormContent}
-          </View>
-        )
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          {FormContent}
+        </KeyboardAvoidingView>
       )}
 
       {/* Generic Custom Alert Overlay */}
@@ -521,10 +516,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingVertical: 40,
-    justifyContent: 'center',
   },
   scrollWeb: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
   formInner: {
     width: '100%',

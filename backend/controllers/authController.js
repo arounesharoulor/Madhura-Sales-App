@@ -54,9 +54,17 @@ exports.register = async (req, res, next) => {
       normalizedRole = 'Field Executive';
     } else if (/^admin$/i.test(normalizedRole)) {
       normalizedRole = 'Admin';
+    } else if (/^super\s*admin$/i.test(normalizedRole)) {
+      normalizedRole = 'Super Admin';
+      const existingSuperAdmin = await User.findOne({ role: 'Super Admin' });
+      if (existingSuperAdmin) {
+        res.status(403);
+        throw new Error('A Super Admin account already exists. Only one access is allowed.');
+      }
     }
-    // Allow self-registration for Admin and Field Executive (app treats Admin as elevated role).
-    if (!['Field Executive', 'Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(normalizedRole)) {
+
+    // Allow self-registration for admin/managerial roles
+    if (!['Field Executive', 'Admin', 'Super Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(normalizedRole)) {
       normalizedRole = 'Field Executive';
     }
 
@@ -76,7 +84,7 @@ exports.register = async (req, res, next) => {
       throw new Error('An account with this email already exists');
     }
 
-    const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+    const adminRoles = ['Super Admin', 'Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
     if (!adminRoles.includes(normalizedRole)) {
       const existingExec = await User.findOne({ employeeId });
       if (existingExec) {
@@ -117,7 +125,7 @@ exports.register = async (req, res, next) => {
     // Notify admins/MD when a new user registers
     try {
       const Notification = require('../models/Notification');
-      const admins = await User.find({ role: { $in: ['Admin', 'Managing Director MD'] }, isActive: true }).select('_id');
+      const admins = await User.find({ role: { $in: ['Super Admin', 'Admin', 'Managing Director MD'] }, isActive: true }).select('_id');
       await Promise.all(
         admins.map(async (admin) => {
           const notif = await Notification.create({
@@ -145,7 +153,7 @@ exports.login = async (req, res, next) => {
   try {
     const { email, employeeId, password, role } = req.body;
 
-    const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+    const adminRoles = ['Super Admin', 'Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
     let user;
     if (adminRoles.includes(role)) {
       if (!email || !password) {
@@ -227,6 +235,48 @@ exports.logout = async (req, res, next) => {
   } catch {
     // Always respond 200 on logout even if token is already expired
     res.status(200).json({ success: true, message: 'Logged out' });
+  }
+};
+
+// @desc    Direct password reset without token (Insecure, requested by user)
+// @route   POST /api/auth/directresetpassword
+// @access  Public
+exports.directResetPassword = async (req, res, next) => {
+  try {
+    const { email, employeeId, password, role } = req.body;
+    
+    if (!password || password.length < 6) {
+      res.status(400);
+      throw new Error('Password must be at least 6 characters');
+    }
+
+    const adminRoles = ['Super Admin', 'Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+    let user;
+    if (adminRoles.includes(role) || role === 'Admin' || role === 'Super Admin') {
+      if (!email) {
+        res.status(400);
+        throw new Error('Please provide an email address');
+      }
+      user = await User.findOne({ email, role: { $in: adminRoles } });
+    } else {
+      if (!employeeId) {
+        res.status(400);
+        throw new Error('Please provide an Employee ID');
+      }
+      user = await User.findOne({ employeeId, role: 'Field Executive' });
+    }
+
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found with these credentials');
+    }
+
+    user.password = password;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    next(error);
   }
 };
 

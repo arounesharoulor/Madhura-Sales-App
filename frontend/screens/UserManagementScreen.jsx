@@ -99,6 +99,21 @@ export default function UserManagementScreen() {
     }
   };
 
+  const updateEmpId = async (newId) => {
+    if (!newId || newId.trim() === '') return;
+    setLoadingProfile(true);
+    try {
+      const res = await api.put(`/users/${selectedEmployeeId}/employeeId`, { employeeId: newId.trim() });
+      setEmployeeDetails(res.data.data);
+      Alert.alert('Success', 'Employee ID updated successfully');
+      fetchUsers(); // Refresh the background list
+    } catch (e) {
+      Alert.alert('Error', e.response?.data?.message || 'Failed to update Employee ID');
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
   const updateJoiningDate = async (event, selectedDate) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
@@ -248,7 +263,7 @@ export default function UserManagementScreen() {
           text: 'Change Status',
           onPress: async () => {
             try {
-              await api.delete(`/users/${userId}`);
+              await api.put(`/users/${userId}/toggle`);
               fetchUsers();
             } catch (e) {
               Alert.alert('Error', 'Failed to change user status');
@@ -258,6 +273,44 @@ export default function UserManagementScreen() {
       ]
     );
   };
+
+  const handleDeleteUser = async (userId, isPending = false) => {
+    const actionName = isPending ? 'Reject' : 'Delete';
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Are you sure you want to ${actionName.toLowerCase()} this user? This cannot be undone.`)) {
+        try {
+          await api.delete(`/users/${userId}`);
+          window.alert(`User ${actionName.toLowerCase()}d successfully`);
+          fetchUsers();
+        } catch (e) {
+          window.alert(e.response?.data?.message || `Failed to ${actionName.toLowerCase()} user`);
+        }
+      }
+      return;
+    }
+
+    Alert.alert(
+      `${actionName} User`,
+      `Are you sure you want to ${actionName.toLowerCase()} this user? This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: actionName,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/users/${userId}`);
+              Alert.alert('Success', `User ${actionName.toLowerCase()}d successfully`);
+              fetchUsers();
+            } catch (e) {
+              Alert.alert('Error', e.response?.data?.message || `Failed to ${actionName.toLowerCase()} user`);
+            }
+          },
+        },
+      ]
+    );
+  };
+
 
   const handleApproveUser = async (userId) => {
     if (Platform.OS === 'web') {
@@ -599,7 +652,16 @@ export default function UserManagementScreen() {
                           </TouchableOpacity>
                         )
                       )}
-                      {['HR', 'Managing Director MD'].includes(userRole) && (
+                      {['HR', 'Managing Director MD', 'Admin', 'Super Admin'].includes(userRole) && (
+                        <TouchableOpacity
+                          onPress={() => handleDeleteUser(item._id, !item.isApproved)}
+                          className="bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 flex-row items-center ml-2"
+                        >
+                          <Ionicons name="trash-outline" size={14} color="#e11d48" style={{ marginRight: 4 }} />
+                          <Text className="text-[10px] text-rose-700 font-bold">{!item.isApproved ? 'Reject' : 'Delete'}</Text>
+                        </TouchableOpacity>
+                      )}
+                      {['HR', 'Managing Director MD', 'Super Admin', 'Admin'].includes(userRole) && (
                         <TouchableOpacity
                           onPress={() => openProfile(item._id)}
                           className="bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex-row items-center"
@@ -670,10 +732,60 @@ export default function UserManagementScreen() {
           ) : employeeDetails ? (
             <ScrollView contentContainerStyle={styles.modalBody}>
               <View style={styles.recordSection}>
-                <Text style={styles.sectionTitle}>Basic Information</Text>
+                <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', marginBottom: 12}}>
+                  <Text style={styles.sectionTitle}>Basic Information</Text>
+                  <TouchableOpacity onPress={() => {
+                    if (Platform.OS === 'web') {
+                      const newId = window.prompt("Enter new Employee ID:", employeeDetails.employeeId || '');
+                      if (newId !== null) updateEmpId(newId);
+                    } else {
+                      Alert.prompt('Edit Employee ID', 'Enter the new Employee ID for this user', [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Save', onPress: updateEmpId }
+                      ], 'plain-text', employeeDetails.employeeId || '');
+                    }
+                  }} style={styles.editBtn}>
+                    <Text style={styles.editBtnText}>Edit ID</Text>
+                  </TouchableOpacity>
+                </View>
                 <Text style={styles.recordText}>Name: {employeeDetails.name}</Text>
+                <Text style={styles.recordText}>Employee ID: {employeeDetails.employeeId || 'Not Set'}</Text>
                 <Text style={styles.recordText}>Role: {employeeDetails.role}</Text>
                 <Text style={styles.recordText}>Email: {employeeDetails.email}</Text>
+                <Text style={styles.recordText}>Phone: {employeeDetails.phone || 'N/A'}</Text>
+                <Text style={styles.recordText}>Designation: {employeeDetails.designation || 'N/A'}</Text>
+                <Text style={styles.recordText}>PAN Number: {employeeDetails.panNumber || 'N/A'}</Text>
+                <Text style={styles.recordText}>Aadhar Number: {employeeDetails.aadharNumber || 'N/A'}</Text>
+                <Text style={styles.recordText}>Experience: {employeeDetails.experienceLevel || 'N/A'}</Text>
+                {employeeDetails.experienceLevel === 'Experienced' && (
+                  <Text style={styles.recordText}>PF Number: {employeeDetails.pfNumber || 'N/A'}</Text>
+                )}
+                <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9'}}>
+                  <Text style={styles.recordText}>Password: ••••••••</Text>
+                  <TouchableOpacity onPress={() => {
+                    const handlePassUpdate = (newPass) => {
+                      if(!newPass || newPass.length < 6) return Alert.alert('Error', 'Password must be at least 6 characters');
+                      api.post(`/auth/directresetpassword`, { 
+                        role: employeeDetails.role, 
+                        employeeId: employeeDetails.employeeId, 
+                        email: employeeDetails.email, 
+                        password: newPass 
+                      }).then(() => Alert.alert('Success', 'Password updated successfully!'))
+                        .catch(e => Alert.alert('Error', 'Failed to update password'));
+                    };
+                    if (Platform.OS === 'web') {
+                      const newPass = window.prompt("Enter new Password for " + employeeDetails.name + ":");
+                      if (newPass !== null) handlePassUpdate(newPass);
+                    } else {
+                      Alert.prompt('Reset Password', 'Enter new password (min 6 chars)', [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Save', onPress: handlePassUpdate }
+                      ], 'secure-text');
+                    }
+                  }} style={styles.editBtn}>
+                    <Text style={styles.editBtnText}>Reset Password</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               
               <View style={styles.recordSection}>
