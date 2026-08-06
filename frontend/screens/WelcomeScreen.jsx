@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import BrandIcon from '../components/BrandIcon';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function WelcomeScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -56,7 +56,7 @@ export default function WelcomeScreen() {
           }
         ]}
       >
-        <BrandIcon size={120} />
+        <Ionicons name="business" size={120} color="#F5A623" />
         <Text style={styles.title}>Welcome to Madhura CRM</Text>
         <Text style={styles.subtitle}>Setting up your workspace...</Text>
       </Animated.View>
