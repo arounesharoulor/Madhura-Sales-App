@@ -147,24 +147,23 @@ export default function RegisterScreen() {
       await AsyncStorage.setItem('user', JSON.stringify(user));
       setRegisteredUser(user);
       
+      const isAdmin = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(user.role);
+      
       Toast.show({
         type: 'success',
         text1: '🎉 Registration Submitted!',
-        text2: `Your account is pending admin approval.`,
+        text2: isAdmin ? 'Account created successfully!' : `Your account is pending admin approval.`,
         visibilityTime: 4000,
       });
 
-      if (['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(user.role)) {
+      if (isAdmin) {
         setShowAdminEmpIdModal(true);
       } else {
         setTimeout(async () => {
           await AsyncStorage.removeItem('token');
           await AsyncStorage.removeItem('user');
-          Alert.alert(
-            'Account Pending',
-            'Your account has been created successfully but requires admin approval before you can log in. You will be notified once approved.',
-            [{ text: 'OK', onPress: () => router.replace('/Login') }]
-          );
+          setServerError('Account Pending: Your account has been created successfully but requires admin approval before you can log in. You will be notified once approved.');
+          setTimeout(() => router.replace('/Login'), 2000);
         }, 1000);
       }
     } catch (err) {
@@ -195,13 +194,8 @@ export default function RegisterScreen() {
       console.log('Failed to save Admin Employee ID:', error);
     } finally {
       setShowAdminEmpIdModal(false);
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('user');
-      Alert.alert(
-        'Account Pending',
-        'Your admin account requires approval by a Managing Director or HR before you can log in. You will be notified once approved.',
-        [{ text: 'OK', onPress: () => router.replace('/Login') }]
-      );
+      // Auto-approved admins can go straight to the dashboard
+      router.replace('/AdminDashboard');
     }
   };
 
