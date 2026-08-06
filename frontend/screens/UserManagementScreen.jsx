@@ -258,6 +258,19 @@ export default function UserManagementScreen() {
   };
 
   const handleApproveUser = async (userId) => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to approve this account?')) {
+        try {
+          await api.put(`/users/${userId}/approve`);
+          window.alert('User approved successfully');
+          fetchUsers();
+        } catch (e) {
+          window.alert(e.response?.data?.message || 'Failed to approve user');
+        }
+      }
+      return;
+    }
+    
     Alert.alert(
       'Approve User',
       'Are you sure you want to approve this account?',

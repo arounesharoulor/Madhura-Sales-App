@@ -509,12 +509,12 @@ export default function ProformaInvoiceFormModal({
             </div>
           </div>
 
-          {/* TERMS & CONDITIONS (5 EDITABLE ITEMS) */}
+          {/* TERMS & CONDITIONS (EDITABLE) */}
           <div>
-            <SectionTitle>TERMS & CONDITIONS (5 EDITABLE ITEMS)</SectionTitle>
+            <SectionTitle>TERMS & CONDITIONS (EDITABLE)</SectionTitle>
             <div className="space-y-3">
               {terms.map((term, idx) => (
-                <div key={idx} className="flex gap-2 items-start">
+                <div key={idx} className="flex gap-2 items-start relative group">
                   <span className="text-xs font-semibold text-gray-500 mt-2 min-w-[60px]">TERM {idx + 1}</span>
                   <textarea
                     value={term}
@@ -527,8 +527,25 @@ export default function ProformaInvoiceFormModal({
                     className="flex-1 border border-gray-300 rounded-lg px-3 py-2 outline-none text-sm focus:border-[#0088CC] focus:ring-1 focus:ring-[#0088CC] resize-none"
                     placeholder={`Enter term ${idx + 1}...`}
                   />
+                  {terms.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setTerms(terms.filter((_, i) => i !== idx))}
+                      className="text-gray-400 hover:text-red-500 mt-2"
+                      title="Remove Term"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
                 </div>
               ))}
+              <button
+                type="button"
+                onClick={() => setTerms([...terms, ''])}
+                className="text-xs font-bold text-[#0088CC] hover:text-[#006699] flex items-center gap-1 mt-2"
+              >
+                <PlusCircle size={14} /> Add Another Term
+              </button>
             </div>
           </div>
 
