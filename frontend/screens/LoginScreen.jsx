@@ -114,7 +114,11 @@ export default function LoginScreen() {
       const adminRolesForCheck = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
       const isAdminAccount = adminRolesForCheck.includes(user.role);
       
-      router.replace('/Welcome');
+      if (isAdminAccount) {
+        router.replace('/AdminDashboard');
+      } else {
+        router.replace('/Dashboard');
+      }
     } catch (err) {
       const msg = err.response?.data?.message || 'Network error occurred. Please try again.';
       if (msg.includes('pending admin approval')) {
