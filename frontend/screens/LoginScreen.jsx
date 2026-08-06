@@ -13,6 +13,7 @@ import {
   Platform,
   useWindowDimensions,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -137,7 +138,7 @@ export default function LoginScreen() {
           [(role === 'Admin' || role === 'Super Admin') ? 'email' : 'employeeId']: true,
           password: true
         });
-        setAlertModal({ visible: true, title: 'Login Failed', message: 'Invalid credentials. This account does not exist or password is incorrect.' });
+        setAlertModal({ visible: true, title: 'Login Failed', message: 'Invalid credentials. This account or employee account does not exist or password is incorrect.' });
       } else {
         setAlertModal({ visible: true, title: 'Login Failed', message: msg });
       }
@@ -392,9 +393,9 @@ export default function LoginScreen() {
         )
       )}
 
-      {/* Generic Custom Alert Overlay (Replaces Alert.alert for Web support) */}
-      {alertModal.visible && (
-        <View style={[StyleSheet.absoluteFillObject, styles.modalOverlay, { zIndex: 9999, elevation: 9999 }]}>
+      {/* Generic Custom Alert Overlay using Modal */}
+      <Modal visible={alertModal.visible} animationType="fade" transparent={true} onRequestClose={() => setAlertModal({ visible: false, title: '', message: '' })}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
               <Ionicons name="alert-circle-outline" size={28} color="#EF4444" />
@@ -410,7 +411,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
     </SafeAreaView>
   );
 }
