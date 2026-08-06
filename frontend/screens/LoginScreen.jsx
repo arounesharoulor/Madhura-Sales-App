@@ -33,7 +33,7 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
-  const [showSimultaneousLoginModal, setShowSimultaneousLoginModal] = useState(false);
+  const [alertModal, setAlertModal] = useState({ visible: false, title: '', message: '' });
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -79,19 +79,21 @@ export default function LoginScreen() {
 
       if (role === 'Admin' && !isAdminAccount) {
         setLoading(false);
-        Alert.alert(
-          'Wrong Account Type',
-          'This login is for admin accounts. Please choose Employee login or use an admin account.'
-        );
+        setAlertModal({
+          visible: true,
+          title: 'Wrong Account Type',
+          message: 'This login is for admin accounts. Please choose Employee login or use an admin account.'
+        });
         return;
       }
 
       if (role === 'Field Executive' && isAdminAccount) {
         setLoading(false);
-        Alert.alert(
-          'Use Admin Login',
-          'This account belongs to an admin. Please switch to Admin login to continue.'
-        );
+        setAlertModal({
+          visible: true,
+          title: 'Use Admin Login',
+          message: 'This account belongs to an admin. Please switch to Admin login to continue.'
+        });
         return;
       }
 
@@ -105,15 +107,19 @@ export default function LoginScreen() {
     } catch (err) {
       const msg = err.response?.data?.message || 'Network error occurred. Please try again.';
       if (msg.includes('pending admin approval')) {
-        Alert.alert('Account Pending', msg);
+        setAlertModal({ visible: true, title: 'Account Pending', message: msg });
       } else if (msg.includes('already logged in')) {
-        setShowSimultaneousLoginModal(true);
+        setAlertModal({ 
+          visible: true, 
+          title: 'Session Active', 
+          message: 'Your account is already logged in on another device. Please log out from the other device before signing in here.' 
+        });
       } else if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('employee')) {
         setErrors(prev => ({ ...prev, [role === 'Admin' ? 'email' : 'employeeId']: msg }));
       } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
         setErrors(prev => ({ ...prev, password: msg }));
       } else {
-        Alert.alert('Login Failed', msg);
+        setAlertModal({ visible: true, title: 'Login Failed', message: msg });
       }
     } finally {
       setLoading(false);
@@ -367,20 +373,18 @@ export default function LoginScreen() {
         )
       )}
 
-      {/* Simultaneous Login Overlay (Replaces Modal for better Web support) */}
-      {showSimultaneousLoginModal && (
+      {/* Generic Custom Alert Overlay (Replaces Alert.alert for Web support) */}
+      {alertModal.visible && (
         <View style={[StyleSheet.absoluteFillObject, styles.modalOverlay, { zIndex: 9999, elevation: 9999 }]}>
           <View style={styles.modalCard}>
             <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
-              <Ionicons name="warning-outline" size={28} color="#EF4444" />
+              <Ionicons name="alert-circle-outline" size={28} color="#EF4444" />
             </View>
-            <Text style={styles.modalTitle}>Session Active</Text>
-            <Text style={styles.modalSub}>
-              Your account is already logged in on another device. Please log out from the other device before signing in here.
-            </Text>
+            <Text style={styles.modalTitle}>{alertModal.title}</Text>
+            <Text style={styles.modalSub}>{alertModal.message}</Text>
             <TouchableOpacity 
               style={styles.modalBtn} 
-              onPress={() => setShowSimultaneousLoginModal(false)}
+              onPress={() => setAlertModal({ visible: false, title: '', message: '' })}
               activeOpacity={0.8}
             >
               <Text style={styles.modalBtnText}>Understood</Text>
