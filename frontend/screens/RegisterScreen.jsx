@@ -374,8 +374,7 @@ export default function RegisterScreen() {
               options = ['Project Manager', 'Team Lead', 'HR', 'Other'];
             } else {
               const defaultEmps = ['BDE', 'BDM', 'Pre Sales'];
-              const customEmps = (designations.employee || []).filter(d => !defaultEmps.includes(d) && d !== 'Other');
-              options = [...defaultEmps, ...customEmps, 'Other'];
+              options = [...defaultEmps, 'Other'];
             }
             return options.map(d => (
               <TouchableOpacity
