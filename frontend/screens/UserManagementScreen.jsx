@@ -497,14 +497,21 @@ export default function UserManagementScreen() {
                       </View>
                     </View>
                     <View className="flex-row items-center gap-2 mt-3 pt-3 border-t border-slate-100 justify-end">
-                      {!item.isApproved && ['HR', 'Managing Director MD', 'Admin'].includes(userRole) && (
-                        <TouchableOpacity
-                          onPress={() => handleApproveUser(item._id)}
-                          className="bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex-row items-center"
-                        >
-                          <Ionicons name="checkmark-circle-outline" size={14} color="#059669" style={{ marginRight: 4 }} />
-                          <Text className="text-[10px] text-emerald-700 font-bold">Approve</Text>
-                        </TouchableOpacity>
+                      {item.isApproved ? (
+                        <View className="bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100 flex-row items-center">
+                          <Ionicons name="checkmark-done" size={14} color="#0284c7" style={{ marginRight: 4 }} />
+                          <Text className="text-[10px] text-sky-700 font-bold">Approved</Text>
+                        </View>
+                      ) : (
+                        ['HR', 'Managing Director MD', 'Admin'].includes(userRole) && (
+                          <TouchableOpacity
+                            onPress={() => handleApproveUser(item._id)}
+                            className="bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex-row items-center"
+                          >
+                            <Ionicons name="checkmark-circle-outline" size={14} color="#059669" style={{ marginRight: 4 }} />
+                            <Text className="text-[10px] text-emerald-700 font-bold">Approve</Text>
+                          </TouchableOpacity>
+                        )
                       )}
                       {['HR', 'Managing Director MD'].includes(userRole) && (
                         <TouchableOpacity
