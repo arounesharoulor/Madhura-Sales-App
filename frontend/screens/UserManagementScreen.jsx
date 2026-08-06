@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function UserManagementScreen() {
   const [users, setUsers] = useState([]);
+  const [activeTab, setActiveTab] = useState('Approved');
   const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [userRole, setUserRole] = useState('Admin');
@@ -444,8 +445,28 @@ export default function UserManagementScreen() {
               )}
             </View>
 
+            <View className="flex-row bg-slate-100 p-1 rounded-xl mb-4">
+              <TouchableOpacity
+                onPress={() => setActiveTab('Approved')}
+                className={`flex-1 py-2 rounded-lg ${activeTab === 'Approved' ? 'bg-white shadow-sm border border-slate-200' : ''}`}
+              >
+                <Text className={`text-center text-xs font-bold ${activeTab === 'Approved' ? 'text-sky-600' : 'text-slate-500'}`}>Approved Staff</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setActiveTab('Pending')}
+                className={`flex-1 py-2 rounded-lg flex-row justify-center items-center gap-2 ${activeTab === 'Pending' ? 'bg-white shadow-sm border border-slate-200' : ''}`}
+              >
+                <Text className={`text-center text-xs font-bold ${activeTab === 'Pending' ? 'text-rose-600' : 'text-slate-500'}`}>Pending Approval</Text>
+                {users.filter(u => !u.isApproved).length > 0 && (
+                  <View className="bg-rose-500 rounded-full w-4 h-4 items-center justify-center">
+                    <Text className="text-[9px] text-white font-bold">{users.filter(u => !u.isApproved).length}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
             <FlatList
-              data={users}
+              data={users.filter(u => activeTab === 'Approved' ? u.isApproved : !u.isApproved)}
               keyExtractor={(item) => item._id}
               refreshing={refreshing}
               onRefresh={fetchUsers}
