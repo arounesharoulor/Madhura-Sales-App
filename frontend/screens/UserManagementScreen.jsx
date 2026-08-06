@@ -154,6 +154,15 @@ export default function UserManagementScreen() {
         };
       });
 
+      // Sort: Pending approvals first, then by creation time (newest first)
+      usersWithStatus.sort((a, b) => {
+        if (!a.isApproved && b.isApproved) return -1;
+        if (a.isApproved && !b.isApproved) return 1;
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      });
+
       setUsers(usersWithStatus);
     } catch (e) {
       console.error(e);
