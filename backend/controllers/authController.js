@@ -95,6 +95,7 @@ exports.register = async (req, res, next) => {
       designation: designation ? designation.toString().trim() : '',
       address: address ? address.toString().trim() : '',
       isActive: true,
+      isApproved: adminRoles.includes(normalizedRole), // Auto-approve all Admin accounts
     });
 
     res.status(201).json({
