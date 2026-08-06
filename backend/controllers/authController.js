@@ -163,12 +163,12 @@ exports.login = async (req, res, next) => {
 
     if (!user) {
       res.status(401);
-      throw new Error('Invalid credentials. This account or employee account does not exist or password is incorrect.');
+      throw new Error('You have entered wrong credentials or your information is invalid');
     }
 
     if (!(await user.matchPassword(password))) {
       res.status(401);
-      throw new Error('Invalid credentials. This account or employee account does not exist or password is incorrect.');
+      throw new Error('You have entered wrong credentials or your information is invalid');
     }
 
     if (!user.isActive) {

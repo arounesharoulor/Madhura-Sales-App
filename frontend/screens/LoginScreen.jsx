@@ -133,12 +133,12 @@ export default function LoginScreen() {
       } else if (msg.includes('already logged in')) {
         setErrors(prev => ({ ...prev, password: true }));
         setAlertModal({ visible: true, title: 'Device Limit Reached', message: 'Your account is already logged in on another device. Please log out from the other device before signing in here.' });
-      } else if (msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('invalid')) {
+      } else if (msg.toLowerCase().includes('wrong') || msg.toLowerCase().includes('credentials') || msg.toLowerCase().includes('invalid')) {
         setErrors({
           [(role === 'Admin' || role === 'Super Admin') ? 'email' : 'employeeId']: true,
           password: true
         });
-        setAlertModal({ visible: true, title: 'Login Failed', message: 'Invalid credentials. This account or employee account does not exist or password is incorrect.' });
+        setAlertModal({ visible: true, title: 'Login Failed', message: 'You have entered wrong credentials or your information is invalid' });
       } else {
         setAlertModal({ visible: true, title: 'Login Failed', message: msg });
       }
