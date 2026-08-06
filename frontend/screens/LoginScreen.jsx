@@ -71,13 +71,14 @@ export default function LoginScreen() {
     if (!validate()) return;
     setLoading(true);
     try {
-      const payload = role === 'Admin' ? { email, password, role } : { employeeId, password, role };
+      const apiRole = role === 'Super Admin' ? 'Managing Director MD' : role === 'Admin' ? 'Admin' : 'Field Executive';
+      const payload = (role === 'Admin' || role === 'Super Admin') ? { email, password, role: apiRole } : { employeeId, password, role: apiRole };
       const response = await api.post('/auth/login', payload);
       const { token, user } = response.data;
       const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
       const isAdminAccount = adminRoles.includes(user.role);
 
-      if (role === 'Admin' && !isAdminAccount) {
+      if ((role === 'Admin' || role === 'Super Admin') && !isAdminAccount) {
         setLoading(false);
         setAlertModal({
           visible: true,
@@ -92,7 +93,7 @@ export default function LoginScreen() {
         setAlertModal({
           visible: true,
           title: 'Use Admin Login',
-          message: 'This account belongs to an admin. Please switch to Admin login to continue.'
+          message: 'This account belongs to an admin. Please switch to Admin/Super Admin login to continue.'
         });
         return;
       }
@@ -159,7 +160,7 @@ export default function LoginScreen() {
           <View style={styles.roleGroup}>
             <Text style={styles.label}>Login Type</Text>
             <View style={styles.roleToggle}>
-              {['Admin', 'Field Executive'].map((option) => (
+              {['Super Admin', 'Admin', 'Field Executive'].map((option) => (
                 <TouchableOpacity
                   key={option}
                   onPress={() => setRole(option)}
@@ -176,14 +177,12 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={styles.roleHint}>
-              {role === 'Admin'
-                ? 'Use your admin credentials to access the admin dashboard.'
+              {role === 'Admin' || role === 'Super Admin'
+                ? `Use your ${role.toLowerCase()} credentials to access the admin dashboard.`
                 : 'Use your employee credentials to access the field executive dashboard.'}
-            </Text>
           </View>
 
-          {role === 'Admin' ? (
+          {role === 'Admin' || role === 'Super Admin' ? (
             <View style={styles.fieldWrap}>
               <Text style={styles.label}>Email Address</Text>
               <View style={[

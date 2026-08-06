@@ -129,9 +129,13 @@ function buildNavSections(role) {
     ];
   }
 
-  // Super Admin (MD) — full access, no filtering
+  // Super Admin (MD) — full access, no filtering, except hide their own Attendance
   if (role === 'Managing Director MD') {
-    return base;
+    const mdBase = JSON.parse(JSON.stringify(base));
+    mdBase.forEach(section => {
+      section.items = section.items.filter(item => item.screen !== 'Attendance');
+    });
+    return mdBase;
   }
 
   // Admin / Project Manager / Team Lead
