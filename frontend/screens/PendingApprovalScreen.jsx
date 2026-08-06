@@ -13,18 +13,21 @@ export default function PendingApprovalScreen() {
     const checkApprovalStatus = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        if (!token) {
+        const userStr = await AsyncStorage.getItem('user');
+        if (!token || !userStr) {
           router.replace('/Login');
           return;
         }
 
-        const res = await api.get('/users/profile');
-        if (res.data && res.data.isApproved) {
+        const userObj = JSON.parse(userStr);
+        const userId = userObj._id || userObj.id;
+        const res = await api.get(`/users/${userId}`);
+        if (res.data?.data?.isApproved) {
           // User is approved, stop polling and navigate to Dashboard
           clearInterval(pollInterval.current);
           
           // Update local storage just in case
-          await AsyncStorage.setItem('user', JSON.stringify(res.data));
+          await AsyncStorage.setItem('user', JSON.stringify(res.data.data));
           
           router.replace('/Dashboard');
         }
