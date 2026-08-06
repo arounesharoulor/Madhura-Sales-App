@@ -159,12 +159,9 @@ export default function RegisterScreen() {
       if (isAdmin) {
         setShowAdminEmpIdModal(true);
       } else {
-        setTimeout(async () => {
-          await AsyncStorage.removeItem('token');
-          await AsyncStorage.removeItem('user');
-          setServerError('Account Pending: Your account has been created successfully but requires admin approval before you can log in. You will be notified once approved.');
-          setTimeout(() => router.replace('/Login'), 2000);
-        }, 1000);
+        // Keep the token! Do not clear it.
+        // Route to the new polling screen.
+        setTimeout(() => router.replace('/PendingApproval'), 1000);
       }
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Something went wrong.';

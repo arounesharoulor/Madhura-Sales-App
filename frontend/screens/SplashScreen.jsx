@@ -46,7 +46,12 @@ export default function SplashScreen() {
         const userStr = await AsyncStorage.getItem('user');
         if (token && userStr) {
           const user = JSON.parse(userStr);
-          router.replace(user.role === 'Admin' ? '/AdminDashboard' : '/Dashboard');
+          
+          if (user.isApproved === false) {
+            router.replace('/PendingApproval');
+          } else {
+            router.replace(user.role === 'Admin' ? '/AdminDashboard' : '/Dashboard');
+          }
         } else {
           router.replace('/Login');
         }
