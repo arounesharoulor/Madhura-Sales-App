@@ -29,7 +29,7 @@ export default function PendingApprovalScreen() {
           // Update local storage just in case
           await AsyncStorage.setItem('user', JSON.stringify(res.data.data));
           
-          router.replace('/Dashboard');
+          router.replace('/Welcome');
         }
       } catch (err) {
         console.error('Polling error:', err);

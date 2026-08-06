@@ -75,36 +75,46 @@ export default function LoginScreen() {
       const payload = (role === 'Admin' || role === 'Super Admin') ? { email, password, role: apiRole } : { employeeId, password, role: apiRole };
       const response = await api.post('/auth/login', payload);
       const { token, user } = response.data;
-      const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
-      const isAdminAccount = adminRoles.includes(user.role);
-
-      if ((role === 'Admin' || role === 'Super Admin') && !isAdminAccount) {
+      if (role === 'Super Admin' && user.role !== 'Managing Director MD') {
         setLoading(false);
         setAlertModal({
           visible: true,
-          title: 'Wrong Account Type',
-          message: 'This login is for admin accounts. Please choose Employee login or use an admin account.'
+          title: 'Incorrect Login Tab',
+          message: 'This tab is reserved for Super Admin (MD). Please select the Admin or Employee tab instead.'
         });
         return;
       }
 
-      if (role === 'Field Executive' && isAdminAccount) {
+      const regularAdmins = ['Admin', 'Project Manager', 'Team Lead', 'HR'];
+      if (role === 'Admin' && !regularAdmins.includes(user.role)) {
         setLoading(false);
         setAlertModal({
           visible: true,
-          title: 'Use Admin Login',
-          message: 'This account belongs to an admin. Please switch to Admin/Super Admin login to continue.'
+          title: 'Incorrect Login Tab',
+          message: user.role === 'Managing Director MD' 
+            ? 'Please use the Super Admin tab to log in.'
+            : 'Please use the Employee tab to log in.'
+        });
+        return;
+      }
+
+      if (role === 'Field Executive' && user.role !== 'Field Executive') {
+        setLoading(false);
+        setAlertModal({
+          visible: true,
+          title: 'Incorrect Login Tab',
+          message: 'This account belongs to an admin. Please switch to the Admin or Super Admin tab.'
         });
         return;
       }
 
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
-      if (isAdminAccount) {
-        router.replace('/AdminDashboard');
-      } else {
-        router.replace('/Dashboard');
-      }
+      
+      const adminRolesForCheck = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+      const isAdminAccount = adminRolesForCheck.includes(user.role);
+      
+      router.replace('/Welcome');
     } catch (err) {
       const msg = err.response?.data?.message || 'Network error occurred. Please try again.';
       if (msg.includes('pending admin approval')) {
@@ -200,7 +210,8 @@ export default function LoginScreen() {
                   placeholder="admin@madhura.com"
                   placeholderTextColor="#64748b"
                   onFocus={() => setFocusedField('email')}
-                  onBlur={() => setFocusedField(null)}
+                  onBlur={() => setFocusedField('null')}
+                  onSubmitEditing={handleLogin}
                 />
               </View>
               {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
@@ -232,6 +243,7 @@ export default function LoginScreen() {
                   placeholderTextColor="#64748b"
                   onFocus={() => setFocusedField('employeeId')}
                   onBlur={() => setFocusedField(null)}
+                  onSubmitEditing={handleLogin}
                 />
               </View>
               {errors.employeeId && <Text style={styles.errorText}>{errors.employeeId}</Text>}
@@ -256,6 +268,7 @@ export default function LoginScreen() {
                 placeholderTextColor="#64748b"
                 onFocus={() => setFocusedField('password')}
                 onBlur={() => setFocusedField(null)}
+                onSubmitEditing={handleLogin}
               />
               <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.eyeBtn}>
                 <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#94a3b8" />
