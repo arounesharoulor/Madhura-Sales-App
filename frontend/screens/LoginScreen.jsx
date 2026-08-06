@@ -55,7 +55,7 @@ export default function LoginScreen() {
 
   const validate = () => {
     let errs = {};
-    if (role === 'Admin') {
+    if (role === 'Admin' || role === 'Super Admin') {
       if (!email) errs.email = 'Email address is required';
       else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Please enter a valid email';
     } else {
