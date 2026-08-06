@@ -13,7 +13,6 @@ import {
   Platform,
   useWindowDimensions,
   Image,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -368,13 +367,9 @@ export default function LoginScreen() {
         )
       )}
 
-      {/* Simultaneous Login Modal */}
-      <Modal
-        visible={showSimultaneousLoginModal}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={styles.modalOverlay}>
+      {/* Simultaneous Login Overlay (Replaces Modal for better Web support) */}
+      {showSimultaneousLoginModal && (
+        <View style={[StyleSheet.absoluteFillObject, styles.modalOverlay, { zIndex: 9999, elevation: 9999 }]}>
           <View style={styles.modalCard}>
             <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
               <Ionicons name="warning-outline" size={28} color="#EF4444" />
@@ -392,7 +387,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      )}
     </SafeAreaView>
   );
 }
