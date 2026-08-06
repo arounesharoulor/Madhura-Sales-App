@@ -116,12 +116,15 @@ export default function NotificationScreen() {
     const t = (title || '').toLowerCase();
     const m = (message || '').toLowerCase();
     
+    const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
+    const isAdmin = adminRoles.includes(userRole);
+    
     if (t.includes('attendance') || t.includes('check-in') || t.includes('check-out') || t.includes('leave')) {
-      router.push(userRole === 'Admin' ? '/AdminAttendance' : '/Dashboard');
+      router.push(isAdmin ? '/AdminAttendance' : '/Dashboard');
     } else if (t.includes('task') || m.includes('task')) {
-      router.push(userRole === 'Admin' ? '/TaskAssignment' : '/Task');
+      router.push(isAdmin ? '/TaskAssignment' : '/Task');
     } else if (t.includes('follow-up') || m.includes('follow up')) {
-      router.push(userRole === 'Admin' ? '/AdminFollowupManagement' : '/Followup');
+      router.push(isAdmin ? '/AdminFollowupManagement' : '/Followup');
     } else if (t.includes('onboard') || t.includes('client')) {
       router.push('/ClientOnboarding');
     }

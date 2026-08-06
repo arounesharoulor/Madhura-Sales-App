@@ -124,11 +124,7 @@ export default function LoginScreen() {
       if (msg.includes('pending admin approval')) {
         setAlertModal({ visible: true, title: 'Account Pending', message: msg });
       } else if (msg.includes('already logged in')) {
-        setAlertModal({ 
-          visible: true, 
-          title: 'Session Active', 
-          message: 'Your account is already logged in on another device. Please log out from the other device before signing in here.' 
-        });
+        setErrors(prev => ({ ...prev, password: 'Your account is already logged in on another device. Please log out from the other device before signing in here.' }));
       } else if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('employee')) {
         setErrors(prev => ({ ...prev, [(role === 'Admin' || role === 'Super Admin') ? 'email' : 'employeeId']: msg }));
       } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
