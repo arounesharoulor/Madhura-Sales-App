@@ -416,8 +416,8 @@ export default function LoginScreen() {
           </View>
         )
       ) : (
-        alertModal.visible && (
-          <View style={[StyleSheet.absoluteFillObject, styles.modalOverlay, { zIndex: 9999, elevation: 9999 }]}>
+        <Modal visible={alertModal.visible} animationType="fade" transparent={true} onRequestClose={() => setAlertModal({ visible: false, title: '', message: '' })}>
+          <View style={styles.modalOverlay}>
             <View style={styles.modalCard}>
               <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
                 <Ionicons name="alert-circle-outline" size={28} color="#EF4444" />
@@ -433,7 +433,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        )
+        </Modal>
       )}
     </SafeAreaView>
   );
