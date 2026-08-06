@@ -18,6 +18,7 @@ export default function UserManagementScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [userRole, setUserRole] = useState('Admin');
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
   // Modal State
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
@@ -134,6 +135,7 @@ export default function UserManagementScreen() {
   const fetchUsers = async () => {
     try {
       setRefreshing(true);
+      setSelectedUsers([]);
       const today = new Date().toISOString().split('T')[0];
       const [usersRes, attendanceRes] = await Promise.all([
         safeGet('/users'),
@@ -285,6 +287,49 @@ export default function UserManagementScreen() {
               fetchUsers();
             } catch (e) {
               Alert.alert('Error', e.response?.data?.message || 'Failed to approve user');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const toggleUserSelection = (id) => {
+    setSelectedUsers(prev => prev.includes(id) ? prev.filter(u => u !== id) : [...prev, id]);
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedUsers.length === 0) return;
+    
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Are you sure you want to approve ${selectedUsers.length} selected user(s)?`)) {
+        try {
+          await Promise.all(selectedUsers.map(id => api.put(`/users/${id}/approve`)));
+          window.alert('Selected users approved successfully');
+          setSelectedUsers([]);
+          fetchUsers();
+        } catch (e) {
+          window.alert('Failed to approve some or all users.');
+        }
+      }
+      return;
+    }
+
+    Alert.alert(
+      'Approve Selected Users',
+      `Are you sure you want to approve ${selectedUsers.length} selected user(s)?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Approve',
+          onPress: async () => {
+            try {
+              await Promise.all(selectedUsers.map(id => api.put(`/users/${id}/approve`)));
+              Alert.alert('Success', 'Selected users approved successfully');
+              setSelectedUsers([]);
+              fetchUsers();
+            } catch (e) {
+              Alert.alert('Error', 'Failed to approve some or all users.');
             }
           },
         },
@@ -504,14 +549,21 @@ export default function UserManagementScreen() {
                     : 'text-slate-600';
 
                 return (
-                  <View className="bg-white border border-slate-200 rounded-3xl p-5 mb-4 shadow-sm">
+                  <View className={`border ${selectedUsers.includes(item._id) ? 'border-sky-400 bg-sky-50' : 'border-slate-200 bg-white'} rounded-3xl p-5 mb-4 shadow-sm`}>
                     <View className="flex-row justify-between items-start mb-3">
-                      <View className="flex-1">
-                        <Text className="text-sm font-black text-slate-900 mb-1">{item.name}</Text>
-                        <Text className="text-xs text-slate-500 font-medium">{item.email}</Text>
-                        <Text className="text-[11px] text-slate-400 mt-1">
-                          Role: {item.role} | Desig: {item.designation || 'N/A'} | Phone: {item.phone || 'N/A'}
-                        </Text>
+                      <View className="flex-1 flex-row items-start gap-3">
+                        {!item.isApproved && (
+                          <TouchableOpacity onPress={() => toggleUserSelection(item._id)} className="mt-1">
+                            <Ionicons name={selectedUsers.includes(item._id) ? "checkbox" : "square-outline"} size={22} color={selectedUsers.includes(item._id) ? "#0284c7" : "#cbd5e1"} />
+                          </TouchableOpacity>
+                        )}
+                        <View className="flex-1">
+                          <Text className="text-sm font-black text-slate-900 mb-1">{item.name}</Text>
+                          <Text className="text-xs text-slate-500 font-medium">{item.email}</Text>
+                          <Text className="text-[11px] text-slate-400 mt-1">
+                            Role: {item.role} | Desig: {item.designation || 'N/A'} | Phone: {item.phone || 'N/A'}
+                          </Text>
+                        </View>
                       </View>
                       
                       <View className="flex-row items-center gap-2">
@@ -592,6 +644,19 @@ export default function UserManagementScreen() {
           )
         )}
       </View>
+
+      {/* Bulk Action Button */}
+      {activeTab === 'Pending' && selectedUsers.length > 0 && (
+        <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20, alignItems: 'center' }}>
+          <TouchableOpacity 
+            onPress={handleBulkApprove} 
+            style={{ backgroundColor: '#0284c7', paddingVertical: 14, paddingHorizontal: 30, borderRadius: 30, shadowColor: '#0ea5e9', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 8, flexDirection: 'row', alignItems: 'center' }}
+          >
+            <Ionicons name="checkmark-done" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Approve Selected ({selectedUsers.length})</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Profile / Documents Modal */}
       <Modal visible={showProfileModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowProfileModal(false)}>

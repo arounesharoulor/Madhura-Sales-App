@@ -55,16 +55,22 @@ export default function LoginScreen() {
 
   const validate = () => {
     let errs = {};
+    let firstErrorMsg = null;
     if (role === 'Admin' || role === 'Super Admin') {
-      if (!email) errs.email = 'Email address is required';
-      else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Please enter a valid email';
+      if (!email) { errs.email = true; firstErrorMsg = firstErrorMsg || 'Email address is required'; }
+      else if (!/\S+@\S+\.\S+/.test(email)) { errs.email = true; firstErrorMsg = firstErrorMsg || 'Please enter a valid email'; }
     } else {
-      if (!employeeId) errs.employeeId = 'Employee ID is required';
-      else if (!/^\d{5}$/.test(employeeId)) errs.employeeId = 'Employee ID must be exactly 5 digits';
+      if (!employeeId) { errs.employeeId = true; firstErrorMsg = firstErrorMsg || 'Employee ID is required'; }
+      else if (!/^\d{5}$/.test(employeeId)) { errs.employeeId = true; firstErrorMsg = firstErrorMsg || 'Employee ID must be exactly 5 digits'; }
     }
-    if (!password) errs.password = 'Password is required';
+    if (!password) { errs.password = true; firstErrorMsg = firstErrorMsg || 'Password is required'; }
+    
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    if (firstErrorMsg) {
+      setAlertModal({ visible: true, title: 'Validation Error', message: firstErrorMsg });
+      return false;
+    }
+    return true;
   };
 
   const handleLogin = async () => {
@@ -124,11 +130,14 @@ export default function LoginScreen() {
       if (msg.includes('pending admin approval')) {
         setAlertModal({ visible: true, title: 'Account Pending', message: msg });
       } else if (msg.includes('already logged in')) {
-        setErrors(prev => ({ ...prev, password: 'Your account is already logged in on another device. Please log out from the other device before signing in here.' }));
+        setErrors(prev => ({ ...prev, password: true }));
+        setAlertModal({ visible: true, title: 'Device Limit Reached', message: 'Your account is already logged in on another device. Please log out from the other device before signing in here.' });
       } else if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('employee')) {
-        setErrors(prev => ({ ...prev, [(role === 'Admin' || role === 'Super Admin') ? 'email' : 'employeeId']: msg }));
+        setErrors(prev => ({ ...prev, [(role === 'Admin' || role === 'Super Admin') ? 'email' : 'employeeId']: true }));
+        setAlertModal({ visible: true, title: 'Login Failed', message: msg });
       } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
-        setErrors(prev => ({ ...prev, password: msg }));
+        setErrors(prev => ({ ...prev, password: true }));
+        setAlertModal({ visible: true, title: 'Login Failed', message: msg });
       } else {
         setAlertModal({ visible: true, title: 'Login Failed', message: msg });
       }
@@ -214,7 +223,6 @@ export default function LoginScreen() {
                   onSubmitEditing={handleLogin}
                 />
               </View>
-              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
             </View>
           ) : (
             <View style={styles.fieldWrap}>
@@ -232,7 +240,8 @@ export default function LoginScreen() {
                     const numOnly = t.replace(/\D/g, '');
                     setEmployeeId(numOnly); 
                     if(numOnly.length > 5) {
-                      setErrors(e => ({ ...e, employeeId: 'Employee ID must be exactly 5 digits' }));
+                      setErrors(e => ({ ...e, employeeId: true }));
+                      setAlertModal({ visible: true, title: 'Validation Error', message: 'Employee ID must be exactly 5 digits' });
                     } else if(errors.employeeId) {
                       setErrors(e => ({ ...e, employeeId: null })); 
                     }
@@ -246,7 +255,6 @@ export default function LoginScreen() {
                   onSubmitEditing={handleLogin}
                 />
               </View>
-              {errors.employeeId && <Text style={styles.errorText}>{errors.employeeId}</Text>}
             </View>
           )}
 
@@ -274,7 +282,6 @@ export default function LoginScreen() {
                 <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#94a3b8" />
               </TouchableOpacity>
             </View>
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
           </View>
 
           {/* Forgot Password */}
