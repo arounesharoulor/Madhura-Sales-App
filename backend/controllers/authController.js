@@ -67,17 +67,17 @@ exports.register = async (req, res, next) => {
 
     const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
+    // Globally check for duplicate email
+    const duplicateEmail = await User.findOne({
+      email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' }
+    });
+    if (duplicateEmail) {
+      res.status(400);
+      throw new Error('An account with this email already exists');
+    }
+
     const adminRoles = ['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'];
-    if (adminRoles.includes(normalizedRole)) {
-      const existingUser = await User.findOne({
-        email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: 'i' },
-        role: { $in: adminRoles }
-      });
-      if (existingUser) {
-        res.status(400);
-        throw new Error('An Admin account with this email already exists');
-      }
-    } else {
+    if (!adminRoles.includes(normalizedRole)) {
       const existingExec = await User.findOne({ employeeId });
       if (existingExec) {
         res.status(400);
@@ -152,13 +152,13 @@ exports.login = async (req, res, next) => {
         res.status(400);
         throw new Error('Please provide email and password');
       }
-      user = await User.findOne({ email, role: { $in: adminRoles } }).select('+password +activeSessionToken');
+      user = await User.findOne({ email, role: { $in: adminRoles } }).select('+password +activeSessionTokens');
     } else {
       if (!employeeId || !password) {
         res.status(400);
         throw new Error('Please provide Employee ID and password');
       }
-      user = await User.findOne({ employeeId, role: 'Field Executive' }).select('+password +activeSessionToken');
+      user = await User.findOne({ employeeId, role: 'Field Executive' }).select('+password +activeSessionTokens');
     }
 
     if (!user) {
@@ -181,16 +181,16 @@ exports.login = async (req, res, next) => {
       throw new Error('Your account is pending admin approval.');
     }
 
-    if (user.activeSessionToken) {
+    if (user.activeSessionTokens && user.activeSessionTokens.length >= 3) {
       res.status(403);
-      throw new Error('Account is already logged in on another device.');
+      throw new Error('Maximum of 3 devices are already logged in.');
     }
 
     const token = generateToken(user._id);
     const tokenHash = hashToken(token);
 
-    // Save active session token hash — this invalidates any other active session
-    await User.findByIdAndUpdate(user._id, { activeSessionToken: tokenHash });
+    // Save active session token hash — pushing to the array of tokens (max 3)
+    await User.findByIdAndUpdate(user._id, { $push: { activeSessionTokens: tokenHash } });
 
     res.status(200).json({
       success: true,
@@ -204,6 +204,7 @@ exports.login = async (req, res, next) => {
         employeeId: user.employeeId,
         designation: user.designation,
         profilePicture: user.profilePicture,
+        activeDevicesCount: (user.activeSessionTokens ? user.activeSessionTokens.length : 0) + 1,
       },
     });
   } catch (error) {
@@ -219,7 +220,8 @@ exports.logout = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
-      await User.findByIdAndUpdate(decoded.id, { activeSessionToken: null });
+      const tokenHash = hashToken(token);
+      await User.findByIdAndUpdate(decoded.id, { $pull: { activeSessionTokens: tokenHash } });
     }
     res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch {

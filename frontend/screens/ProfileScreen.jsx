@@ -218,6 +218,7 @@ export default function ProfileScreen() {
           <InfoRow icon="briefcase-outline" label="Role / Designation" value={user?.designation || user?.role} />
           <InfoRow icon="location-outline" label="Address" value={user?.address} />
           <InfoRow icon="people-outline" label="Department" value={user?.department || 'Sales'} />
+          <InfoRow icon="hardware-chip-outline" label="Active Devices" value={`${user?.activeDevicesCount || 1} / 3`} />
         </View>
 
         {/* Edit Form */}

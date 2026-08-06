@@ -17,20 +17,20 @@ const protect = async (req, res, next) => {
       // Verify token signature & expiry
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
 
-      // Get user and the stored session token hash
-      req.user = await User.findById(decoded.id).select('-password +activeSessionToken');
+      // Get user and the stored session tokens array
+      req.user = await User.findById(decoded.id).select('-password +activeSessionTokens');
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
       }
 
-      // Single-session check: compare incoming token hash with stored hash
+      // Multi-session check: see if incoming token hash exists in activeSessionTokens
       const incomingHash = crypto.createHash('sha256').update(token).digest('hex');
-      if (req.user.activeSessionToken && req.user.activeSessionToken !== incomingHash) {
+      if (req.user.activeSessionTokens && !req.user.activeSessionTokens.includes(incomingHash)) {
         return res.status(401).json({
           success: false,
           code: 'SESSION_TAKEN',
-          message: 'This account is already logged in on another device.',
+          message: 'This session is no longer active. You may have logged in on too many devices.',
         });
       }
 

@@ -99,10 +99,10 @@ const userSchema = new mongoose.Schema(
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    // Tracks the currently active session — only one device at a time
-    activeSessionToken: {
-      type: String,
-      default: null,
+    // Tracks the currently active sessions (max 3 devices)
+    activeSessionTokens: {
+      type: [String],
+      default: [],
       select: false,
     },
     isApproved: {
