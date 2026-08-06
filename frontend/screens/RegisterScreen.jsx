@@ -157,7 +157,9 @@ export default function RegisterScreen() {
       if (['Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD'].includes(user.role)) {
         setShowAdminEmpIdModal(true);
       } else {
-        setTimeout(() => {
+        setTimeout(async () => {
+          await AsyncStorage.removeItem('token');
+          await AsyncStorage.removeItem('user');
           Alert.alert(
             'Account Pending',
             'Your account has been created successfully but requires admin approval before you can log in. You will be notified once approved.',
@@ -193,6 +195,8 @@ export default function RegisterScreen() {
       console.log('Failed to save Admin Employee ID:', error);
     } finally {
       setShowAdminEmpIdModal(false);
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('user');
       Alert.alert(
         'Account Pending',
         'Your admin account requires approval by a Managing Director or HR before you can log in. You will be notified once approved.',

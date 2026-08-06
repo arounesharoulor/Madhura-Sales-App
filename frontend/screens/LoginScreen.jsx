@@ -13,6 +13,7 @@ import {
   Platform,
   useWindowDimensions,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,6 +34,7 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [showSimultaneousLoginModal, setShowSimultaneousLoginModal] = useState(false);
 
   useEffect(() => {
     const checkLogin = async () => {
@@ -106,7 +108,7 @@ export default function LoginScreen() {
       if (msg.includes('pending admin approval')) {
         Alert.alert('Account Pending', msg);
       } else if (msg.includes('already logged in')) {
-        Alert.alert('Simultaneous Login Blocked', msg);
+        setShowSimultaneousLoginModal(true);
       } else if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('employee')) {
         setErrors(prev => ({ ...prev, [role === 'Admin' ? 'email' : 'employeeId']: msg }));
       } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
@@ -365,6 +367,32 @@ export default function LoginScreen() {
           </View>
         )
       )}
+
+      {/* Simultaneous Login Modal */}
+      <Modal
+        visible={showSimultaneousLoginModal}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
+              <Ionicons name="warning-outline" size={28} color="#EF4444" />
+            </View>
+            <Text style={styles.modalTitle}>Session Active</Text>
+            <Text style={styles.modalSub}>
+              Your account is already logged in on another device. Please log out from the other device before signing in here.
+            </Text>
+            <TouchableOpacity 
+              style={styles.modalBtn} 
+              onPress={() => setShowSimultaneousLoginModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalBtnText}>Understood</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -672,4 +700,24 @@ const styles = StyleSheet.create({
     marginTop: 32,
     letterSpacing: 0.5,
   },
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    alignItems: 'center', justifyContent: 'center', padding: 20,
+  },
+  modalCard: {
+    backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 360,
+    alignItems: 'center', elevation: 10,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20,
+  },
+  modalIconWrap: {
+    width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF8EC',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '500', color: '#0f172a', marginBottom: 8 },
+  modalSub: { fontSize: 13, color: '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 18 },
+  modalBtn: {
+    backgroundColor: '#1B2B4B', borderRadius: 14, width: '100%', height: 48,
+    alignItems: 'center', justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: '#F5A623',
+  },
+  modalBtnText: { color: '#fff', fontSize: 14, fontWeight: '500' },
 });
