@@ -126,7 +126,7 @@ export default function LoginScreen() {
           message: 'Your account is already logged in on another device. Please log out from the other device before signing in here.' 
         });
       } else if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('employee')) {
-        setErrors(prev => ({ ...prev, [role === 'Admin' ? 'email' : 'employeeId']: msg }));
+        setErrors(prev => ({ ...prev, [(role === 'Admin' || role === 'Super Admin') ? 'email' : 'employeeId']: msg }));
       } else if (msg.toLowerCase().includes('password') || msg.toLowerCase().includes('credentials')) {
         setErrors(prev => ({ ...prev, password: msg }));
       } else {
