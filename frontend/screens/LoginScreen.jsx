@@ -197,9 +197,11 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.roleHint}>
               {role === 'Admin' || role === 'Super Admin'
                 ? `Use your ${role.toLowerCase()} credentials to access the admin dashboard.`
                 : 'Use your employee credentials to access the field executive dashboard.'}
+            </Text>
           </View>
 
           {role === 'Admin' || role === 'Super Admin' ? (
