@@ -152,13 +152,13 @@ exports.login = async (req, res, next) => {
         res.status(400);
         throw new Error('Please provide email and password');
       }
-      user = await User.findOne({ email, role: { $in: adminRoles } }).select('+password');
+      user = await User.findOne({ email, role: { $in: adminRoles } }).select('+password +activeSessionToken');
     } else {
       if (!employeeId || !password) {
         res.status(400);
         throw new Error('Please provide Employee ID and password');
       }
-      user = await User.findOne({ employeeId, role: 'Field Executive' }).select('+password');
+      user = await User.findOne({ employeeId, role: 'Field Executive' }).select('+password +activeSessionToken');
     }
 
     if (!user) {
