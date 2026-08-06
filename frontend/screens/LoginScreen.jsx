@@ -393,25 +393,46 @@ export default function LoginScreen() {
         )
       )}
 
-      {/* Generic Custom Alert Overlay using Modal */}
-      <Modal visible={alertModal.visible} animationType="fade" transparent={true} onRequestClose={() => setAlertModal({ visible: false, title: '', message: '' })}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
-              <Ionicons name="alert-circle-outline" size={28} color="#EF4444" />
+      {/* Generic Custom Alert Overlay */}
+      {Platform.OS === 'web' ? (
+        alertModal.visible && (
+          <View style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', zIndex: 999999, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <View style={styles.modalCard}>
+              <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
+                <Ionicons name="alert-circle-outline" size={28} color="#EF4444" />
+              </View>
+              <Text style={styles.modalTitle}>{alertModal.title}</Text>
+              <Text style={styles.modalSub}>{alertModal.message}</Text>
+              <TouchableOpacity 
+                style={styles.modalBtn} 
+                onPress={() => setAlertModal({ visible: false, title: '', message: '' })}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalBtnText}>Understood</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.modalTitle}>{alertModal.title}</Text>
-            <Text style={styles.modalSub}>{alertModal.message}</Text>
-            <TouchableOpacity 
-              style={styles.modalBtn} 
-              onPress={() => setAlertModal({ visible: false, title: '', message: '' })}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modalBtnText}>Understood</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        )
+      ) : (
+        <Modal visible={alertModal.visible} animationType="fade" transparent={true} onRequestClose={() => setAlertModal({ visible: false, title: '', message: '' })}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <View style={[styles.modalIconWrap, { backgroundColor: '#FEE2E2' }]}>
+                <Ionicons name="alert-circle-outline" size={28} color="#EF4444" />
+              </View>
+              <Text style={styles.modalTitle}>{alertModal.title}</Text>
+              <Text style={styles.modalSub}>{alertModal.message}</Text>
+              <TouchableOpacity 
+                style={styles.modalBtn} 
+                onPress={() => setAlertModal({ visible: false, title: '', message: '' })}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalBtnText}>Understood</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
