@@ -832,6 +832,25 @@ export default function UserManagementScreen() {
                   <Text style={styles.recordText}>No documents uploaded yet.</Text>
                 )}
               </View>
+
+              {['Managing Director MD', 'Super Admin'].includes(userRole) && (
+                <View style={{ marginTop: 20 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowProfileModal(false);
+                      setTimeout(() => handleDeleteUser(employeeDetails._id), 500);
+                    }}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      backgroundColor: '#fef2f2', borderRadius: 16, paddingVertical: 15,
+                      borderWidth: 1.5, borderColor: '#fecdd3',
+                    }}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#e11d48" />
+                    <Text style={{ color: '#e11d48', fontWeight: '500', fontSize: 14 }}>Delete User</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </ScrollView>
           ) : (
             <View style={{alignItems: 'center', marginTop: 40}}>

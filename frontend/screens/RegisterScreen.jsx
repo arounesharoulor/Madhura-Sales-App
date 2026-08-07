@@ -595,15 +595,22 @@ export default function RegisterScreen() {
                 style={styles.input}
                 value={adminEmpId}
                 onChangeText={setAdminEmpId}
-                placeholder="Admin Employee ID (e.g. ADM-001)"
+                placeholder="Admin Employee ID (5 digits)"
                 placeholderTextColor="#94a3b8"
-                autoCapitalize="characters"
+                keyboardType="numeric"
+                maxLength={5}
               />
             </View>
 
             <TouchableOpacity 
               style={styles.modalBtn} 
-              onPress={handleAdminEmpIdSubmit}
+              onPress={() => {
+                if (adminEmpId.trim() && !/^\d{5}$/.test(adminEmpId.trim())) {
+                  Alert.alert('Invalid ID', 'Admin Employee ID must be exactly 5 digits.');
+                  return;
+                }
+                handleAdminEmpIdSubmit();
+              }}
               activeOpacity={0.8}
             >
               <Text style={styles.modalBtnText}>Complete Setup →</Text>

@@ -189,9 +189,12 @@ exports.login = async (req, res, next) => {
       throw new Error('Your account is pending admin approval.');
     }
 
-    if (user.activeSessionTokens && user.activeSessionTokens.length >= 3) {
+    const isSuperAdmin = user.role === 'Managing Director MD' || user.role === 'Super Admin';
+    const maxDevices = isSuperAdmin ? 1 : 3;
+
+    if (user.activeSessionTokens && user.activeSessionTokens.length >= maxDevices) {
       res.status(403);
-      throw new Error('Maximum of 3 devices are already logged in.');
+      throw new Error(`Maximum of ${maxDevices} device${maxDevices > 1 ? 's are' : ' is'} already logged in.`);
     }
 
     const token = generateToken(user._id);

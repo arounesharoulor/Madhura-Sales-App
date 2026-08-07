@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { View, Text, Alert, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, Alert, ScrollView, TouchableOpacity, ActivityIndicator, Image, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { disconnectSocket } from '../utils/socket';
 import { performLogout } from '../utils/logout';
 import AppLayout from '../components/AppLayout';
 import CustomInput from '../components/CustomInput';
@@ -28,13 +27,30 @@ function InfoRow({ icon, label, value }) {
 export default function ProfileScreen() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  
+  // Tabs: 'Basic', 'Professional', 'Security'
+  const [activeTab, setActiveTab] = useState('Basic');
+  const [editing, setEditing] = useState(false);
+  
+  // Fields
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [designation, setDesignation] = useState('');
   const [address, setAddress] = useState('');
+  
+  const [designation, setDesignation] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
+  const [panNumber, setPanNumber] = useState('');
+  const [aadharNumber, setAadharNumber] = useState('');
+  const [pfNumber, setPfNumber] = useState('');
+  const [experienceLevel, setExperienceLevel] = useState('');
+  const [joiningDate, setJoiningDate] = useState('');
+
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [metrics, setMetrics] = useState({ tasks: 0, visits: 0, followUps: 0, onboarded: 0 });
 
   useEffect(() => {
@@ -44,11 +60,17 @@ export default function ProfileScreen() {
         const u = JSON.parse(stored);
         setUser(u);
         setName(u.name || '');
+        setEmail(u.email || '');
         setPhone(u.phone || '');
-        setDesignation(u.designation || '');
         setAddress(u.address || '');
+        setDesignation(u.designation || '');
+        setEmployeeId(u.employeeId || '');
+        setPanNumber(u.panNumber || '');
+        setAadharNumber(u.aadharNumber || '');
+        setPfNumber(u.pfNumber || '');
+        setExperienceLevel(u.experienceLevel || '');
+        setJoiningDate(u.joiningDate ? u.joiningDate.split('T')[0] : '');
       }
-      // Load performance metrics
       try {
         const [tasksRes, meetingsRes, followUpsRes, onboardingRes] = await Promise.all([
           api.get('/tasks').catch(() => ({ data: { data: [] } })),
@@ -68,45 +90,57 @@ export default function ProfileScreen() {
   }, []);
 
   const handleSave = async () => {
-    if (!name) { Alert.alert('Error', 'Name is required'); return; }
-    if (phone && !/^\d{10}$/.test(phone.trim())) {
-      Alert.alert('Error', 'Mobile Number must be exactly 10 digits.');
-      return;
+    if (activeTab === 'Security') {
+      if (!password || password.length < 6) { Alert.alert('Error', 'Password must be at least 6 characters'); return; }
+      if (password !== confirmPassword) { Alert.alert('Error', 'Passwords do not match'); return; }
+    } else if (activeTab === 'Basic') {
+      if (!name || !email) { Alert.alert('Error', 'Name and Email are required'); return; }
+      if (phone && !/^\d{10}$/.test(phone.trim())) { Alert.alert('Error', 'Mobile Number must be 10 digits.'); return; }
     }
+    
     setLoading(true);
     try {
       let payload;
-      if (photo) {
+      if (photo && activeTab === 'Basic') {
         payload = new FormData();
         payload.append('name', name);
+        payload.append('email', email);
         payload.append('phone', phone);
-        payload.append('designation', designation);
         payload.append('address', address);
         
-        // Handle web or mobile image picker format
         if (Platform.OS === 'web') {
           const res = await fetch(photo.uri);
           const blob = await res.blob();
           payload.append('profilePicture', blob, 'profile.jpg');
         } else {
-          payload.append('profilePicture', {
-            uri: photo.uri,
-            type: 'image/jpeg',
-            name: 'profile.jpg',
-          });
+          payload.append('profilePicture', { uri: photo.uri, type: 'image/jpeg', name: 'profile.jpg' });
         }
       } else {
-        payload = { name, phone, designation, address };
+        payload = activeTab === 'Basic' 
+          ? { name, email, phone, address } 
+          : activeTab === 'Professional' 
+            ? { designation, employeeId, panNumber, aadharNumber, pfNumber, experienceLevel, joiningDate } 
+            : { password };
       }
 
-      const res = await api.put('/users/profile', payload, photo ? { headers: { 'Content-Type': 'multipart/form-data' } } : {});
+      const res = await api.put('/users/profile', payload, (photo && activeTab === 'Basic') ? { headers: { 'Content-Type': 'multipart/form-data' } } : {});
       const updated = res.data.data;
-      await AsyncStorage.setItem('user', JSON.stringify(updated));
-      setUser(updated);
+      
+      // Update local storage
+      const stored = await AsyncStorage.getItem('user');
+      const oldUser = stored ? JSON.parse(stored) : {};
+      const newUser = { ...oldUser, ...updated };
+      await AsyncStorage.setItem('user', JSON.stringify(newUser));
+      
+      setUser(newUser);
       setEditing(false);
+      if (activeTab === 'Security') {
+        setPassword(''); setConfirmPassword('');
+      }
       Alert.alert('Success', 'Profile updated successfully');
     } catch (e) {
-      Alert.alert('Error', 'Failed to update profile');
+      console.error(e);
+      Alert.alert('Error', e.response?.data?.message || 'Failed to update profile');
     } finally {
       setLoading(false);
       setPhoto(null);
@@ -117,13 +151,12 @@ export default function ProfileScreen() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.5,
+        allowsEditing: true, aspect: [1, 1], quality: 0.5,
       });
       if (!result.canceled) {
         setPhoto(result.assets[0]);
         setEditing(true);
+        setActiveTab('Basic');
       }
     } catch (e) {
       Alert.alert('Error', 'Could not pick image');
@@ -133,20 +166,20 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out', style: 'destructive',
-        onPress: () => performLogout(),
-      },
+      { text: 'Sign Out', style: 'destructive', onPress: () => performLogout() },
     ]);
   };
 
   const avatarColors = ['#0284c7', '#7c3aed', '#16a34a', '#d97706', '#e11d48'];
   const avatarColor = avatarColors[(user?.name?.charCodeAt(0) || 0) % avatarColors.length];
+  
+  const isSuperAdmin = user?.role === 'Managing Director MD' || user?.role === 'Super Admin';
+  const deviceLimit = isSuperAdmin ? 1 : 3;
 
   return (
     <AppLayout currentScreen="Profile" role={user?.role || 'Field Executive'}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }}>
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 60 }} automaticallyAdjustKeyboardInsets={true}>
+        
         <View style={{ marginBottom: 16, flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity onPress={() => router.push(['Admin', 'Project Manager', 'Team Lead', 'Managing Director MD'].includes(user?.role || 'Employee') ? '/AdminDashboard' : '/Dashboard')}>
             <Ionicons name="arrow-back" size={24} color="#0f172a" />
@@ -155,7 +188,6 @@ export default function ProfileScreen() {
 
         {/* Hero Card */}
         <View style={{
-          background: 'linear-gradient(135deg, #0f172a, #1e293b)',
           backgroundColor: '#0f172a', borderRadius: 28, padding: 24, marginBottom: 20,
           flexDirection: 'row', alignItems: 'center', gap: 16,
         }}>
@@ -175,65 +207,122 @@ export default function ProfileScreen() {
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 20, fontWeight: '500', color: '#fff', letterSpacing: -0.3 }}>{user?.name}</Text>
-            <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{user?.designation || 'Field Executive'}</Text>
+            <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{user?.designation || user?.role}</Text>
             <View style={{ backgroundColor: '#0284c7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: 8 }}>
               <Text style={{ fontSize: 10, fontWeight: '500', color: '#fff', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 ID: {user?.employeeId || 'N/A'}
               </Text>
             </View>
           </View>
-          <TouchableOpacity onPress={() => setEditing(!editing)} style={{ backgroundColor: '#1e293b', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: '#334155' }}>
-            <Ionicons name={editing ? 'close' : 'create-outline'} size={18} color="#94a3b8" />
+          <TouchableOpacity onPress={() => setEditing(!editing)} style={{ backgroundColor: editing ? '#0284c7' : '#1e293b', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: editing ? '#0284c7' : '#334155' }}>
+            <Ionicons name={editing ? 'close' : 'create-outline'} size={18} color={editing ? '#fff' : '#94a3b8'} />
           </TouchableOpacity>
         </View>
 
-        {/* Performance Mini Dashboard */}
-        <Text style={{ fontSize: 11, fontWeight: '500', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>My Performance</Text>
-        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
-          {[
-            { label: 'Visits', value: metrics.visits, icon: 'location', color: '#0284c7', bg: '#eff6ff' },
-            { label: 'Completed', value: metrics.followUps, icon: 'checkmark-circle', color: '#16a34a', bg: '#f0fdf4' },
-            { label: 'Clients', value: metrics.onboarded, icon: 'briefcase', color: '#7c3aed', bg: '#faf5ff' },
-            { label: 'Tasks Done', value: metrics.tasks, icon: 'clipboard', color: '#d97706', bg: '#fffbeb' },
-          ].map(s => (
-            <View key={s.label} style={{ flex: 1, backgroundColor: s.bg, borderRadius: 16, padding: 12, alignItems: 'center', gap: 4 }}>
-              <Ionicons name={s.icon} size={18} color={s.color} />
-              <Text style={{ fontSize: 20, fontWeight: '500', color: '#0f172a' }}>{s.value}</Text>
-              <Text style={{ fontSize: 9, fontWeight: '500', color: '#64748b', textTransform: 'uppercase' }}>{s.label}</Text>
-            </View>
+        {/* Custom Tabs */}
+        <View style={{ flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: 20 }}>
+          {['Basic', 'Professional', 'Security'].map(tab => (
+            <TouchableOpacity key={tab} onPress={() => { setActiveTab(tab); setEditing(false); }} style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8, backgroundColor: activeTab === tab ? '#fff' : 'transparent', shadowColor: activeTab === tab ? '#000' : 'transparent', shadowOpacity: 0.05, shadowRadius: 2, elevation: activeTab === tab ? 2 : 0 }}>
+              <Text style={{ fontSize: 13, fontWeight: activeTab === tab ? '600' : '500', color: activeTab === tab ? '#0f172a' : '#64748b' }}>{tab}</Text>
+            </TouchableOpacity>
           ))}
         </View>
 
-        {/* Employee Details */}
-        <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 16, marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, fontWeight: '500', color: '#0f172a', marginBottom: 4 }}>
-            {user?.role === 'Admin' ? 'Admin Information' : 'Employee Information'}
-          </Text>
-          {user?.role !== 'Admin' && (
-            <InfoRow icon="id-card-outline" label="Employee ID" value={user?.employeeId} />
-          )}
-          <InfoRow icon="person-outline" label="Full Name" value={user?.name} />
-          <InfoRow icon="call-outline" label="Mobile Number" value={user?.phone} />
-          <InfoRow icon="mail-outline" label="Email Address" value={user?.email} />
-          <InfoRow icon="briefcase-outline" label="Role / Designation" value={user?.designation || user?.role} />
-          <InfoRow icon="location-outline" label="Address" value={user?.address} />
-          <InfoRow icon="people-outline" label="Department" value={user?.department || 'Sales'} />
-          <InfoRow icon="hardware-chip-outline" label="Active Devices" value={`${user?.activeDevicesCount || 1} / 3`} />
-        </View>
-
-        {/* Edit Form */}
-        {editing && (
+        {/* Tab Content */}
+        {!editing ? (
           <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 16, marginBottom: 16 }}>
-            <Text style={{ fontSize: 13, fontWeight: '500', color: '#0f172a', marginBottom: 14 }}>Edit Profile</Text>
-            <CustomInput label="Full Name" value={name} onChangeText={setName} placeholder="Your full name" />
-            <View style={{ height: 12 }} />
-            <CustomInput label="Mobile Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="10-digit mobile number" maxLength={10} />
-            <View style={{ height: 12 }} />
-            <CustomInput label="Designation" value={designation} onChangeText={setDesignation} placeholder="E.g. Sales Executive" />
-            <View style={{ height: 12 }} />
-            <CustomInput label="Address" value={address} onChangeText={setAddress} placeholder="Your address" />
-            <View style={{ height: 16 }} />
-            <CustomButton title="Save Changes" loading={loading} onPress={handleSave} />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#0f172a' }}>
+                {activeTab === 'Basic' ? 'Basic Information' : activeTab === 'Professional' ? 'Professional Details' : 'Account Security'}
+              </Text>
+              <TouchableOpacity onPress={() => setEditing(true)}>
+                <Text style={{ fontSize: 12, color: '#0284c7', fontWeight: '500' }}>Edit {activeTab}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {activeTab === 'Basic' && (
+              <>
+                <InfoRow icon="person-outline" label="Full Name" value={user?.name} />
+                <InfoRow icon="mail-outline" label="Email Address" value={user?.email} />
+                <InfoRow icon="call-outline" label="Mobile Number" value={user?.phone} />
+                <InfoRow icon="location-outline" label="Home Address" value={user?.address} />
+              </>
+            )}
+
+            {activeTab === 'Professional' && (
+              <>
+                <InfoRow icon="id-card-outline" label="Employee ID" value={user?.employeeId} />
+                <InfoRow icon="briefcase-outline" label="Designation" value={user?.designation} />
+                <InfoRow icon="business-outline" label="Experience Level" value={user?.experienceLevel} />
+                <InfoRow icon="calendar-outline" label="Joining Date" value={user?.joiningDate ? user.joiningDate.split('T')[0] : ''} />
+                <InfoRow icon="document-text-outline" label="PAN Number" value={user?.panNumber} />
+                <InfoRow icon="finger-print-outline" label="Aadhar Number" value={user?.aadharNumber} />
+                <InfoRow icon="cash-outline" label="PF Number" value={user?.pfNumber} />
+              </>
+            )}
+
+            {activeTab === 'Security' && (
+              <>
+                <InfoRow icon="hardware-chip-outline" label="Active Devices" value={`${user?.activeDevicesCount || 1} / ${deviceLimit}`} />
+                <InfoRow icon="lock-closed-outline" label="Password" value="••••••••" />
+                <View style={{ marginTop: 16 }}>
+                  <CustomButton title="Change Password" onPress={() => setEditing(true)} />
+                </View>
+              </>
+            )}
+          </View>
+        ) : (
+          <View style={{ backgroundColor: '#fff', borderRadius: 20, borderWidth: 1, borderColor: '#e2e8f0', padding: 16, marginBottom: 16 }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#0f172a', marginBottom: 16 }}>Edit {activeTab}</Text>
+            
+            {activeTab === 'Basic' && (
+              <>
+                <CustomInput label="Full Name" value={name} onChangeText={setName} placeholder="Your full name" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Email Address" value={email} onChangeText={setEmail} placeholder="Your email" keyboardType="email-address" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Mobile Number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="10-digit number" maxLength={10} />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Home Address" value={address} onChangeText={setAddress} placeholder="Your address" />
+              </>
+            )}
+
+            {activeTab === 'Professional' && (
+              <>
+                <CustomInput label="Employee ID" value={employeeId} onChangeText={setEmployeeId} placeholder="E.g. 10001" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Designation" value={designation} onChangeText={setDesignation} placeholder="E.g. Sales Executive" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Experience Level" value={experienceLevel} onChangeText={setExperienceLevel} placeholder="Fresher / Experienced" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Joining Date (YYYY-MM-DD)" value={joiningDate} onChangeText={setJoiningDate} placeholder="2024-01-01" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="PAN Number" value={panNumber} onChangeText={setPanNumber} placeholder="ABCDE1234F" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Aadhar Number" value={aadharNumber} onChangeText={setAadharNumber} placeholder="1234 5678 9012" />
+                <View style={{ height: 12 }} />
+                <CustomInput label="PF Number" value={pfNumber} onChangeText={setPfNumber} placeholder="MH/BAN/12345/000/1234567" />
+              </>
+            )}
+
+            {activeTab === 'Security' && (
+              <>
+                <Text style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Update your account password securely.</Text>
+                <CustomInput label="New Password" value={password} onChangeText={setPassword} placeholder="At least 6 characters" secureTextEntry />
+                <View style={{ height: 12 }} />
+                <CustomInput label="Confirm New Password" value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Retype password" secureTextEntry />
+              </>
+            )}
+
+            <View style={{ height: 20 }} />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flex: 1 }}>
+                <CustomButton title="Cancel" outline onPress={() => setEditing(false)} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <CustomButton title="Save Changes" loading={loading} onPress={handleSave} />
+              </View>
+            </View>
           </View>
         )}
 

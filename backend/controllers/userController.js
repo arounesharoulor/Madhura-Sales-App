@@ -101,15 +101,22 @@ exports.updateProfile = async (req, res, next) => {
     }
 
     user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
     user.phone = req.body.phone || user.phone;
     user.employeeId = req.body.employeeId || user.employeeId;
     user.designation = req.body.designation || user.designation;
     user.address = req.body.address || user.address;
-
+    user.panNumber = req.body.panNumber || user.panNumber;
+    user.aadharNumber = req.body.aadharNumber || user.aadharNumber;
+    user.pfNumber = req.body.pfNumber || user.pfNumber;
+    user.experienceLevel = req.body.experienceLevel || user.experienceLevel;
+    
+    if (req.body.joiningDate) {
+      user.joiningDate = req.body.joiningDate;
+    }
     if (req.body.isLiveLocationShared !== undefined) {
       user.isLiveLocationShared = req.body.isLiveLocationShared;
     }
-
     if (req.body.password) {
       user.password = req.body.password;
     }
@@ -122,6 +129,31 @@ exports.updateProfile = async (req, res, next) => {
 
     const updatedUser = await user.save();
 
+    // Send Notification to HR/Super Admin
+    try {
+      const Notification = require('../models/Notification');
+      const hrAdmins = await User.find({ 
+        role: { $in: ['Super Admin', 'Managing Director MD', 'HR'] }, 
+        isActive: true,
+        _id: { $ne: user._id } // don't notify self
+      }).select('_id');
+      
+      await Promise.all(
+        hrAdmins.map(async (admin) => {
+          const notif = await Notification.create({
+            recipient: admin._id,
+            sender: user._id,
+            title: 'Profile Updated',
+            message: `${user.name} (${user.role}) has updated their profile information.`,
+            type: 'Alert',
+          });
+          if (req.io) req.io.to(admin._id.toString()).emit('notification', notif);
+        })
+      );
+    } catch (notifErr) {
+      console.error('Failed to notify admins on profile update:', notifErr.message);
+    }
+
     res.status(200).json({
       success: true,
       data: {
@@ -133,6 +165,11 @@ exports.updateProfile = async (req, res, next) => {
         employeeId: updatedUser.employeeId,
         designation: updatedUser.designation,
         address: updatedUser.address,
+        panNumber: updatedUser.panNumber,
+        aadharNumber: updatedUser.aadharNumber,
+        pfNumber: updatedUser.pfNumber,
+        experienceLevel: updatedUser.experienceLevel,
+        joiningDate: updatedUser.joiningDate,
         profilePicture: updatedUser.profilePicture,
       },
     });
