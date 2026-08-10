@@ -213,7 +213,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
         </View>
       </TouchableOpacity>
 
-      {item.meetingType === 'Online' && item.onlineMeetingLink && item.status === 'Scheduled' && (
+      {item.meetingType === 'Online' && !!item.onlineMeetingLink && item.status === 'Scheduled' && (
         <TouchableOpacity
           onPress={() => Linking.openURL(item.onlineMeetingLink)}
           activeOpacity={0.85}
@@ -245,7 +245,7 @@ const MeetingCard = ({ item, isAdmin = false, onUpdated }) => {
             <Text style={styles.detailValue}>{item.phone}</Text>
           </View>
 
-          {isAdmin && item.executive?.name && (
+          {isAdmin && !!item.executive?.name && (
             <View style={styles.detailRow}>
               <Ionicons name="person-outline" size={14} color="#64748b" />
               <Text style={styles.detailValue}>{item.executive.name}</Text>
