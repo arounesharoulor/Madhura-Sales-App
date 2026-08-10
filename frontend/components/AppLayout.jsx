@@ -600,8 +600,8 @@ const styles = StyleSheet.create({
     backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   userAvatarText: { color: NAVY, fontWeight: '500', fontSize: 16 },
-  userPortalLabel: { fontSize: 8, color: GOLD, fontWeight: '400', letterSpacing: 1.5, marginBottom: 2 },
-  userName: { color: '#fff', fontWeight: '500', fontSize: 13 },
+  userPortalLabel: { fontSize: 11, color: GOLD, fontWeight: '600', letterSpacing: 1.5, marginBottom: 2 },
+  userName: { color: '#fff', fontWeight: '500', fontSize: 14 },
 
   // ── Nav ──
   navScroll: { paddingBottom: 8 },

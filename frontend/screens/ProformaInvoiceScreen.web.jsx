@@ -64,6 +64,15 @@ export default function ProformaInvoiceScreenWeb() {
       if (stored) setRole(JSON.parse(stored).role);
       fetchPerformaInvoices();
       fetchQuotations();
+
+      try {
+        const savedTerms = await AsyncStorage.getItem('lastPI_Terms');
+        if (savedTerms) {
+          const parsed = JSON.parse(savedTerms);
+          setTerms(parsed);
+          setExtra(prev => ({ ...prev, terms_json: savedTerms }));
+        }
+      } catch (e) {}
     };
     load();
   }, []);
@@ -320,6 +329,8 @@ export default function ProformaInvoiceScreenWeb() {
         await api.post("/performainvoice/create", payload);
         alert("Created successfully");
       }
+      
+      await AsyncStorage.setItem('lastPI_Terms', JSON.stringify(terms));
       setOpen(false);
       resetForm();
       fetchPerformaInvoices();
@@ -331,12 +342,24 @@ export default function ProformaInvoiceScreenWeb() {
     }
   };
 
-  const resetForm = () => {
+  const resetForm = async () => {
     setCustomer({ customer_name: "", mobile_number: "", email: "", location_city: "" });
     setItems([{ hsn_code: "", name: "", uom: "Nos", price: 0, qty: 1, tax: 18, discount: 0 }]);
     setPerformaInvoice({ invoice_date: new Date().toISOString().slice(0, 10) });
     setExtra(emptyExtra());
-    setTerms(defaultTerms);
+    
+    try {
+      const savedTerms = await AsyncStorage.getItem('lastPI_Terms');
+      if (savedTerms) {
+        setTerms(JSON.parse(savedTerms));
+        setExtra(prev => ({ ...prev, terms_json: savedTerms }));
+      } else {
+        setTerms(defaultTerms);
+      }
+    } catch (e) {
+      setTerms(defaultTerms);
+    }
+
     setClientSearch("");
     setEditId(null);
     setOpen(false);
@@ -483,10 +506,10 @@ export default function ProformaInvoiceScreenWeb() {
                 {filteredInvoices.map(p => (
                   <tr
                     key={p.id}
-                    onClick={() => setSelectedId(p.id)}
+                    onClick={() => setSelectedId(selectedId === p.id ? null : p.id)}
                     className={`border-b cursor-pointer hover:bg-blue-50/50 transition ${selectedId === p.id ? "bg-blue-50" : ""}`}
                   >
-                    <td className="p-4"><input type="radio" checked={selectedId === p.id} onChange={() => setSelectedId(p.id)} /></td>
+                    <td className="p-4"><input type="radio" checked={selectedId === p.id} onChange={() => setSelectedId(selectedId === p.id ? null : p.id)} /></td>
                     <td className="p-4 font-semibold text-gray-800">{formatPINumber(p.id, p.invoice_date)}</td>
                     <td className="p-4 text-gray-600">{p.reference_no || "—"}</td>
                     <td className="p-4 text-gray-600">{new Date(p.invoice_date).toLocaleDateString()}</td>

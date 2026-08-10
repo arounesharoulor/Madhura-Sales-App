@@ -241,11 +241,14 @@ const Invoice = ({ performaInvoiceId, quotationId }) => {
           <div style={{ width: "62%", borderRight: BD, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <Band style={{ flexShrink: 0 }}>Terms &amp; Conditions</Band>
             <div style={{ padding: "10px 14px 10px 10px", background: "#F9FBFC" }}>
-              <ol style={{ margin: 0, paddingLeft: "16px" }}>
+              <div style={{ margin: 0, paddingLeft: "4px" }}>
                 {terms.map((t, i) => (
-                  <li key={i} style={{ fontSize: "7.5pt", color: "#333", lineHeight: "1.6", marginBottom: "4px" }}>{t}</li>
+                  <div key={i} style={{ fontSize: "7.5pt", color: "#333", lineHeight: "1.6", marginBottom: "4px", display: "flex" }}>
+                    <span style={{ marginRight: "6px", minWidth: "12px", fontWeight: "600" }}>{i + 1}.</span>
+                    <span>{t}</span>
+                  </div>
                 ))}
-              </ol>
+              </div>
             </div>
           </div>
           {/* Signature column */}

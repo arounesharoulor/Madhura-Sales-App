@@ -414,10 +414,10 @@ export default function QuotationScreenWeb() {
                 {filteredQuotations.map(p => (
                   <tr
                     key={p.id}
-                    onClick={() => setSelectedId(p.id)}
+                    onClick={() => setSelectedId(selectedId === p.id ? null : p.id)}
                     className={`border-b cursor-pointer hover:bg-blue-50/50 transition ${selectedId === p.id ? "bg-blue-50" : ""}`}
                   >
-                    <td className="p-4"><input type="radio" checked={selectedId === p.id} onChange={() => setSelectedId(p.id)} /></td>
+                    <td className="p-4"><input type="radio" checked={selectedId === p.id} onChange={() => setSelectedId(selectedId === p.id ? null : p.id)} /></td>
                     <td className="p-4 font-semibold text-gray-800">{formatQTNumber(p.id, p.quotation_date)}</td>
                     <td className="p-4 text-gray-600">{p.reference_no || "—"}</td>
                     <td className="p-4 text-gray-600">{new Date(p.quotation_date).toLocaleDateString()}</td>
