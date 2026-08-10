@@ -74,7 +74,7 @@ export default function ProformaInvoiceScreenWeb() {
       const res = await api.get("/performainvoice");
       setPerformaInvoices(res.data);
     } catch (err) {
-      console.error(err);
+      console.warn("Error fetching performa invoices:", err.message);
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export default function ProformaInvoiceScreenWeb() {
       const res = await api.get("/crm-quotations");
       setQuotations(res.data);
     } catch (err) {
-      console.error(err);
+      console.warn("Error fetching quotations:", err.message);
     }
   };
 
