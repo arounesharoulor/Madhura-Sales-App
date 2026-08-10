@@ -67,6 +67,15 @@ export default function QuotationScreenWeb() {
       const stored = await AsyncStorage.getItem('user');
       if (stored) setRole(JSON.parse(stored).role);
       fetchQuotations();
+
+      try {
+        const savedTerms = await AsyncStorage.getItem('lastQT_Terms');
+        if (savedTerms) {
+          const parsed = JSON.parse(savedTerms);
+          setTerms(parsed);
+          setExtra(prev => ({ ...prev, terms_json: savedTerms }));
+        }
+      } catch (e) {}
     };
     load();
   }, []);
@@ -256,6 +265,8 @@ export default function QuotationScreenWeb() {
         await api.post("/crm-quotations/create", payload);
         alert("Created successfully");
       }
+      
+      await AsyncStorage.setItem('lastQT_Terms', JSON.stringify(terms));
       setOpen(false);
       resetForm();
       fetchQuotations();
@@ -267,12 +278,24 @@ export default function QuotationScreenWeb() {
     }
   };
 
-  const resetForm = () => {
+  const resetForm = async () => {
     setCustomer({ customer_name: "", mobile_number: "", email: "", location_city: "" });
     setItems([{ hsn_code: "", name: "", uom: "Nos", price: 0, qty: 1, tax: 18, discount: 0 }]);
     setQuotation({ quotation_date: new Date().toISOString().slice(0, 10) });
     setExtra(emptyExtra());
-    setTerms(defaultTerms);
+    
+    try {
+      const savedTerms = await AsyncStorage.getItem('lastQT_Terms');
+      if (savedTerms) {
+        setTerms(JSON.parse(savedTerms));
+        setExtra(prev => ({ ...prev, terms_json: savedTerms }));
+      } else {
+        setTerms(defaultTerms);
+      }
+    } catch (e) {
+      setTerms(defaultTerms);
+    }
+
     setClientSearch("");
     setEditId(null);
     setOpen(false);
