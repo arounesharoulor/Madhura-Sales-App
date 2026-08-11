@@ -16,7 +16,7 @@ const resolveExpoHost = () => {
 
 const WEB_HOST = (typeof window !== 'undefined' && window.location) ? window.location.hostname : null;
 const HOST_FROM_DEBUGGER = resolveExpoHost();
-const LOCAL_HOST = '192.168.0.102'; // Updated to current WiFi IP
+const LOCAL_HOST = 'localhost'; // Updated to work locally without Wi-Fi issues
 
 const PRODUCTION_API_URL = 'https://madhura-sales-app.onrender.com/api';
 const PRODUCTION_SOCKET_URL = 'https://madhura-sales-app.onrender.com';

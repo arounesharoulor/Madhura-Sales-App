@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const clientOnboardingSchema = new mongoose.Schema(
-  {
+const clientOnboardingSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     executive: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     businessName: { type: String, required: true },
     businessType: { type: String, required: true },

@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const meetingSchema = new mongoose.Schema(
-  {
+const meetingSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     clientName: {
       type: String,
       required: [true, 'Please add client name'],

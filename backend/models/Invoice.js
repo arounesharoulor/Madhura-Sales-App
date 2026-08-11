@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const invoiceSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'ClientOnboarding', required: true },
   

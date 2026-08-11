@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const attendanceSchema = new mongoose.Schema(
-  {
+const attendanceSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     executive: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

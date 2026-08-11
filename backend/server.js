@@ -6,6 +6,10 @@ const socketio = require('socket.io');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const tenantPlugin = require('./models/tenantPlugin');
+
+// Apply tenant plugin globally so all models automatically filter by companyId
+mongoose.plugin(tenantPlugin);
 
 const connectDB = require('./db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -52,6 +56,15 @@ const crmQuotationRoutes = require('./routes/crmQuotationRoutes');
 const performaInvoiceRoutes = require('./routes/performaInvoiceRoutes');
 const madhuraInvoiceRoutes = require('./routes/madhuraInvoiceRoutes');
 const paymentReceiptRoutes = require('./routes/paymentReceiptRoutes');
+
+const internalTenantRoutes = require('./routes/internalTenantRoutes');
+const { tenantMiddleware } = require('./middleware/tenantMiddleware');
+
+// Mount internal SaaS APIs
+app.use('/api/internal/tenant', internalTenantRoutes);
+
+// Apply tenant middleware for all regular API routes
+app.use('/api', tenantMiddleware);
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -105,6 +118,7 @@ io.use((socket, next) => {
     jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here', (err, decoded) => {
       if (err) return next(new Error('Authentication error'));
       socket.userId = decoded.id;
+      socket.companyId = decoded.companyId || 'company_madhura';
       next();
     });
   } else {
@@ -113,12 +127,14 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  console.log(`User connected to socket: ${socket.userId}`);
-  socket.join(socket.userId.toString());
+  console.log(`User connected to socket: ${socket.userId} (Company: ${socket.companyId})`);
+  // Scope user room to companyId
+  socket.join(`${socket.companyId}_${socket.userId}`);
 
   socket.on('join_chat', (roomId) => {
-    socket.join(roomId);
-    console.log(`User joined room: ${roomId}`);
+    // Scope chat room to companyId
+    socket.join(`${socket.companyId}_${roomId}`);
+    console.log(`User joined room: ${socket.companyId}_${roomId}`);
   });
 
   socket.on('disconnect', () => {

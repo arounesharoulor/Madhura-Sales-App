@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const taxInvoiceItemSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   sl_no: { type: Number, required: true },
   description: { type: String, required: true },
   sac_code: { type: String, default: '' },

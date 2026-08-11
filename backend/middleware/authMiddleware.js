@@ -24,6 +24,14 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
       }
 
+      if (req.user.isTenantSuspended) {
+        return res.status(403).json({
+          success: false,
+          code: 'TENANT_SUSPENDED',
+          message: 'Your company CRM subscription has been suspended by the SaaS administrator.',
+        });
+      }
+
       // Multi-session check: see if incoming token hash exists in activeSessionTokens
       const incomingHash = crypto.createHash('sha256').update(token).digest('hex');
       if (req.user.activeSessionTokens && !req.user.activeSessionTokens.includes(incomingHash)) {
@@ -55,7 +63,7 @@ const authorize = (...roles) => {
 
     let allowedRoles = [...roles];
     if (allowedRoles.includes('Admin')) {
-      allowedRoles.push('Project Manager', 'Team Lead', 'HR', 'Managing Director MD');
+      allowedRoles.push('Super Admin', 'Project Manager', 'Team Lead', 'HR', 'Managing Director MD');
     }
 
     if (!allowedRoles.includes(req.user.role)) {

@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   customer_name: { type: String, required: true },
   mobile_number: { type: String, required: true },
   email: { type: String, default: '' },

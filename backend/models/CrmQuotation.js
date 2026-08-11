@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const quotationItemSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   product_number: { type: Number },
   description: { type: String, required: true },
   brand_model: { type: String, default: '' },

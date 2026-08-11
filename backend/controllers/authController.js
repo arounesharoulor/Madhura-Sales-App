@@ -3,8 +3,12 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 // Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'your_jwt_secret_key_here', {
+const generateToken = (user) => {
+  return jwt.sign({ 
+    id: user._id, 
+    companyId: user.companyId,
+    role: user.role
+  }, process.env.JWT_SECRET || 'your_jwt_secret_key_here', {
     expiresIn: process.env.JWT_EXPIRE || '30d',
   });
 };
@@ -109,7 +113,7 @@ exports.register = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Account created successfully',
-      token: generateToken(user._id),
+      token: generateToken(user),
       user: {
         id: user._id,
         name: user.name,
@@ -184,6 +188,11 @@ exports.login = async (req, res, next) => {
       throw new Error('Your account is deactivated. Please contact admin.');
     }
 
+    if (user.isTenantSuspended) {
+      res.status(403);
+      throw new Error('Your company CRM subscription has been suspended by the SaaS administrator.');
+    }
+
     if (!user.isApproved) {
       res.status(403);
       throw new Error('Your account is pending admin approval.');
@@ -197,7 +206,7 @@ exports.login = async (req, res, next) => {
       throw new Error(`Maximum of ${maxDevices} device${maxDevices > 1 ? 's are' : ' is'} already logged in.`);
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
     const tokenHash = hashToken(token);
 
     // Save active session token hash — pushing to the array of tokens (max 3)

@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const workUpdateSchema = new mongoose.Schema(
-  {
+const workUpdateSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     executive: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

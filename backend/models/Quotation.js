@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const quotationSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
   amount: { type: Number, required: true },
   description: { type: String, required: true },

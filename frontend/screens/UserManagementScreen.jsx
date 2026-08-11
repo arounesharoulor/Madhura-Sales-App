@@ -556,7 +556,7 @@ export default function UserManagementScreen() {
               )}
             </View>
 
-            {userRole === 'Managing Director MD' && (
+            {['HR', 'Managing Director MD', 'Admin', 'Super Admin'].includes(userRole) && (
               <View className="flex-row bg-slate-100 p-1 rounded-xl mb-4">
                 <TouchableOpacity
                   onPress={() => setActiveTab('Approved')}

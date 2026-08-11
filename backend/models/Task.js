@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const taskSchema = new mongoose.Schema(
-  {
+const taskSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     title: {
       type: String,
       required: [true, 'Please add a task title'],

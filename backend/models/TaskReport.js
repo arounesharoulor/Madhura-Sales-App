@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const taskReportSchema = new mongoose.Schema(
-  {
+const taskReportSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     task: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Task',

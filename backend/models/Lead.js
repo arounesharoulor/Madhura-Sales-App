@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const leadSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   clientName: { type: String, required: true },
   companyName: { type: String, required: true },
   phone: { type: String, required: true },

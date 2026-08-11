@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const messageSchema = new mongoose.Schema(
-  {
+const messageSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

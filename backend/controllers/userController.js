@@ -16,7 +16,9 @@ exports.createUser = async (req, res, next) => {
 
     const userData = { 
       name, email, password, role, phone, designation, 
-      panNumber, aadharNumber, pfNumber, experienceLevel 
+      panNumber, aadharNumber, pfNumber, experienceLevel,
+      isApproved: true,
+      isActive: true
     };
     if (joiningDate) userData.joiningDate = joiningDate;
     if (manager) userData.manager = manager;

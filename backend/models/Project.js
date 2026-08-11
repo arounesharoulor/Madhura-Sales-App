@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   name: { type: String, required: true }, // Project Name
   projectCode: { type: String }, // Project Code / ID
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'ClientOnboarding', required: true },

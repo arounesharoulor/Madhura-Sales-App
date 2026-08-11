@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema(
-  {
+const userSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     name: {
       type: String,
       required: [true, 'Please add a name'],
@@ -52,6 +56,10 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    isTenantSuspended: {
+      type: Boolean,
+      default: false
     },
     earlyCheckoutLocked: {
       type: Boolean,

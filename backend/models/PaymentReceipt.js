@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const paymentReceiptItemSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
   sl_no: { type: Number, required: true },
   service_name: { type: String, required: true },
   total_amount: { type: Number, required: true },

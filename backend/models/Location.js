@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
-const locationSchema = new mongoose.Schema(
-  {
+const locationSchema = new mongoose.Schema({
+    companyId: {
+      type: String,
+      default: 'company_madhura',
+      index: true
+    },
     executive: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
