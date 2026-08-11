@@ -59,12 +59,12 @@ const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !=
 // 4. Web dev (localhost) → local IP
 // 5. Physical device in DEV mode → local IP
 // 6. Everything else (production build) → Render production
-export const API_URL = isDev ? DEV_API_URL : (STATIC_API_URL || PRODUCTION_API_URL);
+export const API_URL = isWebProduction ? PRODUCTION_API_URL : (isDev ? DEV_API_URL : (STATIC_API_URL || PRODUCTION_API_URL));
 
 // Fallback is always the live production server
 export const API_FALLBACK_URL = PRODUCTION_API_URL;
 
-export const SOCKET_URL = STATIC_SOCKET_URL || PRODUCTION_SOCKET_URL;
+export const SOCKET_URL = isWebProduction ? PRODUCTION_SOCKET_URL : (STATIC_SOCKET_URL || PRODUCTION_SOCKET_URL);
 
 export const THEME = {
   primary: '#0284c7',       // sky-600
