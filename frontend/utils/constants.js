@@ -18,8 +18,8 @@ const WEB_HOST = (typeof window !== 'undefined' && window.location) ? window.loc
 const HOST_FROM_DEBUGGER = resolveExpoHost();
 const LOCAL_HOST = 'localhost'; // Updated to work locally without Wi-Fi issues
 
-const PRODUCTION_API_URL = 'https://madhura-sales-app.onrender.com/api';
-const PRODUCTION_SOCKET_URL = 'https://madhura-sales-app.onrender.com';
+const PRODUCTION_API_URL = 'https://madhura-sales-app-p8zp.onrender.com/api';
+const PRODUCTION_SOCKET_URL = 'https://madhura-sales-app-p8zp.onrender.com';
 
 // True when running as a deployed web app (not on localhost/emulator)
 const isWebProduction = Platform.OS === 'web' &&
