@@ -201,16 +201,18 @@ exports.login = async (req, res, next) => {
     const isSuperAdmin = user.role === 'Managing Director MD' || user.role === 'Super Admin';
     const maxDevices = isSuperAdmin ? 1 : 3;
 
-    if (user.activeSessionTokens && user.activeSessionTokens.length >= maxDevices) {
-      res.status(403);
-      throw new Error(`Maximum of ${maxDevices} device${maxDevices > 1 ? 's are' : ' is'} already logged in.`);
+    let sessionTokens = user.activeSessionTokens || [];
+    if (sessionTokens.length >= maxDevices) {
+      sessionTokens = sessionTokens.slice(sessionTokens.length - maxDevices + 1);
     }
 
     const token = generateToken(user);
     const tokenHash = hashToken(token);
 
-    // Save active session token hash — pushing to the array of tokens (max 3)
-    await User.findByIdAndUpdate(user._id, { $push: { activeSessionTokens: tokenHash } });
+    sessionTokens.push(tokenHash);
+
+    // Save active session token hash
+    await User.findByIdAndUpdate(user._id, { activeSessionTokens: sessionTokens });
 
     res.status(200).json({
       success: true,
