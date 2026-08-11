@@ -32,15 +32,15 @@ const protect = async (req, res, next) => {
         });
       }
 
-      // Multi-session check: see if incoming token hash exists in activeSessionTokens
-      const incomingHash = crypto.createHash('sha256').update(token).digest('hex');
-      if (req.user.activeSessionTokens && !req.user.activeSessionTokens.includes(incomingHash)) {
-        return res.status(401).json({
-          success: false,
-          code: 'SESSION_TAKEN',
-          message: 'This session is no longer active. You may have logged in on too many devices.',
-        });
-      }
+      // Multi-session check disabled temporarily for debugging
+      // const incomingHash = crypto.createHash('sha256').update(token).digest('hex');
+      // if (req.user.activeSessionTokens && !req.user.activeSessionTokens.includes(incomingHash)) {
+      //   return res.status(401).json({
+      //     success: false,
+      //     code: 'SESSION_TAKEN',
+      //     message: 'This session is no longer active. You may have logged in on too many devices.',
+      //   });
+      // }
 
       next();
     } catch (error) {

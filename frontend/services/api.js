@@ -56,6 +56,8 @@ api.interceptors.response.use(
 
     // Auto-logout on 401 (except for login requests themselves)
     if (error.response?.status === 401 && config.url && !config.url.includes('/auth/login')) {
+      console.error('API 401 ERROR DETAILS:', error.response.data);
+      // User session invalid or expired
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
       const { router } = require('expo-router');
