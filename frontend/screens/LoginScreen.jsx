@@ -82,7 +82,7 @@ export default function LoginScreen() {
       const payload = (role === 'Admin' || role === 'Super Admin') ? { email, password, role: apiRole } : { employeeId, password, role: apiRole };
       const response = await api.post('/auth/login', payload);
       const { token, user } = response.data;
-      if (role === 'Super Admin' && user.role !== 'Managing Director MD') {
+      if (role === 'Super Admin' && user.role !== 'Managing Director MD' && user.role !== 'Super Admin') {
         setLoading(false);
         setAlertModal({
           visible: true,
