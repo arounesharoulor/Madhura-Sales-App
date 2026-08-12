@@ -498,12 +498,12 @@ export default function PaymentReceiptScreenWeb() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Invoice No *</label>
-                    <input type="text" required value={invoiceNo} onChange={e => setInvoiceNo(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white focus:border-blue-500" />
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Invoice No</label>
+                    <input type="text" value={invoiceNo} onChange={e => setInvoiceNo(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white focus:border-blue-500" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Service No *</label>
-                    <input type="text" required value={serviceNo} onChange={e => setServiceNo(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white focus:border-blue-500" />
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Service No</label>
+                    <input type="text" value={serviceNo} onChange={e => setServiceNo(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm outline-none bg-white focus:border-blue-500" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Payment Date *</label>

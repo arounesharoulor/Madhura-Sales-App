@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, Alert, Platform, TextInput, ActivityIndicator
+  View, Text, ScrollView, TouchableOpacity, Alert, Platform, TextInput, ActivityIndicator, Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -55,9 +55,34 @@ const LOCATION_DATA = {
 const STATES = Object.keys(LOCATION_DATA);
 
 const AREA_DATA = {
-  "Chennai": ["T. Nagar", "Anna Nagar", "Adyar", "Velachery", "Mylapore", "Tambaram", "Guindy", "Koyambedu", "K.K. Nagar", "Thiruvanmiyur"],
-  "Coimbatore": ["Gandhipuram", "RS Puram", "Peelamedu", "Ukkadam", "Saravanampatti", "Saibaba Colony", "Vadavalli"],
-  "Madurai": ["Anna Nagar", "KK Nagar", "Simmakkal", "Goripalayam", "Tallakulam", "K.Pudur"],
+  "Chennai": [
+    "Adyar", "Alandur", "Alwarpet", "Ambattur", "Aminjikarai", "Anna Nagar", "Ashok Nagar", "Avadi", "Ayanavaram", 
+    "Besant Nagar", "Chetpet", "Choolaimedu", "Chromepet", "Egmore", "Ekkaduthangal", "Ennore", "Foreshore Estate", 
+    "George Town", "Gopalapuram", "Guindy", "K.K. Nagar", "Kilpauk", "Kodambakkam", "Koyambedu", "Madhavaram", 
+    "Madipakkam", "Mandaveli", "Medavakkam", "Meenambakkam", "Mylapore", "Nandanam", "Nanganallur", "Nungambakkam", 
+    "OMR", "Pallavaram", "Pallikaranai", "Pammal", "Parrys", "Perambur", "Perungudi", "Poonamallee", "Porur", 
+    "Purasawalkam", "R.A. Puram", "Ramapuram", "Royapettah", "Royapuram", "Saidapet", "Saligramam", "Santhome", 
+    "Selaiyur", "Shenoy Nagar", "Sholinganallur", "Sowcarpet", "T. Nagar", "Tambaram", "Teynampet", "Tharamani", 
+    "Thiruvanmiyur", "Thoraipakkam", "Tiruvottiyur", "Triplicane", "Vadapalani", "Valasaravakkam", "Velachery", 
+    "Villivakkam", "Virugambakkam", "Washermanpet", "West Mambalam", "Other"
+  ],
+  "Coimbatore": [
+    "Avarampalayam", "Bharathi Park", "Cheran ma Nagar", "Chinniyampalayam", "Edayar Street", "Ganapathy", 
+    "Gandhipuram", "Goldwins", "Hope College", "K.G. Chavadi", "Kalapatti", "Kaliyapuram", "Kammavar Sangam", 
+    "Kavundampalayam", "Kovaipudur", "Kuniyamuthur", "Kurichi", "Madukkarai", "Marudamalai", "Mettupalayam Road", 
+    "Ondipudur", "Othakalmandapam", "P.N. Palayam", "Pappanaickenpalayam", "Peelamedu", "Periyanaickenpalayam", 
+    "Perur", "Podanur", "Pollachi Road", "Ponnaiyarajapuram", "Puliyakulam", "R.S. Puram", "Ramanathapuram", 
+    "Ramnagar", "Rathinapuri", "Saibaba Colony", "Saravanampatti", "Singanallur", "Sivananda Colony", 
+    "Sowripalayam", "Sukrawar Pettai", "Sundarapuram", "Thadagam Road", "Thondamuthur", "Tidel Park", 
+    "Trichy Road", "Udamalpet Road", "Ukkadam", "Vadavalli", "Vellakinar", "Vilankurichi", "Other"
+  ],
+  "Madurai": [
+    "Anna Nagar", "Arapalayam", "Avani Moola Street", "Bibikulam", "Bypass Road", "Chinna Chokkikulam", "Ellis Nagar", 
+    "Gomathipuram", "Goripalayam", "Iyer Bungalow", "K.K. Nagar", "K.Pudur", "Kalavasal", "Kamarajar Salai", 
+    "Kochadai", "Ma Mattuthavani", "Mahaboob Palayam", "Narimedu", "Othakadai", "Palanganatham", "Ponmeni", 
+    "Sellur", "Simmakkal", "South Gate", "Tallakulam", "Teppakulam", "Thirumangalam", "Thirunagar", "TVS Nagar", 
+    "Vasantha Nagar", "Vilakkuthoon", "Villapuram", "Viswanathapuram", "Other"
+  ],
   "Bangalore": ["Koramangala", "Indiranagar", "Jayanagar", "Whitefield", "Marathahalli", "Malleswaram", "HSR Layout"],
   "Mumbai": ["Andheri", "Bandra", "Borivali", "Dadar", "Goregaon", "Juhu", "Kandivali", "Malad", "Colaba"],
   "Delhi": ["Connaught Place", "Karol Bagh", "Dwarka", "Vasant Kunj", "Hauz Khas", "Rajouri Garden", "Saket"],
@@ -268,7 +293,10 @@ export default function ClientOnboardingScreen() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [editId, setEditId] = useState(null);
+  const [viewClient, setViewClient] = useState(null);
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   // Location state
   const [coords, setCoords] = useState(null);
@@ -283,6 +311,8 @@ export default function ClientOnboardingScreen() {
   const [phone, setPhone] = useState('');
   const [altPhone, setAltPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [onboardingDate, setOnboardingDate] = useState(() => new Date().toISOString().split('T')[0]);
+
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [selectedState, setSelectedState] = useState('');
@@ -411,6 +441,7 @@ export default function ClientOnboardingScreen() {
     setInterestedProducts(''); setNotes('');
     setFollowUpDate(''); setNextMeetingDate(''); setCoords(null);
     setProjectName(''); setServices([]); setSoftwareDetails('');
+    setOnboardingDate(new Date().toISOString().split('T')[0]);
     setEditId(null);
   };
 
@@ -438,6 +469,7 @@ export default function ClientOnboardingScreen() {
         notes,
         clientRequirement,
         followUpDate,
+        onboardingDate: onboardingDate || undefined,
         projectName,
         services,
         softwareDetails
@@ -522,6 +554,34 @@ export default function ClientOnboardingScreen() {
     setShowForm(true);
   };
 
+  const handleDownloadReport = async (client) => {
+    setDownloadingReport(true);
+    try {
+      const response = await api.get(`/onboarding/${client._id}/download-report`, {
+        responseType: 'blob'
+      });
+      if (Platform.OS === 'web') {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        const nameStr = (client.businessName || client.ownerName || 'client').replace(/\s+/g, '_');
+        link.setAttribute('download', `profile_${nameStr}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        Toast.show({ type: 'success', text1: 'Downloaded!', text2: 'Client Report generated successfully.' });
+      } else {
+        Alert.alert('Not Supported', 'Downloading Excel on native app is not supported yet.');
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'Failed to generate client report.');
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     const performDelete = async () => {
       try {
@@ -559,6 +619,21 @@ export default function ClientOnboardingScreen() {
         {!showForm ? (
           // ── LIST VIEW ──
           <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 14, paddingHorizontal: 12, marginBottom: 16, borderWidth: 1.5, borderColor: '#e2e8f0', height: 50 }}>
+              <Ionicons name="search" size={20} color="#94a3b8" />
+              <TextInput
+                style={{ flex: 1, marginLeft: 8, fontSize: 14, color: '#0f172a' }}
+                placeholder="Search clients by name, phone..."
+                placeholderTextColor="#94a3b8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery ? (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={18} color="#94a3b8" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748b', textTransform: 'uppercase', letterSpacing: 1 }}>
                 {clients.length} Client{clients.length !== 1 ? 's' : ''} Onboarded
@@ -588,7 +663,12 @@ export default function ClientOnboardingScreen() {
               </View>
             ) : (
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-                {clients.map((item) => {
+                {clients.filter(c => 
+                  c.businessName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  c.ownerName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  c.phone?.includes(searchQuery) ||
+                  c.email?.toLowerCase().includes(searchQuery.toLowerCase())
+                ).map((item) => {
                   return (
                     <View key={item._id} style={{
                       backgroundColor: '#ffffff', borderRadius: 24, borderWidth: 1, borderColor: '#f1f5f9',
@@ -648,16 +728,21 @@ export default function ClientOnboardingScreen() {
                           Onboarded {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                          {(role === 'Admin' || userData.id === item.executive?._id || userData.employeeId === item.executive?.employeeId) && (
-                            <View style={{ flexDirection: 'row', gap: 8 }}>
-                              <TouchableOpacity onPress={() => handleEdit(item)} style={{ backgroundColor: '#f1f5f9', padding: 8, borderRadius: 12 }}>
-                                <Ionicons name="pencil" size={16} color="#475569" />
-                              </TouchableOpacity>
-                              <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ backgroundColor: '#fef2f2', padding: 8, borderRadius: 12 }}>
-                                <Ionicons name="trash" size={16} color="#ef4444" />
-                              </TouchableOpacity>
-                            </View>
-                          )}
+                          <View style={{ flexDirection: 'row', gap: 8 }}>
+                            <TouchableOpacity onPress={() => setViewClient(item)} style={{ backgroundColor: '#f0f9ff', padding: 8, borderRadius: 12 }}>
+                              <Ionicons name="eye" size={16} color="#0284c7" />
+                            </TouchableOpacity>
+                            {(role === 'Admin' || userData.id === item.executive?._id || userData.employeeId === item.executive?.employeeId) && (
+                              <>
+                                <TouchableOpacity onPress={() => handleEdit(item)} style={{ backgroundColor: '#f1f5f9', padding: 8, borderRadius: 12 }}>
+                                  <Ionicons name="pencil" size={16} color="#475569" />
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDelete(item._id)} style={{ backgroundColor: '#fef2f2', padding: 8, borderRadius: 12 }}>
+                                  <Ionicons name="trash" size={16} color="#ef4444" />
+                                </TouchableOpacity>
+                              </>
+                            )}
+                          </View>
                           {item.executive && (
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f8fafc', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
                               <Ionicons name="person-circle" size={14} color="#64748b" />
@@ -685,6 +770,7 @@ export default function ClientOnboardingScreen() {
 
             {/* SECTION 1: Business Details */}
             <SectionCard title="Business Details" icon="briefcase-outline">
+              <DateField label="Onboarding Date" required value={onboardingDate} onChange={setOnboardingDate} />
               <Field label="Business / Client Name" required value={businessName} onChangeText={setBusinessName} placeholder="E.g. Sharma Traders" />
               <FieldLabel text="Business Type" required />
               <PillSelector options={BUSINESS_TYPES} value={businessType} onSelect={setBusinessType} />
@@ -851,6 +937,97 @@ export default function ClientOnboardingScreen() {
           </ScrollView>
         )}
       </View>
+
+      <Modal visible={!!viewClient} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 20, fontWeight: '600', color: '#0f172a' }}>Client Details</Text>
+              <TouchableOpacity onPress={() => setViewClient(null)}>
+                <Ionicons name="close" size={24} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            {viewClient && (
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={{ marginBottom: 20 }}>
+                  <Text style={{ fontSize: 22, fontWeight: '700', color: '#0f172a' }}>{viewClient.businessName}</Text>
+                  <Text style={{ fontSize: 14, color: '#64748b', marginTop: 4 }}>{viewClient.businessType}</Text>
+                </View>
+
+                <View style={{ gap: 12, marginBottom: 24 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Ionicons name="person-outline" size={20} color="#0284c7" />
+                    <View>
+                      <Text style={{ fontSize: 12, color: '#94a3b8' }}>Owner Name</Text>
+                      <Text style={{ fontSize: 14, color: '#334155', fontWeight: '500' }}>{viewClient.ownerName}</Text>
+                    </View>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Ionicons name="call-outline" size={20} color="#16a34a" />
+                    <View>
+                      <Text style={{ fontSize: 12, color: '#94a3b8' }}>Contact Number</Text>
+                      <Text style={{ fontSize: 14, color: '#334155', fontWeight: '500' }}>{viewClient.phone}</Text>
+                    </View>
+                  </View>
+
+                  {viewClient.email && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <Ionicons name="mail-outline" size={20} color="#e11d48" />
+                      <View>
+                        <Text style={{ fontSize: 12, color: '#94a3b8' }}>Email Address</Text>
+                        <Text style={{ fontSize: 14, color: '#334155', fontWeight: '500' }}>{viewClient.email}</Text>
+                      </View>
+                    </View>
+                  )}
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Ionicons name="location-outline" size={20} color="#d97706" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 12, color: '#94a3b8' }}>Location</Text>
+                      <Text style={{ fontSize: 14, color: '#334155', fontWeight: '500' }}>
+                        {viewClient.location?.address}, {viewClient.location?.city}, {viewClient.location?.state} - {viewClient.location?.pincode}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {viewClient.notes ? (
+                  <View style={{ backgroundColor: '#f8fafc', padding: 16, borderRadius: 12, marginBottom: 24 }}>
+                    <Text style={{ fontSize: 12, color: '#64748b', fontWeight: '500', marginBottom: 4 }}>Notes & Requirements</Text>
+                    <Text style={{ fontSize: 14, color: '#334155' }}>{viewClient.notes}</Text>
+                  </View>
+                ) : null}
+
+                <TouchableOpacity
+                  onPress={() => handleDownloadReport(viewClient)}
+                  disabled={downloadingReport}
+                  style={{
+                    backgroundColor: downloadingReport ? '#cbd5e1' : '#0f172a',
+                    paddingVertical: 14,
+                    borderRadius: 16,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 24
+                  }}
+                >
+                  {downloadingReport ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons name="download-outline" size={20} color="#fff" />
+                  )}
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
+                    {downloadingReport ? 'Generating Report...' : 'Download Full Client Report'}
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </AppLayout>
   );
 }

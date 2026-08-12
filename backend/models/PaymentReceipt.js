@@ -22,8 +22,8 @@ const paymentReceiptSchema = new mongoose.Schema({
   receipt_no: { type: String, required: true, unique: true },
   receipt_date: { type: Date, required: true, default: Date.now },
   invoice_id: { type: mongoose.Schema.Types.ObjectId, ref: 'TaxInvoice' },
-  invoice_no: { type: String, required: true },
-  service_no: { type: String, required: true },
+  invoice_no: { type: String, required: false },
+  service_no: { type: String, required: false },
   payment_date: { type: Date, required: true, default: Date.now },
   payment_method: { type: String, required: true, default: 'GOOGLE PAY' },
   // Account details
