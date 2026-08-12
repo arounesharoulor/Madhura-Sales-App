@@ -14,6 +14,11 @@ const paymentReceiptItemSchema = new mongoose.Schema({
 });
 
 const paymentReceiptSchema = new mongoose.Schema({
+  companyId: {
+    type: String,
+    default: 'company_madhura',
+    index: true
+  },
   receipt_no: { type: String, required: true, unique: true },
   receipt_date: { type: Date, required: true, default: Date.now },
   invoice_id: { type: mongoose.Schema.Types.ObjectId, ref: 'TaxInvoice' },

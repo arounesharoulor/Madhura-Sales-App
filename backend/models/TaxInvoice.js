@@ -15,6 +15,11 @@ const taxInvoiceItemSchema = new mongoose.Schema({
 });
 
 const taxInvoiceSchema = new mongoose.Schema({
+  companyId: {
+    type: String,
+    default: 'company_madhura',
+    index: true
+  },
   client_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   client_name: { type: String, default: '' },
   client_company: { type: String, default: '' },

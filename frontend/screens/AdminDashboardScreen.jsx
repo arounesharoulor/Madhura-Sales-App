@@ -34,7 +34,7 @@ export default function AdminDashboardScreen() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const [userRes, taskRes, meetingRes, clientRes, notifRes] = await Promise.all([
+      const [userRes, taskRes, meetingRes, clientRes, notifRes, attendanceRes] = await Promise.all([
         api.get('/users'),
         api.get('/tasks'),
         api.get('/meetings'),
@@ -47,7 +47,7 @@ export default function AdminDashboardScreen() {
       const pending = tasks.filter(t => t.status === 'Pending' || t.status === 'In Progress').length;
       const completed = tasks.filter(t => t.status === 'Completed').length;
 
-      const myAtt = notifRes_2?.data?.data || [];
+      const myAtt = attendanceRes?.data?.data || [];
       const checkIns = myAtt.filter(a => a.status === 'Checked In' || a.status === 'Checked Out').length;
       const leaves = myAtt.filter(a => a.status === 'On Leave').length;
 

@@ -42,9 +42,9 @@ export default function AdminDashboardPremium() {
         api.get('/meetings').catch(() => ({ data: { data: [] } })),
         api.get('/onboarding').catch(() => ({ data: { data: [] } })),
         api.get('/attendance').catch(() => ({ data: { data: [] } })),
-        isHR ? Promise.resolve({ data: { data: [] } }) : api.get('/tasks').catch(() => ({ data: { data: [] } })),
-        isHR ? Promise.resolve({ data: { data: [] } }) : api.get('/followups').catch(() => ({ data: { data: [] } })),
-        isHR ? Promise.resolve({ data: { data: [], count: 0 } }) : api.get('/users').catch(() => ({ data: { data: [], count: 0 } })),
+        api.get('/tasks').catch(() => ({ data: { data: [] } })),
+        api.get('/followups').catch(() => ({ data: { data: [] } })),
+        api.get('/users').catch(() => ({ data: { data: [], count: 0 } })),
       ]);
 
       const meetings = meetingRes.data.data || [];
@@ -176,9 +176,7 @@ export default function AdminDashboardPremium() {
             {(isHR || isMD) && (
               <StatCard label="Checked Out Today" value={metrics.checkedOut} icon="log-out" color="#6366f1" onPress={() => router.push('/AdminAttendance')} />
             )}
-            {!isHR && (
-              <StatCard label="Total Staff" value={metrics.totalEmployees} icon="people" color="#6366f1" onPress={() => router.push('/UserManagement')} />
-            )}
+            <StatCard label="Total Staff" value={metrics.totalEmployees} icon="people" color="#6366f1" onPress={() => router.push('/UserManagement')} />
             <StatCard label="Total Clients" value={metrics.totalClients} icon="briefcase" color="#7c3aed" onPress={() => router.push('/ClientOnboarding')} />
           </View>
 

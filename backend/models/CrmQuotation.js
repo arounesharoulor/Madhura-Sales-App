@@ -19,6 +19,11 @@ const quotationItemSchema = new mongoose.Schema({
 });
 
 const crmQuotationSchema = new mongoose.Schema({
+  companyId: {
+    type: String,
+    default: 'company_madhura',
+    index: true
+  },
   customer_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   quotation_date: { type: Date, required: true },
   subtotal: { type: Number, default: 0 },
