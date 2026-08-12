@@ -5,6 +5,7 @@ import api from "../services/api";
 import html2pdf from "html2pdf.js";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TaxInvoiceFormModal from "../components/TaxInvoiceFormModal";
+import useClientData from "../hooks/useClientData";
 import madhuraLogo from "../assets/madhura.png";
 import signatureImage from "../assets/sign.png";
 
@@ -252,6 +253,8 @@ export default function InvoiceScreenWeb() {
   const previewRef = useRef(null);
   const postSaveRef = useRef(null);
 
+  const { aggregatedData, fetchClientAggregatedData, clearClientData } = useClientData();
+
   useEffect(() => {
     const load = async () => {
       const stored = await AsyncStorage.getItem('user');
@@ -323,6 +326,7 @@ export default function InvoiceScreenWeb() {
       client_company: client.company_name || "", client_address: addrParts.join(", "), client_gstin: client.gstin || "",
     }));
     await fetchNextDetails(client.id, serviceType);
+    await fetchClientAggregatedData(client.id, client.company_name || client.name);
   };
 
   const handleServiceTypeChange = async (newType) => {
@@ -391,6 +395,7 @@ export default function InvoiceScreenWeb() {
     setServiceType("CRM"); setItems([emptyItem(1)]);
     setHeader(emptyHeader());
     setOpen(true);
+    clearClientData();
     await fetchNextDetails(null, "CRM");
   };
 
@@ -427,6 +432,7 @@ export default function InvoiceScreenWeb() {
     setOpen(false); setPostSavePreview(false); setEditInvoiceId(null); setSavedId(null);
     setClientSearch(""); setClientList([]); setShowClientDrop(false);
     setServiceType("CRM"); setItems([emptyItem(1)]); setHeader(emptyHeader());
+    clearClientData();
   };
 
   const updateItem = (idx, field, value) =>
@@ -588,6 +594,8 @@ export default function InvoiceScreenWeb() {
           handleRefresh={() => fetchNextDetails(header.client_id, serviceType)}
           resetForm={resetClose}
           submitting={submitting}
+          aggregatedData={aggregatedData}
+          setItems={setItems}
         />
 
         {/* Preview Modal */}

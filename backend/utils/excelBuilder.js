@@ -1,4 +1,8 @@
 const ExcelJS = require('exceljs');
+const CrmQuotation = require('../models/CrmQuotation');
+const ProformaInvoice = require('../models/ProformaInvoice');
+const TaxInvoice = require('../models/TaxInvoice');
+const PaymentReceipt = require('../models/PaymentReceipt');
 
 /**
  * Build an Excel workbook buffer from a report document
@@ -105,6 +109,120 @@ const buildReportExcel = async (report) => {
   });
 
   actSheet.autoFilter = { from: 'A1', to: 'G1' };
+
+  // ── Sheets for Financial Data ────────────────────────────
+  if (report.clientId || report.customClientName) {
+    let quotations = [];
+    let proformaInvoices = [];
+    let taxInvoices = [];
+    let paymentReceipts = [];
+
+    try {
+      if (report.clientId) {
+        quotations = await CrmQuotation.find({ customer_id: report.clientId }).lean();
+        proformaInvoices = await ProformaInvoice.find({ customer_id: report.clientId }).lean();
+        taxInvoices = await TaxInvoice.find({ client_id: report.clientId }).lean();
+      }
+
+      const taxInvoiceIds = taxInvoices.map(inv => inv._id);
+      const taxInvoiceNos = taxInvoices.map(inv => inv.invoice_no);
+      
+      const receiptQuery = {
+        $or: [
+          { invoice_id: { $in: taxInvoiceIds } },
+          { invoice_no: { $in: taxInvoiceNos } }
+        ]
+      };
+      
+      if (report.customClientName && report.customClientName.trim() !== '') {
+        receiptQuery.$or.push({ client_company: new RegExp(`^${report.customClientName}$`, 'i') });
+      }
+
+      if (taxInvoiceIds.length > 0 || (report.customClientName && report.customClientName.trim() !== '')) {
+        paymentReceipts = await PaymentReceipt.find(receiptQuery).lean();
+      }
+
+      // Add Quotations Sheet
+      if (quotations.length > 0) {
+        const qSheet = workbook.addWorksheet('Quotations');
+        qSheet.columns = [
+          { header: 'Date', key: 'date', width: 15 },
+          { header: 'Reference No', key: 'ref', width: 20 },
+          { header: 'Grand Total', key: 'total', width: 15 }
+        ];
+        qSheet.getRow(1).eachCell(cell => Object.assign(cell, headerStyle));
+        quotations.forEach(q => {
+          qSheet.addRow({
+            date: new Date(q.quotation_date).toLocaleDateString('en-IN'),
+            ref: q.reference_no || q._id.toString().slice(-6),
+            total: q.grand_total
+          });
+        });
+      }
+
+      // Add Proforma Invoices Sheet
+      if (proformaInvoices.length > 0) {
+        const pSheet = workbook.addWorksheet('Proforma Invoices');
+        pSheet.columns = [
+          { header: 'Date', key: 'date', width: 15 },
+          { header: 'Reference No', key: 'ref', width: 20 },
+          { header: 'Grand Total', key: 'total', width: 15 }
+        ];
+        pSheet.getRow(1).eachCell(cell => Object.assign(cell, headerStyle));
+        proformaInvoices.forEach(p => {
+          pSheet.addRow({
+            date: new Date(p.invoice_date).toLocaleDateString('en-IN'),
+            ref: p.reference_no || p.invoice_no || p._id.toString().slice(-6),
+            total: p.grand_total
+          });
+        });
+      }
+
+      // Add Tax Invoices Sheet
+      if (taxInvoices.length > 0) {
+        const tSheet = workbook.addWorksheet('Tax Invoices');
+        tSheet.columns = [
+          { header: 'Bill Date', key: 'date', width: 15 },
+          { header: 'Invoice No', key: 'invNo', width: 20 },
+          { header: 'Service No', key: 'srvNo', width: 20 },
+          { header: 'Advance', key: 'adv', width: 15 },
+        ];
+        tSheet.getRow(1).eachCell(cell => Object.assign(cell, headerStyle));
+        taxInvoices.forEach(t => {
+          tSheet.addRow({
+            date: new Date(t.bill_date).toLocaleDateString('en-IN'),
+            invNo: t.invoice_no,
+            srvNo: t.service_no,
+            adv: t.advance_amount
+          });
+        });
+      }
+
+      // Add Payment Receipts Sheet
+      if (paymentReceipts.length > 0) {
+        const rSheet = workbook.addWorksheet('Payment Receipts');
+        rSheet.columns = [
+          { header: 'Date', key: 'date', width: 15 },
+          { header: 'Receipt No', key: 'recNo', width: 20 },
+          { header: 'Invoice No', key: 'invNo', width: 20 },
+          { header: 'Method', key: 'method', width: 15 },
+          { header: 'Total Received', key: 'total', width: 18 },
+        ];
+        rSheet.getRow(1).eachCell(cell => Object.assign(cell, headerStyle));
+        paymentReceipts.forEach(r => {
+          rSheet.addRow({
+            date: new Date(r.receipt_date).toLocaleDateString('en-IN'),
+            recNo: r.receipt_no,
+            invNo: r.invoice_no,
+            method: r.payment_method,
+            total: r.total_amount
+          });
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching financial documents for Excel:", err);
+    }
+  }
 
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer);

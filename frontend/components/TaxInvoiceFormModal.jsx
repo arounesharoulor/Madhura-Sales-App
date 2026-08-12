@@ -29,10 +29,44 @@ export default function TaxInvoiceFormModal({
   handleRefresh,
   resetForm,
   submitting,
+  aggregatedData,
+  setItems,
 }) {
   if (!open) return null;
 
   const fmtNum = (n) => Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 0 });
+
+  const handleSelectQuotation = (e) => {
+    const qId = e.target.value;
+    if (!qId) return;
+    const q = aggregatedData?.quotations?.find(x => x._id === qId);
+    if (q && q.items) {
+      setItems(q.items.map((item, index) => ({
+        sl_no: index + 1,
+        description: item.description || "",
+        sac_code: item.hsn_code || "",
+        uom: item.uom || "Nos",
+        quantity: item.quantity || 1,
+        total_amount: item.subtotal || 0,
+      })));
+    }
+  };
+
+  const handleSelectProforma = (e) => {
+    const pId = e.target.value;
+    if (!pId) return;
+    const p = aggregatedData?.proformaInvoices?.find(x => x._id === pId);
+    if (p && p.items) {
+      setItems(p.items.map((item, index) => ({
+        sl_no: index + 1,
+        description: item.description || "",
+        sac_code: item.hsn_code || "",
+        uom: item.uom || "Nos",
+        quantity: item.quantity || 1,
+        total_amount: item.subtotal || 0,
+      })));
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-start overflow-y-auto pt-6 pb-10">
@@ -129,6 +163,45 @@ export default function TaxInvoiceFormModal({
                   className="border border-gray-300 rounded-lg px-3 py-2 outline-none text-sm w-full focus:border-[#0088CC] focus:ring-1 focus:ring-[#0088CC]"
                 />
               </div>
+
+              {aggregatedData && (aggregatedData.quotations?.length > 0 || aggregatedData.proformaInvoices?.length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                  {aggregatedData.quotations?.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-semibold text-[#0088CC] uppercase mb-1">Auto-fill from Quotation</label>
+                      <select
+                        onChange={handleSelectQuotation}
+                        defaultValue=""
+                        className="border border-blue-200 rounded-lg px-3 py-2 outline-none text-sm w-full bg-white focus:border-[#0088CC]"
+                      >
+                        <option value="">-- Select Quotation --</option>
+                        {aggregatedData.quotations.map(q => (
+                          <option key={q._id} value={q._id}>
+                            {q.reference_no || q._id.slice(-6)} - {new Date(q.quotation_date).toLocaleDateString()} (₹{fmtNum(q.grand_total)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {aggregatedData.proformaInvoices?.length > 0 && (
+                    <div>
+                      <label className="block text-xs font-semibold text-[#0088CC] uppercase mb-1">Auto-fill from Proforma</label>
+                      <select
+                        onChange={handleSelectProforma}
+                        defaultValue=""
+                        className="border border-blue-200 rounded-lg px-3 py-2 outline-none text-sm w-full bg-white focus:border-[#0088CC]"
+                      >
+                        <option value="">-- Select Proforma Invoice --</option>
+                        {aggregatedData.proformaInvoices.map(p => (
+                          <option key={p._id} value={p._id}>
+                            {p.reference_no || p.invoice_no || p._id.slice(-6)} - {new Date(p.invoice_date).toLocaleDateString()} (₹{fmtNum(p.grand_total)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

@@ -29,6 +29,7 @@ const reportSchema = new mongoose.Schema({
       required: true,
     },
     customClientName: { type: String, default: '' },
+    clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'ClientOnboarding', default: null },
     customProjectName: { type: String, default: '' },
     customSummary: { type: String, default: '' },
     customNextSteps: { type: String, default: '' },

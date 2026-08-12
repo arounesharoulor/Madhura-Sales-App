@@ -104,6 +104,7 @@ exports.generateReport = async (req, res, next) => {
       summary: { totalTasks, completedTasks, totalMeetings, totalFollowUps, totalExecutivesActive },
       activities,
       customClientName,
+      clientId,
       customProjectName,
       customSummary,
       customNextSteps,

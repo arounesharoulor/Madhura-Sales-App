@@ -4,6 +4,7 @@ import { Plus, Search, Download, X, Edit2, Trash2, Mail, RefreshCw, Eye } from "
 import api from "../services/api";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReceiptTemplate from "../components/receipttemplate.web";
+import useClientData from "../hooks/useClientData";
 
 const PAYMENT_METHODS = ["GOOGLE PAY", "PHONEPE", "BANK TRANSFER", "CASH", "CHEQUE"];
 
@@ -18,6 +19,12 @@ export default function PaymentReceiptScreenWeb() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientList, setClientList] = useState([]);
+  const [showClientDrop, setShowClientDrop] = useState(false);
+
+  const { aggregatedData, fetchClientAggregatedData, clearClientData } = useClientData();
 
   // Form Fields
   const [receiptNo, setReceiptNo] = useState("");
@@ -105,6 +112,32 @@ export default function PaymentReceiptScreenWeb() {
     }
   };
 
+  const handleClientSearch = async (val) => {
+    setClientSearch(val);
+    if (!val.trim()) { setClientList([]); setShowClientDrop(false); return; }
+    try {
+      const res = await api.get(`/client/search?name=${encodeURIComponent(val)}`);
+      setClientList(res.data);
+      setShowClientDrop(true);
+    } catch {
+      setClientList([]);
+    }
+  };
+
+  const handleSelectClient = async (client) => {
+    setClientSearch(client.company_name || client.name);
+    setClientList([]);
+    setShowClientDrop(false);
+    
+    setClientCompany(client.company_name || "");
+    setClientName(client.name || "");
+    
+    const addrParts = [client.address1, client.address2, client.city, client.state, client.pincode].filter(Boolean);
+    setClientAddress(addrParts.join(", "));
+
+    await fetchClientAggregatedData(client.id, client.company_name || client.name);
+  };
+
   const loadNextDetails = async () => {
     try {
       const res = await api.get("/payment-receipts/next-details");
@@ -131,6 +164,9 @@ export default function PaymentReceiptScreenWeb() {
     setBankName("Axis Bank, Aruppukottai");
     setAccountNumber("925020029656189");
     setIfscCode("UTIB0002029");
+    setClientSearch("");
+    setShowClientDrop(false);
+    clearClientData();
     loadNextDetails();
     setOpen(true);
   };
@@ -156,6 +192,8 @@ export default function PaymentReceiptScreenWeb() {
       setClientName(r.client_name);
       setClientAddress(r.client_address);
       setItems(r.items || []);
+      setClientSearch(r.client_company || r.client_name || "");
+      clearClientData();
       setOpen(true);
     } catch (err) {
       alert("Error loading receipt");
@@ -368,17 +406,71 @@ export default function PaymentReceiptScreenWeb() {
               </div>
 
               <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+                
+                {/* Client Search */}
+                <div className="bg-white border border-gray-200 p-4 rounded-xl shadow-sm relative">
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Search & Select Client</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={clientSearch}
+                      onChange={e => handleClientSearch(e.target.value)}
+                      placeholder="Type client name or company..."
+                      className="border border-gray-300 rounded-lg px-3 py-2 outline-none text-sm flex-1 focus:border-blue-500"
+                    />
+                    {clientSearch && (
+                      <button type="button" onClick={() => { setClientSearch(""); clearClientData(); }} className="text-gray-400 hover:text-red-500">
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  {showClientDrop && clientList.length > 0 && (
+                    <div className="absolute z-20 bg-white border border-gray-200 shadow-lg rounded-lg mt-1 w-[calc(100%-2rem)] max-h-48 overflow-y-auto">
+                      {clientList.map(c => (
+                        <div
+                          key={c.id}
+                          onClick={() => handleSelectClient(c)}
+                          className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-0 flex justify-between"
+                        >
+                          <span className="font-semibold text-gray-800">{c.company_name || c.name}</span>
+                          {c.phone && <span className="text-gray-400 text-xs">📞 {c.phone}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Autocomplete / Quick Fill section */}
-                <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl">
-                  <label className="block text-xs font-bold text-blue-700 uppercase mb-2">
-                    Quick Fill from Tax Invoice
+                {aggregatedData?.taxInvoices?.length > 0 && (
+                  <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl">
+                    <label className="block text-xs font-bold text-blue-700 uppercase mb-2">
+                      Quick Fill from Client's Tax Invoice
+                    </label>
+                    <select
+                      value={invoiceId}
+                      onChange={e => handleSelectInvoice(e.target.value)}
+                      className="w-full border border-blue-200 bg-white rounded-lg px-3 py-2 outline-none text-sm text-gray-800"
+                    >
+                      <option value="">-- Choose Tax Invoice to populate fields --</option>
+                      {aggregatedData.taxInvoices.map(inv => (
+                        <option key={inv._id} value={inv._id}>
+                          {inv.invoice_no} ({new Date(inv.bill_date).toLocaleDateString()})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                <div className="bg-gray-50/50 border border-gray-100 p-4 rounded-xl">
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+                    Fallback (All Invoices)
                   </label>
                   <select
                     value={invoiceId}
                     onChange={e => handleSelectInvoice(e.target.value)}
-                    className="w-full border border-blue-200 bg-white rounded-lg px-3 py-2 outline-none text-sm text-gray-800"
+                    className="w-full border border-gray-200 bg-white rounded-lg px-3 py-2 outline-none text-sm text-gray-800"
                   >
-                    <option value="">-- Choose Tax Invoice to populate fields --</option>
+                    <option value="">-- Or manually select any existing Tax Invoice --</option>
                     {invoices.map(inv => (
                       <option key={inv.id} value={inv.id}>
                         {inv.invoice_no} ({inv.client_company})
