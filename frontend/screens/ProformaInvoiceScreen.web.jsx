@@ -286,7 +286,7 @@ export default function ProformaInvoiceScreenWeb() {
     const rate = Number(item.price) || 0;
     const qty = Number(item.qty) || 0;
     const discount = Number(item.discount) || 0;
-    const tax = Number(item.tax) || getTaxRate();
+    const tax = getTaxRate();
 
     const subtotal = (rate * qty) - discount;
     const taxValue = subtotal * (tax / 100);
@@ -536,9 +536,13 @@ export default function ProformaInvoiceScreenWeb() {
     setItems(p => [...p, { hsn_code: "", name: "", uom: "Nos", price: 0, qty: 1, tax: getTaxRate(), discount: 0 }]);
   };
 
-  const removeItem = () => {
+  const removeItem = (idx) => {
     if (items.length <= 1) return;
-    setItems(items.slice(0, -1));
+    if (typeof idx === 'number') {
+      setItems(prev => prev.filter((_, i) => i !== idx));
+    } else {
+      setItems(prev => prev.slice(0, -1));
+    }
   };
 
   const formatPINumber = (id, dateStr) => {

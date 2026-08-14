@@ -70,7 +70,7 @@ export default function QuotationFormModal({
     const rate = Number(item.price) || 0;
     const qty = Number(item.qty) || 0;
     const discount = Number(item.discount) || 0;
-    const tax = Number(item.tax) || taxRate;
+    const tax = taxRate;
 
     const subtotal = (rate * qty) - discount;
     const taxValue = subtotal * (tax / 100);
@@ -331,6 +331,7 @@ export default function QuotationFormModal({
                       <th className="px-3 py-3 text-right" style={{ width: "100px" }}>RATE (₹)</th>
                       {taxRate > 0 && <th className="px-3 py-3 text-right" style={{ width: "100px" }}>TAX VALUE</th>}
                       <th className="px-3 py-3 text-right" style={{ width: "120px" }}>AMOUNT (₹)</th>
+                      <th className="px-3 py-3 text-center" style={{ width: "40px" }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -397,6 +398,18 @@ export default function QuotationFormModal({
                           )}
                           <td className="px-3 py-2 text-right font-bold text-gray-800">
                             ₹{fmtNum(amount)}
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            {items.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeItem(i)}
+                                className="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-red-50"
+                                title="Remove item"
+                              >
+                                <X size={16} />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
